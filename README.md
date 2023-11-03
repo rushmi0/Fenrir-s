@@ -1,0 +1,2 @@
+# Fenrir-s
+Nostr Relay
