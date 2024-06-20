@@ -1,0 +1,26 @@
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>
+                [%boldMagenta(%d{dd-MM-yyyy})][%boldMagenta(%d{HH:mm:ss.SSS})] %green([%thread]) %highlight(%-5level) %boldYellow(%logger{36}) - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.fenrirs.*" level="INFO"/>
+    <logger name="io.micronaut.http.client" level="TRACE"/>
+    <!--    <Logger name="io.micronaut.context.condition" level="DEBUG"/>-->
+
+    <!--    <logger name="org.flywaydb.core" level="DEBUG"/>-->
+    <!--    <logger name="io.micronaut.flyway" level="INFO"/>-->
+    <!--    <logger name="com.zaxxer.hikari.pool" level="DEBUG"/>-->
+
+    <logger name="io.micronaut.http.client" level="TRACE"/>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

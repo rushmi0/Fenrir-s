@@ -1,0 +1,6 @@
+applicationType: default
+defaultPackage: org.fenrirs
+testFramework: kotest
+sourceLanguage: kotlin
+buildTool: gradle_kotlin
+features: [ app-name, gradle, http-client-test, jdbc-hikari, jooq, kotest, kotlin, kotlin-application, ksp, micronaut-aot, micronaut-build, micronaut-http-validation, netty-server, postgres, readme, rxjava3, serialization-jackson, shade, slf4j-simple-logger, static-resources, test-resources, toml, toml-build, websocket ]

@@ -1,0 +1,45 @@
+micronaut.application.name = 'fenrir-s'
+
+[micronaut.server]
+cors.enabled = true
+cors.localhost-pass-through = true
+maxRequestSize = "1MB"
+host = "localhost"
+port = 6724
+
+
+[nostr.relay.info]
+name = "rushmi0"
+description = "นึกแล้ว มึงต้องอ่าน"
+npub = 'npub1ujevvncwfe22hv6d2cjv6pqwqhkvwlcvge7vgm3vcn2max9tu03sgze8ry'
+contact = "Lorem@bitkuy.com"
+
+[jooq.datasources.default]
+sql-dialect = "postgres"
+
+[datasources.default]
+jdbc-url = "jdbc:postgresql://localhost:54330/nostr"
+#jdbc-url = "jdbc:postgresql://relay-postgres:5432/postgres"
+driver-class-name = "org.postgresql.Driver"
+username = "rushmi0"
+password = "0sql@min1"
+db-type = "postgres"
+## Hikari Connection Pooling ##
+minimum-idle = 5
+maximum-pool-size = 10
+idle-timeout = 60000
+transaction-isolation = "TRANSACTION_REPEATABLE_READ"
+keepalive-time = 60000
+max-lifetime = 2000000
+leak-detection-threshold = 30000
+validation-timeout = 3000
+
+[redis]
+uri = "redis://localhost:63790"
+timeout = "45m"
+io-thread-pool-size = 5
+computation-thread-pool-size = 4
+
+[micronaut.router.static-resources.default]
+mapping = "/**"
+paths = ["classpath:public/"]
