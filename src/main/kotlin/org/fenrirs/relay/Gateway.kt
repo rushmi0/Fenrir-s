@@ -12,8 +12,10 @@ import io.micronaut.websocket.annotation.OnClose
 import io.micronaut.websocket.annotation.OnMessage
 import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
+
 import jakarta.inject.Inject
 import kotlinx.coroutines.runBlocking
+
 import org.fenrirs.relay.service.nip01.BasicProtocolFlow
 import org.fenrirs.relay.service.nip01.command.CLOSE
 import org.fenrirs.relay.service.nip01.command.CommandFactory.parse
@@ -21,6 +23,7 @@ import org.fenrirs.relay.service.nip01.command.EVENT
 import org.fenrirs.relay.service.nip01.command.REQ
 import org.fenrirs.relay.service.nip01.response.RelayResponse
 import org.fenrirs.relay.service.nip11.RelayInformation
+
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -58,13 +61,14 @@ class Gateway @Inject constructor(
         LOG.info("message: \n$message")
 
         try {
-            val (command, validationResult) = parse(message) //  Pair<Command?, Pair<Boolean, String>>
+            // Pair<Command?, Pair<Boolean, String>>
+            val (cmd, validationResult) = parse(message)
             val (status, warning) = validationResult
 
-            when (command) {
-                is EVENT -> nip01.onEvent(command.event, status, warning, session)
-                is REQ -> nip01.onRequest(command.subscriptionId, command.filtersX, status, warning, session)
-                is CLOSE -> nip01.onClose(command.subscriptionId, session)
+            when (cmd) {
+                is EVENT -> nip01.onEvent(cmd.event, status, warning, session)
+                is REQ -> nip01.onRequest(cmd.subscriptionId, cmd.filtersX, status, warning, session)
+                is CLOSE -> nip01.onClose(cmd.subscriptionId, session)
                 else -> nip01.onUnknown(session)
             }
 

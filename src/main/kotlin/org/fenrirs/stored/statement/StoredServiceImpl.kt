@@ -14,6 +14,7 @@ import org.jooq.DSLContext
 import org.jooq.SelectWhereStep
 import org.jooq.impl.DSL
 import org.jooq.impl.SQLDataType
+
 import org.slf4j.LoggerFactory
 
 import jakarta.inject.Inject
@@ -21,6 +22,7 @@ import org.fenrirs.utils.ExecTask.runWithExecutorService
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
+
 
 class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) : StoredService {
 
@@ -45,15 +47,17 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
                     EVENT.TAGS,
                     EVENT.CONTENT,
                     EVENT.SIG
-                ).values(
-                    DSL.`val`(event.id).cast(SQLDataType.VARCHAR.length(64)),
-                    DSL.`val`(event.pubkey).cast(SQLDataType.VARCHAR.length(64)),
-                    DSL.`val`(event.created_at).cast(SQLDataType.INTEGER),
-                    DSL.`val`(event.kind).cast(SQLDataType.INTEGER),
-                    DSL.`val`(Json.encodeToString(event.tags)).cast(SQLDataType.JSONB),
-                    DSL.`val`(event.content).cast(SQLDataType.CLOB),
-                    DSL.`val`(event.sig).cast(SQLDataType.VARCHAR.length(128))
-                ).execute() > 0
+                )
+                    .values(
+                        DSL.`val`(event.id).cast(SQLDataType.VARCHAR.length(64)),
+                        DSL.`val`(event.pubkey).cast(SQLDataType.VARCHAR.length(64)),
+                        DSL.`val`(event.created_at).cast(SQLDataType.INTEGER),
+                        DSL.`val`(event.kind).cast(SQLDataType.INTEGER),
+                        DSL.`val`(Json.encodeToString(event.tags)).cast(SQLDataType.JSONB),
+                        DSL.`val`(event.content).cast(SQLDataType.CLOB),
+                        DSL.`val`(event.sig).cast(SQLDataType.VARCHAR.length(128))
+                    ).execute() > 0
+
             } catch (e: Exception) {
                 LOG.error("Error saving event: ${e.message}")
                 false
@@ -123,12 +127,16 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
 
                 filters.kinds.takeIf { it.isNotEmpty() }?.let { kinds ->
 
-                    // ถ้าค่า kinds เป็น 0 และมีการกำหนด authors สั่งให้ดึงข้อมูลที่มี CREATED_AT มากสุด
-                    if (kinds.contains(0) && filters.authors.isNotEmpty()) {
-                        query.orderBy(EVENT.CREATED_AT.desc()).limit(1)
+                    when {
+                        // ถ้าค่า kinds เป็น 0 และมีการกำหนด authors สั่งให้ดึงข้อมูลที่มี CREATED_AT มากสุด
+                        kinds.contains(0) && filters.authors.isNotEmpty() -> query.orderBy(EVENT.CREATED_AT.desc()).limit(1)
+
+                        // ถ้าค่า kinds เป็น 3 และมีการกำหนด authors สั่งให้ดึงข้อมูลที่มี KIND เท่ากับ 3 และ CREATED_AT มากสุด
+                        kinds.contains(3) && filters.authors.isNotEmpty() -> query.where(EVENT.KIND.eq(3)).orderBy(EVENT.CREATED_AT.desc()).limit(1)
+
+                        else -> query.where(EVENT.KIND.`in`(kinds))
                     }
 
-                    query.where(EVENT.KIND.`in`(kinds))
                 }
 
                 // ถ้ามีการระบุ tags ใน filters ให้เพิ่มเงื่อนไขการค้นหา TAGS ที่ตรงกับค่าที่กำหนด
@@ -188,9 +196,11 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
                 }
 
                 // กำหนด limit ของการดึงข้อมูล ถ้า filters.limit ไม่มีการกำหนดหรือเป็น null ให้ใช้ค่าเริ่มต้นเป็น 500 record
-                if (!filters.kinds.contains(0)) {
-                    query.limit(filters.limit?.toInt() ?: 500)
+                if (!filters.kinds.contains(0) && !filters.kinds.contains(3)) {
+                    query.limit(filters.limit?.toInt() ?: 1_500)
                 }
+
+                LOG.info("$query")
 
                 // ดำเนินการ fetch ข้อมูลตามเงื่อนไขที่กำหนดแล้ว map ข้อมูลที่ได้มาเป็น Event objects
                 query.fetch().map { record ->

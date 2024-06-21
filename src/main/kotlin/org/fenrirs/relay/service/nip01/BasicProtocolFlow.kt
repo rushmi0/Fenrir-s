@@ -3,10 +3,15 @@ package org.fenrirs.relay.service.nip01
 import io.micronaut.websocket.WebSocketSession
 import jakarta.inject.Inject
 import kotlinx.coroutines.runBlocking
+
 import org.fenrirs.relay.modules.Event
 import org.fenrirs.relay.modules.FiltersX
 import org.fenrirs.relay.service.nip01.response.RelayResponse
+import org.fenrirs.relay.service.nip09.EventDeletion
+import org.fenrirs.relay.service.nip13.ProofOfWork
+
 import org.fenrirs.stored.statement.StoredServiceImpl
+
 import org.slf4j.LoggerFactory
 
 
@@ -25,16 +30,15 @@ class BasicProtocolFlow @Inject constructor(
                 // ไม่พบข้อมูลในฐานข้อมูล ดำเนินการบันทึกข้อมูล
                 val result: Boolean = service.saveEvent(event)
                 LOG.info("Event saved status: $result")
-                RelayResponse.OK(eventId = event.id, isSuccess = result, message = warning).toClient(session)
+                RelayResponse.OK(event.id, result, warning).toClient(session)
             } else {
                 // พบข้อมูลในฐานข้อมูลแล้ว ส่งข้อมูลเป็นค่าซ้ำกลับไปยัง client
                 LOG.info("Event with ID ${event.id} already exists in the database.")
-                RelayResponse.OK(eventId = event.id, isSuccess = false, message = "Duplicate: already have this event")
-                    .toClient(session)
+                RelayResponse.OK(event.id,false,"Duplicate: already have this event").toClient(session)
             }
 
         } else {
-            RelayResponse.OK(eventId = event.id!!, isSuccess = false, message = warning).toClient(session)
+            RelayResponse.OK(event.id!!,false, warning).toClient(session)
         }
 
     }

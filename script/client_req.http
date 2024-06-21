@@ -6,7 +6,7 @@ accept: application/nostr+json
 WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
-["REQ","hsZEOtaDsENYkP5H-JIWp",{"kinds":[1],"limit":2}]
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],"kinds":[0]}]
 
 ###
 
@@ -15,6 +15,19 @@ Content-Type: application/json
 
 ["REQ","hsZEOtaDsENYkP5H-JIWp",{"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],"kinds":[30002],"limit":50}]
 
+###
+
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],"kinds":[3]}]
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],"kinds":[3]}]
 
 ###
 

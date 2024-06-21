@@ -1,10 +1,13 @@
 package org.fenrirs.relay.service.nip01.command
 
 import kotlinx.serialization.json.*
+
 import org.fenrirs.relay.modules.Event
 import org.fenrirs.relay.modules.FiltersX
+
 import org.fenrirs.relay.policy.EventValidateField
 import org.fenrirs.relay.policy.FiltersXValidateField
+
 import org.fenrirs.relay.service.nip01.Transform.convertToFiltersXObject
 import org.fenrirs.relay.service.nip01.Transform.toEvent
 import org.fenrirs.relay.service.nip01.Transform.validateElement
@@ -32,9 +35,9 @@ object CommandFactory {
         }
 
         return when (val cmd = jsonElement[0].jsonPrimitive.content) {
-            "EVENT" -> eventCommand(jsonElement)
-            "REQ" -> reqCommand(jsonElement)
-            "CLOSE" -> closeCommand(jsonElement)
+            "EVENT" -> parseEvent(jsonElement)
+            "REQ" -> parseREQ(jsonElement)
+            "CLOSE" -> parseClose(jsonElement)
             "AUTH" -> TODO("Not yet implemented")
             else -> throw IllegalArgumentException("Unknown command: $cmd")
         }
@@ -46,7 +49,7 @@ object CommandFactory {
      * @param jsonArray JsonArray ที่มีข้อมูลเป็นคำสั่งประเภท EVENT
      * @return Pair ที่มีค่าเป็นคำสั่งและ Pair ที่มีค่าเป็นสถานะการประมวลผลและข้อความเตือน
      */
-    private fun eventCommand(jsonArray: JsonArray): Pair<Command, Pair<Boolean, String>> {
+    private fun parseEvent(jsonArray: JsonArray): Pair<Command, Pair<Boolean, String>> {
         if (jsonArray.size != 2 || jsonArray[1] !is JsonObject) {
             throw IllegalArgumentException("Invalid: EVENT command format")
         }
@@ -64,7 +67,7 @@ object CommandFactory {
      * @param jsonArray JsonArray ที่มีข้อมูลเป็นคำสั่งประเภท REQ
      * @return Pair ที่มีค่าเป็นคำสั่งและ Pair ที่มีค่าเป็นสถานะการประมวลผลและข้อความเตือน
      */
-    private fun reqCommand(jsonArray: JsonArray): Pair<Command, Pair<Boolean, String>> {
+    private fun parseREQ(jsonArray: JsonArray): Pair<Command, Pair<Boolean, String>> {
         if (jsonArray.size < 3 || jsonArray[1] !is JsonPrimitive || jsonArray.drop(2).any { it !is JsonObject }) {
             throw IllegalArgumentException("Invalid: REQ command format")
         }
@@ -85,7 +88,7 @@ object CommandFactory {
      * @param jsonArray JsonArray ที่มีข้อมูลเป็นคำสั่งประเภท CLOSE
      * @return Pair ที่มีค่าเป็นคำสั่งและ Pair ที่มีค่าเป็นสถานะการประมวลผลและข้อความเตือน
      */
-    private fun closeCommand(jsonArray: JsonArray): Pair<Command, Pair<Boolean, String>> {
+    private fun parseClose(jsonArray: JsonArray): Pair<Command, Pair<Boolean, String>> {
         if (jsonArray.size != 2 || jsonArray[1] !is JsonPrimitive) {
             throw IllegalArgumentException("Invalid: CLOSE command format")
         }
