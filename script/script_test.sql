@@ -15,7 +15,8 @@ WHERE event_id = 'ecfdf5d329ae69bdca40f04a33a8f8447b83824f958a8db926430cd8b2aeb3
 
 SELECT *
 FROM event
-WHERE pubkey = 'e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3';
+WHERE pubkey = 'e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3'
+  AND kind = 0;
 
 -- 287 , 426
 SELECT pg_size_pretty(pg_database_size('nostr')) AS size;
@@ -25,3 +26,21 @@ FROM event
 WHERE kind = 0;
 
 ROLLBACK;
+
+SELECT pubkey,
+       kind,
+       jsonb_array_length(tags) AS member_count
+FROM event
+WHERE pubkey = 'e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3'
+  AND kind = 3;
+
+
+SELECT *
+FROM event
+WHERE pubkey = 'e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3'
+  AND kind = 3
+ORDER BY created_at DESC
+LIMIT 1;
+
+
+

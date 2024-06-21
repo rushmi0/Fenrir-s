@@ -129,10 +129,34 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
 
                     when {
                         // ถ้าค่า kinds เป็น 0 และมีการกำหนด authors สั่งให้ดึงข้อมูลที่มี CREATED_AT มากสุด
-                        kinds.contains(0) && filters.authors.isNotEmpty() -> query.orderBy(EVENT.CREATED_AT.desc()).limit(1)
+                        kinds.contains(0) && filters.authors.isNotEmpty() -> {
+
+                            /**
+                             * SELECT *
+                             * FROM event
+                             * WHERE pubkey = 'e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3'
+                             *   AND kind = 0
+                             * ORDER BY created_at DESC
+                             * LIMIT 1;
+                             */
+
+                            query.where(EVENT.KIND.eq(0)).orderBy(EVENT.CREATED_AT.desc()).limit(1)
+                        }
 
                         // ถ้าค่า kinds เป็น 3 และมีการกำหนด authors สั่งให้ดึงข้อมูลที่มี KIND เท่ากับ 3 และ CREATED_AT มากสุด
-                        kinds.contains(3) && filters.authors.isNotEmpty() -> query.where(EVENT.KIND.eq(3)).orderBy(EVENT.CREATED_AT.desc()).limit(1)
+                        kinds.contains(3) && filters.authors.isNotEmpty() -> {
+
+                            /**
+                             * SELECT *
+                             * FROM event
+                             * WHERE pubkey = 'e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3'
+                             *   AND kind = 3
+                             * ORDER BY created_at DESC
+                             * LIMIT 1;
+                             */
+
+                            query.where(EVENT.KIND.eq(3)).orderBy(EVENT.CREATED_AT.desc()).limit(1)
+                        }
 
                         else -> query.where(EVENT.KIND.`in`(kinds))
                     }
