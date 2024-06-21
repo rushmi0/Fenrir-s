@@ -202,7 +202,7 @@ class Bech32 {
         /**
          * Expands the human readable prefix per BIP173 for Checksum encoding
          */
-        fun expandHrp(hrp: String) =
+        private fun expandHrp(hrp: String) =
             hrp.map { c -> c.code shr 5 }
                 .plus(0)
                 .plus(hrp.map { c -> c.code and 31 })
@@ -211,7 +211,7 @@ class Bech32 {
         /**
          * Polynomial division function for checksum calculation.  For details see BIP173
          */
-        fun polymod(values: IntArray): Int {
+        private fun polymod(values: IntArray): Int {
             var chk = 1
             return values.map {
                 var b = chk shr 25

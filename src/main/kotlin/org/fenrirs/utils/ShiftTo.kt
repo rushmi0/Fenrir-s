@@ -80,4 +80,24 @@ object ShiftTo {
         return jsonElement.jsonObject
     }
 
+
+    /**
+     * ฟังก์ชันสำหรับแปลงขนาดหน่วยความจำเป็น KB, MB, หรือ GB
+     * @param bytes ขนาดหน่วยความจำในหน่วย bytes
+     * @return ขนาดหน่วยความจำที่ถูกแปลงเป็นหน่วยที่เหมาะสม
+     */
+    fun formatMemorySize(bytes: Long): String {
+        val kilobyte = 1024L
+        val megabyte = kilobyte * 1024
+        val gigabyte = megabyte * 1024
+
+        return when {
+            bytes >= gigabyte -> "%.2f GB".format(bytes.toDouble() / gigabyte)
+            bytes >= megabyte -> "%.2f MB".format(bytes.toDouble() / megabyte)
+            bytes >= kilobyte -> "%.2f KB".format(bytes.toDouble() / kilobyte)
+            else -> "$bytes bytes"
+        }
+    }
+
+
 }

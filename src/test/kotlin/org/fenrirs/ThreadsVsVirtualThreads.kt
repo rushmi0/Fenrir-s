@@ -1,17 +1,14 @@
 package org.fenrirs
 
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.junit.jupiter.api.Test
 import java.lang.Thread.sleep
-import kotlin.system.measureTimeMillis
 import kotlinx.coroutines.runBlocking
-import org.fenrirs.utils.VirtualThreadUtils.executorService
-import org.fenrirs.utils.VirtualThreadUtils.measure
-import org.fenrirs.utils.VirtualThreadUtils.runWithExecutorService
+import org.fenrirs.utils.ExecTask.measure
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
+import org.fenrirs.utils.ExecTask
 
 class ThreadsVsVirtualThreads {
 
@@ -61,32 +58,19 @@ class ThreadsVsVirtualThreads {
     }
 
     @Test
-    fun `many virtual Threads 2`() {
-        measure("VirtualThreads 2") {
-            val threads = (1..100_000).map {
-                executorService.execute {
+    fun `many virtual Threads with executorService`() {
+        measure("VirtualThreads with ExecutorService") {
+            val futures = (1..100_000).map {
+                ExecTask.execService.execute {
                     counter.incrementAndGet()
-                    sleep(2000)
+                    Thread.sleep(2000)
                 }
             }
-            println("Virtual Threads: Ready to Roll")
-
+            println("Virtual Threads with ExecutorService: Ready to Roll")
         }
     }
 
+    companion object {
+        val counter = AtomicLong(0)
+    }
 }
-
-
-//fun <T> measure(construct: String, block: () -> T): T {
-//    val start = System.currentTimeMillis()
-//    try {
-//        return block().also {
-//            println("Took: ${System.currentTimeMillis() - start} ms with: ${counter.get()} $construct")
-//        }
-//    } catch (ex: Throwable) {
-//        println("Exception occured. $construct so far: ${counter.get()}. Exception: ${ex.message}")
-//        throw ex
-//    }
-//}
-
-val counter = AtomicLong(0)

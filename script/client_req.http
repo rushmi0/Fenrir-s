@@ -43,9 +43,4 @@ Content-Type: application/json
 WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
-["REQ","6Y92Rj5mPPvkyh9_pYBXD",{"#p":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],"kinds":[1,6,16,7,9735,2004,30023],"limit":50}]
-
-### 4_121_824
-### 1_495_448
-### 2_041_200
-### 6_569_232
+["REQ","6Y92Rj5mPPvkyh9_pYBXD",{"#p":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],"kinds":[1,6,16,7,9735,2004,30023],"limit":150}]
