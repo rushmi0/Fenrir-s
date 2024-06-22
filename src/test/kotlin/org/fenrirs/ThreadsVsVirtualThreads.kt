@@ -1,5 +1,6 @@
 package org.fenrirs
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.junit.jupiter.api.Test
@@ -16,7 +17,7 @@ class ThreadsVsVirtualThreads {
     fun `many Coroutines`() = measure("Coroutines") {
         runBlocking {
             (1..100_000).map {
-                launch {
+                launch(Dispatchers.IO) {
                     counter.incrementAndGet()
                     delay(2000)
                 }

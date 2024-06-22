@@ -18,7 +18,8 @@ import org.jooq.impl.SQLDataType
 import org.slf4j.LoggerFactory
 
 import jakarta.inject.Inject
-import org.fenrirs.utils.ExecTask.runWithExecutorService
+import org.fenrirs.utils.ExecTask.runWithVirtualThreads
+import org.fenrirs.utils.ExecTask.runWithVirtualThreadsPerTask
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -28,7 +29,7 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
 
 
     override suspend fun saveEvent(event: Event): Boolean {
-        return runWithExecutorService("saveEvent") {
+        return runWithVirtualThreadsPerTask("saveEvent") {
             try {
 
                 /**
@@ -67,7 +68,7 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
 
 
     override suspend fun selectById(id: String): Event? {
-        return runWithExecutorService("selectById") {
+        return runWithVirtualThreadsPerTask("selectById") {
             try {
 
                 /**
@@ -99,7 +100,7 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
 
 
     override suspend fun filterList(filters: FiltersX): List<Event> {
-        return runWithExecutorService("filterList") {
+        return runWithVirtualThreads("filter function") {
             try {
 
                 /**
@@ -128,35 +129,21 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
                 filters.kinds.takeIf { it.isNotEmpty() }?.let { kinds ->
 
                     when {
+
+                        /**
+                         * SELECT *
+                         * FROM event
+                         * WHERE pubkey = 'e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3'
+                         *   AND kind = 3
+                         * ORDER BY created_at DESC
+                         * LIMIT 1;
+                         */
+
                         // ถ้าค่า kinds เป็น 0 และมีการกำหนด authors สั่งให้ดึงข้อมูลที่มี CREATED_AT มากสุด
-                        kinds.contains(0) && filters.authors.isNotEmpty() -> {
-
-                            /**
-                             * SELECT *
-                             * FROM event
-                             * WHERE pubkey = 'e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3'
-                             *   AND kind = 0
-                             * ORDER BY created_at DESC
-                             * LIMIT 1;
-                             */
-
-                            query.where(EVENT.KIND.eq(0)).orderBy(EVENT.CREATED_AT.desc()).limit(1)
-                        }
+                        kinds.contains(0) && filters.authors.isNotEmpty() -> query.where(EVENT.KIND.eq(0)).orderBy(EVENT.CREATED_AT.desc()).limit(1)
 
                         // ถ้าค่า kinds เป็น 3 และมีการกำหนด authors สั่งให้ดึงข้อมูลที่มี KIND เท่ากับ 3 และ CREATED_AT มากสุด
-                        kinds.contains(3) && filters.authors.isNotEmpty() -> {
-
-                            /**
-                             * SELECT *
-                             * FROM event
-                             * WHERE pubkey = 'e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3'
-                             *   AND kind = 3
-                             * ORDER BY created_at DESC
-                             * LIMIT 1;
-                             */
-
-                            query.where(EVENT.KIND.eq(3)).orderBy(EVENT.CREATED_AT.desc()).limit(1)
-                        }
+                        kinds.contains(3) && filters.authors.isNotEmpty() -> query.where(EVENT.KIND.eq(3)).orderBy(EVENT.CREATED_AT.desc()).limit(1)
 
                         else -> query.where(EVENT.KIND.`in`(kinds))
                     }
@@ -224,7 +211,7 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
                     query.limit(filters.limit?.toInt() ?: 1_500)
                 }
 
-                LOG.info("$query")
+                LOG.info("\n$query")
 
                 // ดำเนินการ fetch ข้อมูลตามเงื่อนไขที่กำหนดแล้ว map ข้อมูลที่ได้มาเป็น Event objects
                 query.fetch().map { record ->

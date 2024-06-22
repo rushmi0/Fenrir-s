@@ -1,12 +1,16 @@
 package org.fenrirs.utils
 
+import kotlinx.coroutines.runBlocking
 import org.fenrirs.utils.ShiftTo.formatMemorySize
 import org.slf4j.LoggerFactory
 import java.lang.management.ManagementFactory
 import java.lang.management.MemoryMXBean
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlin.coroutines.suspendCoroutine
 
 object ExecTask {
 
@@ -18,26 +22,25 @@ object ExecTask {
      * @param construct ชื่อของโค้ดหรือระบบที่ต้องการวัด
      * @param block โค้ดที่ต้องการให้ Virtual Threads ทำงาน
      */
-    inline fun <T> runWithExecutorService(construct: String = "", crossinline block: () -> T): T {
-        val future = CompletableFuture<T>()
-
-        measure(construct) {
-            execService.execute {
-                try {
-                    if (execService.isShutdown) {
-                        LOG.error("Virtual thread shut down")
-                        future.completeExceptionally(IllegalStateException("Virtual thread shut down"))
-                        return@execute
+    inline fun <T> runWithVirtualThreadsPerTask(construct: String = "", crossinline block: suspend () -> T): T {
+        return runBlocking {
+            suspendCoroutine { continuation ->
+                execService.execute {
+                    try {
+                        if (execService.isShutdown) {
+                            LOG.error("Virtual thread shut down")
+                            continuation.resumeWithException(IllegalStateException("Virtual thread shut down"))
+                            return@execute
+                        }
+                        // ต้องเรียกใช้งาน block() ภายใน coroutine scope ที่ถูกต้อง
+                        continuation.resume(runBlocking { block() })
+                    } catch (e: Exception) {
+                        // กรณีเกิด Exception ให้ส่ง exception กลับไปยัง coroutine caller
+                        continuation.resumeWithException(e)
                     }
-                    val result = block()
-                    future.complete(result)
-                } catch (e: Exception) {
-                    future.completeExceptionally(e)
                 }
             }
         }
-
-        return future.get()
     }
 
     /**
@@ -45,26 +48,25 @@ object ExecTask {
      * @param construct ชื่อของโค้ดหรือระบบที่ต้องการวัด
      * @param block โค้ดที่ต้องการให้ Virtual Threads ทำงาน
      */
-    inline fun <T> runWithVirtualThreads(construct: String = "", crossinline block: () -> T): T {
-        val future = CompletableFuture<T>()
-
-        measure(construct) {
-            Thread.startVirtualThread {
-                try {
-                    if (Thread.currentThread().isInterrupted) {
-                        LOG.error("Thread is interrupted")
-                        future.completeExceptionally(InterruptedException("Thread is interrupted"))
-                        return@startVirtualThread
+    inline fun <T> runWithVirtualThreads(construct: String = "", crossinline block: suspend () -> T): T {
+        return runBlocking {
+            suspendCoroutine { continuation ->
+                Thread.startVirtualThread {
+                    try {
+                        if (Thread.currentThread().isInterrupted) {
+                            LOG.error("Thread is interrupted")
+                            continuation.resumeWithException(InterruptedException("Thread is interrupted"))
+                            return@startVirtualThread
+                        }
+                        // ต้องเรียกใช้งาน block() ภายใน coroutine scope ที่ถูกต้อง
+                        continuation.resume(runBlocking { block() })
+                    } catch (e: Exception) {
+                        // กรณีเกิด Exception ให้ส่ง exception กลับไปยัง coroutine caller
+                        continuation.resumeWithException(e)
                     }
-                    val result = block()
-                    future.complete(result)
-                } catch (e: Exception) {
-                    future.completeExceptionally(e)
                 }
             }
         }
-
-        return future.get()
     }
 
     /**
