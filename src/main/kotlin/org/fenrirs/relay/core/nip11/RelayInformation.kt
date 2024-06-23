@@ -1,4 +1,4 @@
-package org.fenrirs.relay.service.nip11
+package org.fenrirs.relay.core.nip11
 
 import io.micronaut.context.annotation.Value
 import io.micronaut.http.MediaType

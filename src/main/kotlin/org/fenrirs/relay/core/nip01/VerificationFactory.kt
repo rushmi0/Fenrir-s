@@ -1,4 +1,4 @@
-package org.fenrirs.relay.service.nip01
+package org.fenrirs.relay.core.nip01
 
 import jakarta.inject.Singleton
 import kotlinx.serialization.json.*
@@ -6,10 +6,10 @@ import org.fenrirs.relay.modules.TagElt
 import org.fenrirs.relay.policy.EventValidateField
 import org.fenrirs.relay.policy.FiltersXValidateField
 import org.fenrirs.relay.policy.NostrField
-import org.fenrirs.relay.service.nip01.Transform.convertToEventObject
-import org.fenrirs.relay.service.nip01.Transform.convertToFiltersXObject
-import org.fenrirs.relay.service.nip01.VerifyEvent.isValidEventId
-import org.fenrirs.relay.service.nip01.VerifyEvent.isValidSignature
+import org.fenrirs.relay.core.nip01.Transform.convertToEventObject
+import org.fenrirs.relay.core.nip01.Transform.convertToFiltersXObject
+import org.fenrirs.relay.core.nip01.VerifyEvent.isValidEventId
+import org.fenrirs.relay.core.nip01.VerifyEvent.isValidSignature
 import org.slf4j.LoggerFactory
 
 
@@ -55,7 +55,7 @@ open class VerificationFactory {
     }
 
     private fun buildErrorMessage(invalidFields: List<String>): String {
-        return "Unsupported: [${invalidFields.joinToString(", ")}] fields"
+        return "unsupported: [${invalidFields.joinToString(", ")}] fields"
     }
 
     fun validateDataType(
@@ -68,7 +68,7 @@ open class VerificationFactory {
             val actualType = inspectDataType(fieldValue)
 
             if (expectedType != actualType) {
-                val warning = "Invalid: data type at [$fieldName] field"
+                val warning = "invalid: data type at [$fieldName] field"
                 LOG.info(warning)
                 return Pair(false, warning)
             }
@@ -78,7 +78,7 @@ open class VerificationFactory {
             val missingFields = relayPolicy.filterNot { field -> receive.containsKey(field.fieldName) }
             if (missingFields.isNotEmpty()) {
                 val missingFieldNames = missingFields.joinToString(", ") { field -> field.fieldName }
-                val warning = "Invalid: missing fields: [$missingFieldNames]"
+                val warning = "invalid: missing fields: [$missingFieldNames]"
                 LOG.info(warning)
                 return Pair(false, warning)
             }
@@ -113,7 +113,7 @@ open class VerificationFactory {
         return when {
             relayPolicy.isArrayOfPolicy<FiltersXValidateField>() -> validateFiltersX(receive)
             relayPolicy.isArrayOfPolicy<EventValidateField>() -> validateEvent(receive)
-            else -> Pair(false, "Unsupported: relay policy")
+            else -> Pair(false, "unsupported: relay policy")
         }
     }
 
@@ -128,7 +128,7 @@ open class VerificationFactory {
 
         val (isValidId, actualId) = event.isValidEventId()
         if (!isValidId) {
-            val warning = "Invalid: actual event id $actualId"
+            val warning = "invalid: actual event id $actualId"
             LOG.info(warning)
             return Pair(false, warning)
         }

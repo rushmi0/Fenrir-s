@@ -6,6 +6,28 @@ accept: application/nostr+json
 WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
+["REQ","hsZEOtaDsENYkP5H-JIWp", {"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"], "#p": ["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]}]
+
+###
+
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+["REQ","hsZEOtaDsENYkP5H-JIWp", {"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"], "#p": ["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]}]
+
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"ids":["42224859763652914db53052103f0b744df79dfc4efef7e950fc0802fc3df3c5"]}]
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
 ["REQ","hsZEOtaDsENYkP5H-JIWp",{"kinds":[40, 41, 42, 43, 44]}]
 
 ###

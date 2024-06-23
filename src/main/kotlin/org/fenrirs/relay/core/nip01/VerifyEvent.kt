@@ -1,4 +1,4 @@
-package org.fenrirs.relay.service.nip01
+package org.fenrirs.relay.core.nip01
 
 import org.fenrirs.relay.modules.Event
 import org.fenrirs.utils.Schnorr
@@ -28,5 +28,6 @@ object VerifyEvent {
         }
         return Pair(true, "")
     }
+
 
 }

@@ -1,4 +1,4 @@
-package org.fenrirs.relay.service.nip01
+package org.fenrirs.relay.core.nip01
 
 import jakarta.inject.Singleton
 import kotlinx.serialization.json.*

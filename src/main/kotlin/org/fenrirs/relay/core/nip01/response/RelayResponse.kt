@@ -1,4 +1,4 @@
-package org.fenrirs.relay.service.nip01.response
+package org.fenrirs.relay.core.nip01.response
 
 import io.micronaut.websocket.WebSocketSession
 import org.fenrirs.relay.modules.Event
@@ -52,7 +52,7 @@ sealed class RelayResponse<out T> {
      * @param message ข้อความแจ้งเตือน
      * ใช้ในการส่งข้อความแจ้งเตือนที่อ่านได้โดยมนุษย์หรือข้อความแจ้งปัญหาหรือข้อผิดพลาดอื่นๆ ที่ต้องการไปยังไคลเอนต์
      */
-    data class NOTICE(val message: String = "") : RelayResponse<Unit>()
+    data class NOTICE(val message: String) : RelayResponse<Unit>()
 
     /**
      * ฟังก์ชัน toJson ใช้ในการแปลงข้อมูล ที่ใช้ในการตอบกลับจากรูปแบบ Kotlin Object ไปเป็น JSON string

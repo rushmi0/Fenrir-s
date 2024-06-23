@@ -1,4 +1,4 @@
-package org.fenrirs.relay.service.nip01.command
+package org.fenrirs.relay.core.nip01.command
 
 import kotlinx.serialization.Serializable
 import org.fenrirs.relay.modules.Event

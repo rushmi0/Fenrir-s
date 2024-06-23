@@ -18,18 +18,19 @@ import org.jooq.impl.SQLDataType
 import org.slf4j.LoggerFactory
 
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import org.fenrirs.utils.ExecTask.runWithVirtualThreads
 import org.fenrirs.utils.ExecTask.runWithVirtualThreadsPerTask
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-
+@Singleton
 class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) : StoredService {
 
 
     override suspend fun saveEvent(event: Event): Boolean {
-        return runWithVirtualThreadsPerTask("saveEvent") {
+        return runWithVirtualThreadsPerTask {
             try {
 
                 /**
@@ -67,8 +68,8 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
     }
 
 
-    override suspend fun selectById(id: String): Event? {
-        return runWithVirtualThreadsPerTask("selectById") {
+    override fun selectById(id: String): Event? {
+        return runWithVirtualThreadsPerTask {
             try {
 
                 /**
@@ -100,7 +101,7 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
 
 
     override suspend fun filterList(filters: FiltersX): List<Event> {
-        return runWithVirtualThreads("filter function") {
+        return runWithVirtualThreadsPerTask {
             try {
 
                 /**
@@ -123,6 +124,13 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
                 // ถ้ามีการระบุ ids ใน filters ให้เพิ่มเงื่อนไขการค้นหา EVENT_ID ใน ids ที่กำหนด
                 filters.ids.takeIf { it.isNotEmpty() }?.let { query.where(EVENT.EVENT_ID.`in`(it)) }
 
+
+                // เพิ่มเงื่อนไขการค้นหา id ที่ขึ้นต้นด้วยเลขที่กำหนด
+                filters.ids.takeIf { it.isNotEmpty() }?.let { ids ->
+                    val pattern = ids.firstOrNull()?.let { "$it%" } ?: return@let
+                    query.where(EVENT.EVENT_ID.like(pattern))
+                }
+
                 // ถ้ามีการระบุ authors ใน filters ให้เพิ่มเงื่อนไขการค้นหา PUBKEY ใน authors ที่กำหนด
                 filters.authors.takeIf { it.isNotEmpty() }?.let { query.where(EVENT.PUBKEY.`in`(it)) }
 
@@ -140,10 +148,12 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
                          */
 
                         // ถ้าค่า kinds เป็น 0 และมีการกำหนด authors สั่งให้ดึงข้อมูลที่มี CREATED_AT มากสุด
-                        kinds.contains(0) && filters.authors.isNotEmpty() -> query.where(EVENT.KIND.eq(0)).orderBy(EVENT.CREATED_AT.desc()).limit(1)
+                        kinds.contains(0) && filters.authors.isNotEmpty() -> query.where(EVENT.KIND.eq(0))
+                            .orderBy(EVENT.CREATED_AT.desc()).limit(1)
 
                         // ถ้าค่า kinds เป็น 3 และมีการกำหนด authors สั่งให้ดึงข้อมูลที่มี KIND เท่ากับ 3 และ CREATED_AT มากสุด
-                        kinds.contains(3) && filters.authors.isNotEmpty() -> query.where(EVENT.KIND.eq(3)).orderBy(EVENT.CREATED_AT.desc()).limit(1)
+                        kinds.contains(3) && filters.authors.isNotEmpty() -> query.where(EVENT.KIND.eq(3))
+                            .orderBy(EVENT.CREATED_AT.desc()).limit(1)
 
                         else -> query.where(EVENT.KIND.`in`(kinds))
                     }

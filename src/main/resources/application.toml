@@ -19,7 +19,7 @@ sql-dialect = "postgres"
 
 [datasources.default]
 jdbc-url = "jdbc:postgresql://localhost:54330/nostr"
-#jdbc-url = "jdbc:postgresql://relay-postgres:5432/postgres"
+#jdbc-url = "jdbc:postgresql://relay-postgres:54330/nostr"
 driver-class-name = "org.postgresql.Driver"
 username = "rushmi0"
 password = "0sql@min1"

@@ -24,7 +24,7 @@ interface StoredService {
      * @param id ไอดีของเหตุการณ์ที่ต้องการเลือก
      * @return เหตุการณ์ที่เลือก หากพบ หรือ null หากไม่พบ
      */
-    suspend fun selectById(id: String): Event?
+    fun selectById(id: String): Event?
 
     /**
      * filterList ใช้ในการดึงรายการข้อมูล Event จากฐานข้อมูลตามเงื่อนไขที่ระบุใน FiltersX

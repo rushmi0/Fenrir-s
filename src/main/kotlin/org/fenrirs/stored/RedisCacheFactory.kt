@@ -9,7 +9,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 
-@Singleton
 class RedisCacheFactory @Inject constructor(
     private val redisClient: RedisClient = RedisClient.create("redis://localhost:63790"),
     private val connection: StatefulRedisConnection<String, String> = redisClient.connect(),

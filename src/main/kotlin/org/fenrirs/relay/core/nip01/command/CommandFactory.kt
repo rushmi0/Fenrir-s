@@ -1,4 +1,4 @@
-package org.fenrirs.relay.service.nip01.command
+package org.fenrirs.relay.core.nip01.command
 
 import kotlinx.serialization.json.*
 
@@ -8,9 +8,9 @@ import org.fenrirs.relay.modules.FiltersX
 import org.fenrirs.relay.policy.EventValidateField
 import org.fenrirs.relay.policy.FiltersXValidateField
 
-import org.fenrirs.relay.service.nip01.Transform.convertToFiltersXObject
-import org.fenrirs.relay.service.nip01.Transform.toEvent
-import org.fenrirs.relay.service.nip01.Transform.validateElement
+import org.fenrirs.relay.core.nip01.Transform.convertToFiltersXObject
+import org.fenrirs.relay.core.nip01.Transform.toEvent
+import org.fenrirs.relay.core.nip01.Transform.validateElement
 
 /**
  * CommandFactory เป็นอ็อบเจกต์ที่ใช้ในการประมวลผลคำสั่งที่ส่งมาจากไคลเอนต์

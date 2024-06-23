@@ -16,13 +16,13 @@ import io.micronaut.websocket.annotation.ServerWebSocket
 import jakarta.inject.Inject
 import kotlinx.coroutines.runBlocking
 
-import org.fenrirs.relay.service.nip01.BasicProtocolFlow
-import org.fenrirs.relay.service.nip01.command.CLOSE
-import org.fenrirs.relay.service.nip01.command.CommandFactory.parse
-import org.fenrirs.relay.service.nip01.command.EVENT
-import org.fenrirs.relay.service.nip01.command.REQ
-import org.fenrirs.relay.service.nip01.response.RelayResponse
-import org.fenrirs.relay.service.nip11.RelayInformation
+import org.fenrirs.relay.core.nip01.BasicProtocolFlow
+import org.fenrirs.relay.core.nip01.command.CLOSE
+import org.fenrirs.relay.core.nip01.command.CommandFactory.parse
+import org.fenrirs.relay.core.nip01.command.EVENT
+import org.fenrirs.relay.core.nip01.command.REQ
+import org.fenrirs.relay.core.nip01.response.RelayResponse
+import org.fenrirs.relay.core.nip11.RelayInformation
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -57,7 +57,7 @@ class Gateway @Inject constructor(
 
 
     @OnMessage
-    fun onMessage(message: String, session: WebSocketSession) {
+    suspend fun onMessage(message: String, session: WebSocketSession) {
         LOG.info("message: \n$message")
 
         try {
