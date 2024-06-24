@@ -105,12 +105,13 @@ class BasicProtocolFlow @Inject constructor(
         session: WebSocketSession
     ) {
         if (status) {
-            //LOG.info("request for subscription ID: $subscriptionId with filters: $filtersX")
+            // LOG.info("request for subscription ID: $subscriptionId with filters: $filtersX")
 
             for (filter in filtersX) {
                 val events = sqlExec.filterList(filter)
-                events.forEach { event ->
-                    //LOG.info("Relay Response event: $event")
+                events.forEachIndexed { index, event ->
+                    val eventIndex = "${index + 1}/${events.size}" // Index starts from 1 for readability
+                    LOG.info("Relay Response event $eventIndex: $event")
                     RelayResponse.EVENT(subscriptionId, event).toClient(session)
                 }
             }
@@ -120,6 +121,7 @@ class BasicProtocolFlow @Inject constructor(
             RelayResponse.NOTICE(warning).toClient(session)
         }
     }
+
 
     fun onClose(subscriptionId: String, session: WebSocketSession) {
         LOG.info("close request for subscription ID: $subscriptionId")
