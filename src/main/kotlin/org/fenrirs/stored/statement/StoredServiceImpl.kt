@@ -20,7 +20,11 @@ import org.slf4j.LoggerFactory
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import org.fenrirs.utils.ExecTask.runWithVirtualThreads
+
 import org.fenrirs.utils.ExecTask.runWithVirtualThreadsPerTask
+import org.fenrirs.utils.ShiftTo.fromHex
+import org.jooq.LikeEscapeStep
+
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
@@ -101,7 +105,7 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
 
 
     override suspend fun filterList(filters: FiltersX): List<Event> {
-        return runWithVirtualThreadsPerTask {
+        return runWithVirtualThreads {
             try {
 
                 /**
@@ -121,15 +125,23 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
 
                 val query: SelectWhereStep<EventRecord> = enforceSQL.selectFrom(EVENT)
 
+
                 // ถ้ามีการระบุ ids ใน filters ให้เพิ่มเงื่อนไขการค้นหา EVENT_ID ใน ids ที่กำหนด
-                filters.ids.takeIf { it.isNotEmpty() }?.let { query.where(EVENT.EVENT_ID.`in`(it)) }
-
-
-                // เพิ่มเงื่อนไขการค้นหา id ที่ขึ้นต้นด้วยเลขที่กำหนด
                 filters.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-                    val pattern = ids.firstOrNull()?.let { "$it%" } ?: return@let
-                    query.where(EVENT.EVENT_ID.like(pattern))
+                    val fullLengthIds = ids.filter { it.length == 64 }
+                    val shortIds = ids.filter { it.length < 64 && it.all { char -> char == '0' } }
+
+                    if (fullLengthIds.isNotEmpty()) {
+                        query.where(EVENT.EVENT_ID.`in`(fullLengthIds))
+                    }
+
+                    if (shortIds.isNotEmpty()) {
+                        shortIds.forEach { shortId ->
+                            query.where(EVENT.EVENT_ID.like("$shortId%"))
+                        }
+                    }
                 }
+
 
                 // ถ้ามีการระบุ authors ใน filters ให้เพิ่มเงื่อนไขการค้นหา PUBKEY ใน authors ที่กำหนด
                 filters.authors.takeIf { it.isNotEmpty() }?.let { query.where(EVENT.PUBKEY.`in`(it)) }
@@ -218,10 +230,10 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
 
                 // กำหนด limit ของการดึงข้อมูล ถ้า filters.limit ไม่มีการกำหนดหรือเป็น null ให้ใช้ค่าเริ่มต้นเป็น 500 record
                 if (!filters.kinds.contains(0) && !filters.kinds.contains(3)) {
-                    query.limit(filters.limit?.toInt() ?: 1_500)
+                    query.limit(filters.limit?.toInt() ?: 300_000)
                 }
 
-                LOG.info("\n$query")
+                LOG.info("SQL Command\n$query")
 
                 // ดำเนินการ fetch ข้อมูลตามเงื่อนไขที่กำหนดแล้ว map ข้อมูลที่ได้มาเป็น Event objects
                 query.fetch().map { record ->
@@ -236,7 +248,7 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
                     )
                 }
             } catch (e: Exception) {
-                LOG.error("Error filtering events: ${e.message}")
+                LOG.error("Error filtering events: ${e.stackTrace.joinToString("\n")}")
                 emptyList()
             }
         }

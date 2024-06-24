@@ -6,14 +6,7 @@ accept: application/nostr+json
 WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
-["REQ","hsZEOtaDsENYkP5H-JIWp", {"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"], "#p": ["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]}]
-
-###
-
-WEBSOCKET wss://relay.damus.io
-Content-Type: application/json
-
-["REQ","hsZEOtaDsENYkP5H-JIWp", {"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"], "#p": ["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]}]
+["REQ","hsZEOtaDsENYkP5H-JIWp", {"#p": ["03742c205cb6c8d86031c93bc4a9b3d18484c32c86563fc0e218910a2df9aa5d"]}]
 
 
 ###
@@ -21,7 +14,30 @@ Content-Type: application/json
 WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
-["REQ","hsZEOtaDsENYkP5H-JIWp",{"ids":["42224859763652914db53052103f0b744df79dfc4efef7e950fc0802fc3df3c5"]}]
+["REQ","hsZEOtaDsENYkP5H-JIWp", {"#p": ["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]}]
+
+###
+
+WEBSOCKET wss://nos.lol
+Content-Type: application/json
+
+["REQ","hsZEOtaDsENYkP5H-JIWp", {"#p": ["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]}]
+
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"ids":["42224859763652914db53052103f0b744df79dfc4efef7e950fc0802fc3df3c5","2d773becf9fe47623405fa265d83db0fbd91a6148d0bfb72a9471422c2ecd511"]}]
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"ids":["00000000"],"limit":2}]
+
 
 ###
 

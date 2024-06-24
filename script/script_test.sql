@@ -23,7 +23,7 @@ SELECT pg_size_pretty(pg_database_size('nostr')) AS size;
 
 SELECT *
 FROM event
-WHERE kind = 0;
+WHERE kind = 5;
 
 ROLLBACK;
 
@@ -44,3 +44,39 @@ LIMIT 1;
 
 
 
+SELECT "public"."event"."event_id",
+       "public"."event"."pubkey",
+       "public"."event"."created_at",
+       "public"."event"."kind",
+       "public"."event"."tags",
+       "public"."event"."content",
+       "public"."event"."sig"
+FROM "public"."event"
+WHERE "public"."event"."event_id" LIKE '0000%';
+
+
+SELECT "public"."event"."event_id",
+       "public"."event"."pubkey",
+       "public"."event"."created_at",
+       "public"."event"."kind",
+       "public"."event"."tags",
+       "public"."event"."content",
+       "public"."event"."sig"
+FROM "public"."event"
+WHERE "public"."event"."event_id" LIKE '0000%'
+   OR "public"."event"."event_id" LIKE '000%';
+
+
+
+SELECT "public"."event"."event_id",
+       "public"."event"."pubkey",
+       "public"."event"."created_at",
+       "public"."event"."kind",
+       "public"."event"."tags",
+       "public"."event"."content",
+       "public"."event"."sig"
+FROM "public"."event"
+WHERE "public"."event"."event_id" IN (
+                                      '42224859763652914db53052103f0b744df79dfc4efef7e950fc0802fc3df3c5',
+                                      '2d773becf9fe47623405fa265d83db0fbd91a6148d0bfb72a9471422c2ecd511'
+    )
