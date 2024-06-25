@@ -42,12 +42,14 @@ class BasicProtocolFlow @Inject constructor(
 
     }
 
+
+
     private suspend fun handleNormalEvent(event: Event, session: WebSocketSession) {
         try {
             val status: Boolean = sqlExec.saveEvent(event)
             if (status) {
                 LOG.info("Event saved successfully: ${event.id}")
-                RelayResponse.OK(event.id!!, true, "").toClient(session)
+                RelayResponse.OK(event.id!!, true).toClient(session)
             } else {
                 LOG.warn("Failed to save event: ${event.id}")
                 RelayResponse.OK(event.id!!, false, "error: could not saving event to the database").toClient(session)
@@ -58,7 +60,7 @@ class BasicProtocolFlow @Inject constructor(
         }
     }
 
-    private fun handleDeletableEvent(event: Event, session: WebSocketSession) {
+    private suspend fun handleDeletableEvent(event: Event, session: WebSocketSession) {
         try {
             val deletionSuccess = nip09.deleteEvent(event)
             if (deletionSuccess) {
@@ -123,12 +125,12 @@ class BasicProtocolFlow @Inject constructor(
     }
 
 
-    fun onClose(subscriptionId: String, session: WebSocketSession) {
+    suspend fun onClose(subscriptionId: String, session: WebSocketSession) {
         LOG.info("close request for subscription ID: $subscriptionId")
         RelayResponse.CLOSED(subscriptionId).toClient(session)
     }
 
-    fun onUnknown(session: WebSocketSession) {
+    suspend fun onUnknown(session: WebSocketSession) {
         LOG.warn("Unknown command")
         RelayResponse.NOTICE("Unknown command").toClient(session)
     }

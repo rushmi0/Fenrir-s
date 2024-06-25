@@ -1,6 +1,5 @@
 package org.fenrirs.relay.core.nip11
 
-import io.micronaut.context.annotation.Value
 import io.micronaut.http.MediaType
 import jakarta.inject.Inject
 import kotlinx.coroutines.Dispatchers
@@ -9,6 +8,7 @@ import org.fenrirs.stored.RedisCacheFactory
 import java.io.File
 import java.nio.charset.Charset
 import jakarta.inject.Singleton
+import org.fenrirs.relay.policy.NostrRelayConfig
 import org.fenrirs.utils.Bech32
 import org.fenrirs.utils.ShiftTo.toHex
 import org.slf4j.LoggerFactory
@@ -16,18 +16,7 @@ import org.slf4j.LoggerFactory
 @Singleton
 class RelayInformation @Inject constructor(
     private val redis: RedisCacheFactory,
-
-    @Value("\${nostr.relay.info.name}")
-    private val name: String,
-
-    @Value("\${nostr.relay.info.description}")
-    private val description: String,
-
-    @Value("\${nostr.relay.info.npub}")
-    private val npub: String,
-
-    @Value("\${nostr.relay.info.contact}")
-    private val contact: String
+    private val config: NostrRelayConfig
 ) {
 
     /**
@@ -63,13 +52,13 @@ class RelayInformation @Inject constructor(
 
 
     private fun relayInfo(): String {
-        val publicKey = Bech32.decode(npub).data.toHex()
+        val publicKey = Bech32.decode(config.info.npub).data.toHex()
         return """
             {
-              "name": "$name",
-              "description": "$description",
+              "name": "${config.info.name}",
+              "description": "${config.info.description}",
               "pubkey": "$publicKey",
-              "contact": "$contact",
+              "contact": "${config.info.contact}",
               "supported_nips": [1,2,4,9,11,12,13,15,16,20,28,50],
               "software": "https://github.com/rushmi0/lnwza007.git",
               "version": "0.1"

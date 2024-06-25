@@ -1,11 +1,16 @@
 package org.fenrirs.relay.core.nip01.response
 
 import io.micronaut.websocket.WebSocketSession
+
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
+
 import org.fenrirs.relay.modules.Event
-import org.fenrirs.utils.ExecTask.runWithVirtualThreads
 import org.fenrirs.utils.ShiftTo.toJsonString
+
+import java.util.concurrent.CompletableFuture
+
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -75,19 +80,37 @@ sealed class RelayResponse<out T> {
      * ฟังก์ชัน toClient ใช้ในการส่งการตอบกลับไปยังไคลเอนต์ผ่าน WebSocket
      * @param session ใช้ในการสื่อสารกับไคลเอนต์
      */
-    fun toClient(session: WebSocketSession) {
+    suspend fun toClient(session: WebSocketSession) {
         if (session.isOpen) {
-            val payload = this.toJson() // แปลงการตอบกลับเป็น JSON string
+            val payload = this.toJson()
             try {
-                session.sendSync(payload) // ส่งข้อมูลไปยังไคลเอนต์
+                sendSync(session, payload)
                 if (this is CLOSED) {
-                    session.close() // ปิดการเชื่อมต่อถ้าการตอบกลับเป็น CLOSED
+                    session.close()
                 }
             } catch (e: Exception) {
-                LOG.error("Error sending WebSocket message: ${e.message}") // แจ้งเตือนเมื่อมีข้อผิดพลาดในการส่งข้อมูล
+                LOG.error("Error sending WebSocket message: ${e.message}")
             }
         } else {
-            LOG.warn("Attempted to send message to closed WebSocket session.") // แจ้งเตือนเมื่อพยายามส่งข้อความไปยัง session ที่ปิดแล้ว
+            LOG.warn("Attempted to send message to closed WebSocket session.")
+        }
+    }
+
+    /**
+     * ฟังก์ชัน sendSync ใช้ในการส่งข้อมูลไปยัง WebSocket session แบบ synchronous
+     * @param session ใช้ในการสื่อสารกับไคลเอนต์
+     * @param payload ข้อมูลที่ต้องการส่งไปยังไคลเอนต์
+     */
+    private suspend fun sendSync(session: WebSocketSession, payload: String) {
+        return withContext(Dispatchers.Default) {
+            val future = CompletableFuture<Boolean>()
+            try {
+                session.sendSync(payload)
+                future.complete(true)
+            } catch (e: Exception) {
+                future.completeExceptionally(e)
+            }
+            future.await()
         }
     }
 

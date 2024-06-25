@@ -230,7 +230,7 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
 
                 // กำหนด limit ของการดึงข้อมูล ถ้า filters.limit ไม่มีการกำหนดหรือเป็น null ให้ใช้ค่าเริ่มต้นเป็น 500 record
                 if (!filters.kinds.contains(0) && !filters.kinds.contains(3)) {
-                    query.limit(filters.limit?.toInt() ?: 300_000)
+                    query.limit(filters.limit?.toInt() ?: 15_000)
                 }
 
                 LOG.info("SQL Command\n$query")

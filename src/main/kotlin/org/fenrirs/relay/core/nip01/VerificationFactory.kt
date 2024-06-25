@@ -1,17 +1,20 @@
 package org.fenrirs.relay.core.nip01
 
 import jakarta.inject.Singleton
+
 import kotlinx.serialization.json.*
 import org.fenrirs.relay.modules.TagElt
+
 import org.fenrirs.relay.policy.EventValidateField
 import org.fenrirs.relay.policy.FiltersXValidateField
 import org.fenrirs.relay.policy.NostrField
+
 import org.fenrirs.relay.core.nip01.Transform.convertToEventObject
 import org.fenrirs.relay.core.nip01.Transform.convertToFiltersXObject
 import org.fenrirs.relay.core.nip01.VerifyEvent.isValidEventId
 import org.fenrirs.relay.core.nip01.VerifyEvent.isValidSignature
-import org.slf4j.LoggerFactory
 
+import org.slf4j.LoggerFactory
 
 @Singleton
 open class VerificationFactory {

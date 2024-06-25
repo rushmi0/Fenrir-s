@@ -6,7 +6,11 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonObject
 import org.fenrirs.relay.modules.Event
+import org.slf4j.LoggerFactory
+import java.lang.management.ManagementFactory
+import java.lang.management.MemoryMXBean
 import java.security.MessageDigest
+import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
 object ShiftTo {
@@ -82,6 +86,37 @@ object ShiftTo {
 
 
     /**
+     * ฟังก์ชันสำหรับวัดเวลาและการใช้หน่วยความจำของโค้ด
+     * @param construct ชื่อของโค้ดหรือระบบที่ต้องการวัด
+     * @param block โค้ดที่ต้องการวัดเวลาและการใช้หน่วยความจำ
+     * @return ผลลัพธ์ของโค้ด
+     */
+    inline fun <T> measure(construct: String, crossinline block: () -> T): T {
+        // ขนาดหน่วยความจำที่ใช้งานก่อนการทำงาน
+        val memoryMXBean: MemoryMXBean = ManagementFactory.getMemoryMXBean()
+        val initialMemory = memoryMXBean.heapMemoryUsage.used
+        val start = System.nanoTime()
+        try {
+            return block().also {
+                // ขนาดหน่วยความจำที่ใช้งานหลังจากการทำงาน
+                val finalMemory = memoryMXBean.heapMemoryUsage.used
+                val memoryUsed = finalMemory - initialMemory // คำนวณความแตกต่างของหน่วยความจำ
+                val formattedMemoryUsed = formatMemorySize(memoryUsed)
+                LOG.info("Took: ${elapsedMillis(start)} ms for: $construct")
+                LOG.info("Memory used: $memoryUsed bytes ($formattedMemoryUsed)")
+            }
+        } catch (ex: Throwable) {
+            LOG.error("Exception occurred. $construct. Exception: ${ex.message}")
+            throw ex
+        }
+    }
+
+    fun elapsedMillis(startNanos: Long): Long {
+        return TimeUnit.MILLISECONDS.convert(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS)
+    }
+
+
+    /**
      * ฟังก์ชันสำหรับแปลงขนาดหน่วยความจำเป็น KB, MB, หรือ GB
      * @param bytes ขนาดหน่วยความจำในหน่วย bytes
      * @return ขนาดหน่วยความจำที่ถูกแปลงเป็นหน่วยที่เหมาะสม
@@ -99,5 +134,6 @@ object ShiftTo {
         }
     }
 
+    val LOG = LoggerFactory.getLogger(ShiftTo::class.java)
 
 }

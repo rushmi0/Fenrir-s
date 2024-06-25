@@ -49,7 +49,6 @@ class ProofOfWork @Inject constructor() {
         val nonceTag = event.tags!!.find { it.isNotEmpty() && it[0] == "nonce" }!!
         val difficultyTarget = nonceTag[2].toLong()
         val eventDifficulty = difficulty(event.id!!)
-
         return when {
             eventDifficulty >= difficultyTarget -> true to ""
             else -> false to "pow: difficulty $eventDifficulty is less than $difficultyTarget"
