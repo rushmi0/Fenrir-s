@@ -3,10 +3,11 @@ package org.fenrirs.relay.core.nip13
 import io.micronaut.context.annotation.Bean
 import jakarta.inject.Inject
 import org.fenrirs.relay.modules.Event
+import org.fenrirs.relay.policy.NostrRelayConfig
 import java.math.BigInteger
 
 @Bean
-class ProofOfWork @Inject constructor() {
+class ProofOfWork @Inject constructor(private val config: NostrRelayConfig) {
 
 
     /**

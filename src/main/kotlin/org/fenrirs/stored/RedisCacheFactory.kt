@@ -3,12 +3,14 @@ package org.fenrirs.stored
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
+import io.micronaut.context.annotation.Bean
 import jakarta.inject.Inject
-import jakarta.inject.Singleton
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runBlocking
+
+import org.fenrirs.utils.ExecTask.parallelDefault
 import org.slf4j.LoggerFactory
 
+@Bean
 class RedisCacheFactory @Inject constructor(
     private val redisClient: RedisClient = RedisClient.create("redis://localhost:63790"),
     private val connection: StatefulRedisConnection<String, String> = redisClient.connect(),
@@ -25,12 +27,12 @@ class RedisCacheFactory @Inject constructor(
      * @param serializer: Lambda expression สำหรับแปลงข้อมูลจาก T เป็น String
      * @return ค่า String ที่เก็บใน Redis หรือ null หากเกิดข้อผิดพลาด
      */
-    suspend fun <T> setCache(
+    private suspend fun <T> setCacheData(
         key: String,
         value: T,
         expirySeconds: Long,
         serializer: (T) -> String
-    ): String? = withContext(Dispatchers.IO) {
+    ): String? = parallelDefault(10_000) {
         // แปลงข้อมูลจาก T เป็น String โดยใช้ serializer ที่ส่งเข้ามา
         val serializedValue = serializer.invoke(value)
         // เก็บข้อมูลใน Redis พร้อมกำหนดเวลาหมดอายุ
@@ -42,7 +44,7 @@ class RedisCacheFactory @Inject constructor(
         } else {
             LOG.error("Failed to cache data with key: $key")
         }
-        return@withContext result
+        return@parallelDefault result
     }
 
     /**
@@ -51,10 +53,10 @@ class RedisCacheFactory @Inject constructor(
      * @param deserializer: Lambda expression สำหรับแปลงข้อมูลจาก String เป็น T
      * @return ข้อมูลที่ถูกดึงออกมาในรูปแบบของ T หรือ null หากไม่มีข้อมูลในคีย์นั้น
      */
-    suspend fun <T> getCache(
+    private suspend fun <T> getCacheData(
         key: String,
         deserializer: (String) -> T
-    ): T? = withContext(Dispatchers.IO) {
+    ): T? = parallelDefault(10_000) {
         // ดึงข้อมูลจาก Redis โดยใช้คีย์
         val serializedValue = redisCommands[key]
 
@@ -64,14 +66,17 @@ class RedisCacheFactory @Inject constructor(
         } else {
             LOG.warn("No cached data found for key: $key")
         }
-        return@withContext serializedValue?.let { deserializer.invoke(it) }
+        return@parallelDefault serializedValue?.let { deserializer.invoke(it) }
+    }
+
+    suspend fun getCache(key: String): String? {
+        return runBlocking { getCacheData(key) { it } }
+    }
+
+    fun setCache(key: String, value: String, expirySeconds: Long): String? {
+        return runBlocking { setCacheData(key, value, expirySeconds) { it } }
     }
 
 
-    // ปิดการเชื่อมต่อกับ Redis เมื่อไม่ใช้งาน
-    fun close() {
-        connection.close()
-        redisClient.shutdown()
-    }
 
 }

@@ -1,5 +1,6 @@
 package org.fenrirs.stored.statement
 
+import io.micronaut.context.annotation.Bean
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -18,19 +19,18 @@ import org.jooq.impl.SQLDataType
 import org.slf4j.LoggerFactory
 
 import jakarta.inject.Inject
-import jakarta.inject.Singleton
 import org.fenrirs.utils.ExecTask.runWithVirtualThreads
 
 import org.fenrirs.utils.ExecTask.runWithVirtualThreadsPerTask
-import org.fenrirs.utils.ShiftTo.fromHex
-import org.jooq.LikeEscapeStep
 
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-@Singleton
-class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) : StoredService {
+@Bean
+class StoredServiceImpl @Inject constructor(
+    private val enforceSQL: DSLContext
+) : StoredService {
 
 
     override suspend fun saveEvent(event: Event): Boolean {
@@ -230,7 +230,7 @@ class StoredServiceImpl @Inject constructor(private val enforceSQL: DSLContext) 
 
                 // กำหนด limit ของการดึงข้อมูล ถ้า filters.limit ไม่มีการกำหนดหรือเป็น null ให้ใช้ค่าเริ่มต้นเป็น 500 record
                 if (!filters.kinds.contains(0) && !filters.kinds.contains(3)) {
-                    query.limit(filters.limit?.toInt() ?: 15_000)
+                    query.limit(filters.limit?.toInt() ?: 1_000)
                 }
 
                 LOG.info("SQL Command\n$query")

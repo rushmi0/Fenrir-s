@@ -1,19 +1,19 @@
 package org.fenrirs.relay.core.nip11
 
+import io.micronaut.context.annotation.Bean
 import io.micronaut.http.MediaType
 import jakarta.inject.Inject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.fenrirs.stored.RedisCacheFactory
 import java.io.File
 import java.nio.charset.Charset
-import jakarta.inject.Singleton
+
+import kotlinx.coroutines.runBlocking
 import org.fenrirs.relay.policy.NostrRelayConfig
 import org.fenrirs.utils.Bech32
 import org.fenrirs.utils.ShiftTo.toHex
 import org.slf4j.LoggerFactory
 
-@Singleton
+@Bean
 class RelayInformation @Inject constructor(
     private val redis: RedisCacheFactory,
     private val config: NostrRelayConfig
@@ -24,13 +24,13 @@ class RelayInformation @Inject constructor(
      * @param contentType: ประเภทของเนื้อหาที่ต้องการ (application/json หรือ text/html)
      * @return ข้อมูล relay information ที่ถูกดึงจาก Redis cache หรือไฟล์ระบบ
      */
-    suspend fun loadRelayInfo(contentType: String): String = withContext(Dispatchers.IO) {
+    suspend fun loadRelayInfo(contentType: String): String = runBlocking {
         // ดึงข้อมูลจาก Redis cache โดยใช้ contentType เป็น key
-        redis.getCache(contentType) { it } ?: run {
+        redis.getCache(contentType) ?: run {
             // หากไม่มีข้อมูลใน cache ให้โหลดจากไฟล์ระบบ
             val data = loadContent(contentType)
-            // แคชข้อมูลที่โหลดมาใหม่ลง Redis พร้อมตั้งเวลาอายุเป็น 200 วินาที
-            redis.setCache(contentType, data, 2) { it }
+            // แคชข้อมูลที่โหลดมาใหม่ลง Redis พร้อมตั้งเวลาอายุเป็น
+            redis.setCache(contentType, data, 2_000)
             data
         }
     }

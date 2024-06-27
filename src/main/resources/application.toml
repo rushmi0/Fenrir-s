@@ -7,23 +7,11 @@ maxRequestSize = "1MB"
 host = "localhost"
 port = 6724
 
-
-# Executor สำหรับใช้ virtual threads
 [micronaut.executors.scheduled]
 type = "scheduled"
 virtual = true
-n-threads = 64
 parallelism = 128
 core-pool-size = 32
-name = "virtual-executor"
-
-
-#[micronaut.executors.scheduled]
-#type = "scheduled"
-#virtual = true
-#parallelism = 128
-#core-pool-size = 30
-
 
 
 #################################################################################
@@ -38,7 +26,7 @@ contact = "Lorem@bitkuy.com"
 pass = true
 
 [nostr.relay.policy.proof-of-work]
-enabled = false
+enabled = true
 difficulty-minimum = 30
 
 [nostr.relay.profile.backup]

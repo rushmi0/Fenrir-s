@@ -84,7 +84,7 @@ sealed class RelayResponse<out T> {
         if (session.isOpen) {
             val payload = this.toJson()
             try {
-                sendSync(session, payload)
+                session.sendSync(payload)
                 if (this is CLOSED) {
                     session.close()
                 }
@@ -101,18 +101,18 @@ sealed class RelayResponse<out T> {
      * @param session ใช้ในการสื่อสารกับไคลเอนต์
      * @param payload ข้อมูลที่ต้องการส่งไปยังไคลเอนต์
      */
-    private suspend fun sendSync(session: WebSocketSession, payload: String) {
-        return withContext(Dispatchers.Default) {
-            val future = CompletableFuture<Boolean>()
-            try {
-                session.sendSync(payload)
-                future.complete(true)
-            } catch (e: Exception) {
-                future.completeExceptionally(e)
-            }
-            future.await()
-        }
-    }
+//    private suspend fun sendSync(session: WebSocketSession, payload: String) {
+//        return withContext(Dispatchers.Default) {
+//            val future = CompletableFuture<Boolean>()
+//            try {
+//                session.sendSync(payload)
+//                future.complete(true)
+//            } catch (e: Exception) {
+//                future.completeExceptionally(e)
+//            }
+//            future.await()
+//        }
+//    }
 
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(RelayResponse::class.java)
