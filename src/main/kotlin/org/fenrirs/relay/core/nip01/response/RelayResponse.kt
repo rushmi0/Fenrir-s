@@ -96,24 +96,6 @@ sealed class RelayResponse<out T> {
         }
     }
 
-    /**
-     * ฟังก์ชัน sendSync ใช้ในการส่งข้อมูลไปยัง WebSocket session แบบ synchronous
-     * @param session ใช้ในการสื่อสารกับไคลเอนต์
-     * @param payload ข้อมูลที่ต้องการส่งไปยังไคลเอนต์
-     */
-//    private suspend fun sendSync(session: WebSocketSession, payload: String) {
-//        return withContext(Dispatchers.Default) {
-//            val future = CompletableFuture<Boolean>()
-//            try {
-//                session.sendSync(payload)
-//                future.complete(true)
-//            } catch (e: Exception) {
-//                future.completeExceptionally(e)
-//            }
-//            future.await()
-//        }
-//    }
-
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(RelayResponse::class.java)
     }

@@ -16,3 +16,30 @@ Content-Type: application/json
 
   }
 ]
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+[
+  "EVENT",
+  {"content":"test 01","created_at":1719484899,"id":"b80aa0a2e69e7ca5801a3848aa33e90a62fb30d27284639e1836c9ede8a9d298","kind":1,"pubkey":"8a71a3266e3c1ed354cffc613e70e7b5cbfac539fbab40e054f141ae8051cf37","sig":"5bcb4f7345fa95ed68c73f09eeb68013b47e1f35e8d0d86d958504c5c5bd28290d2466f4fabb907b81f41eb4d05da1eacb7aa2271a6bdf4e8ece1ea3bedf29a3","tags":[]}
+]
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+["EVENT",
+  {
+    "kind":5,
+    "tags":[["e","b80aa0a2e69e7ca5801a3848aa33e90a62fb30d27284639e1836c9ede8a9d298"]],
+    "content":"",
+    "created_at":1719485077,
+    "pubkey":"8a71a3266e3c1ed354cffc613e70e7b5cbfac539fbab40e054f141ae8051cf37",
+    "id":"d6470ed0c45c73f6ea36bb41011973166af4062a1f3a32f580b5d128f9a60b19",
+    "sig":"b417c5601b83b97df4fcd75f970efd586cb3d9f441d92f1009027f5c044e980a2c16383897e14cbb55d92ceda63d0f2ad9eb4c8754484cf808474138486dced0"
+  }
+]

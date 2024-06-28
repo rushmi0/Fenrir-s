@@ -38,12 +38,6 @@ class RedisCacheFactory @Inject constructor(
         // เก็บข้อมูลใน Redis พร้อมกำหนดเวลาหมดอายุ
         val result = redisCommands.setex(key, expirySeconds, serializedValue)
 
-        // บันทึกลง log ว่าข้อมูลถูก cache แล้วหรือไม่
-        if (result == "OK") {
-            LOG.info("Cached data with key: $key")
-        } else {
-            LOG.error("Failed to cache data with key: $key")
-        }
         return@parallelDefault result
     }
 
@@ -59,13 +53,6 @@ class RedisCacheFactory @Inject constructor(
     ): T? = parallelDefault(10_000) {
         // ดึงข้อมูลจาก Redis โดยใช้คีย์
         val serializedValue = redisCommands[key]
-
-        // บันทึกลง log ว่าข้อมูลถูกดึงออกมาหรือไม่
-        if (serializedValue != null) {
-            LOG.info("Retrieved cached data with key: $key")
-        } else {
-            LOG.warn("No cached data found for key: $key")
-        }
         return@parallelDefault serializedValue?.let { deserializer.invoke(it) }
     }
 

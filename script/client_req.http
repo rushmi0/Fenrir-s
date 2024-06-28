@@ -54,6 +54,14 @@ Content-Type: application/json
 
 ###
 
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],"kinds":[27235]}]
+
+
+###
+
 WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
@@ -64,7 +72,15 @@ Content-Type: application/json
 WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
-["REQ","hsZEOtaDsENYkP5H-JIWp",{"ids":["0"]}]
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"ids":["d6470ed0c45c73f6ea36bb41011973166af4062a1f3a32f580b5d128f9a60b19"]}]
+
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"ids":["b80aa0a2e69e7ca5801a3848aa33e90a62fb30d27284639e1836c9ede8a9d298"]}]
 
 ###
 

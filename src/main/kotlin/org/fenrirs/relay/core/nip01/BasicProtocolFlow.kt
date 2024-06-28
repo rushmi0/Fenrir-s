@@ -59,7 +59,7 @@ class BasicProtocolFlow @Inject constructor(
             val (success, message) = action.invoke()
 
             if (success) {
-                redis.setCache(event.id!!, event.id, 2_000) // 86_400
+                redis.setCache(event.id!!, event.id, 3_000) // 86_400
                 LOG.info("Event handled successfully")
                 RelayResponse.OK(event.id, true, message).toClient(session)
             } else {
@@ -76,25 +76,28 @@ class BasicProtocolFlow @Inject constructor(
     private suspend fun handleNormalEvent(event: Event, session: WebSocketSession) {
         handleEvent(event, session) {
             val status: Boolean = sqlExec.saveEvent(event)
-            LOG.info("Event saved successfully: ${event.id}")
             status to (if (status) "" else "error: could not save event to the database")
         }
     }
 
     private suspend fun handleDeletableEvent(event: Event, session: WebSocketSession) {
         handleEvent(event, session) {
-            val deletionSuccess: Boolean = nip09.deleteEvent(event)
-            LOG.info("Event deleted successfully: ${event.id}")
-            deletionSuccess to (if (deletionSuccess) "" else "error: could not delete event")
+            val (deletionSuccess, message) = nip09.deleteEvent(event)
+            if (deletionSuccess) {
+                val status: Boolean = sqlExec.saveEvent(event)
+                status to (if (status) message else "error: could not save event to the database after deletion")
+            } else {
+                false to message
+            }
         }
     }
+
 
     private suspend fun handleProofOfWorkEvent(event: Event, session: WebSocketSession) {
         handleEvent(event, session) {
             val (valid, message) = nip13.verifyProofOfWork(event)
             if (valid) {
                 val status: Boolean = sqlExec.saveEvent(event)
-                LOG.info("Proof of Work Event saved successfully: ${event.id}")
                 status to (if (status) "" else "error: could not save Proof of Work event")
             } else {
                 false to message
@@ -112,7 +115,7 @@ class BasicProtocolFlow @Inject constructor(
     ) {
         if (status) {
             for (filter in filtersX) {
-                val events = sqlExec.filterList(filter)
+                val events: List<Event> = sqlExec.filterList(filter)
                 events.forEachIndexed { index, event ->
                     val eventIndex = "${index + 1}/${events.size}" // Index starts from 1 for readability
                     LOG.info("Relay Response event $eventIndex: $event")
@@ -134,7 +137,7 @@ class BasicProtocolFlow @Inject constructor(
 
     suspend fun onUnknown(session: WebSocketSession) {
         LOG.warn("Unknown command")
-        RelayResponse.NOTICE("Unknown command").toClient(session)
+        RelayResponse.NOTICE("Unknown command").toClient(session); session.close()
     }
 
 
