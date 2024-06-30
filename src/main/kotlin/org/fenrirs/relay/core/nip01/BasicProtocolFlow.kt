@@ -41,12 +41,6 @@ class BasicProtocolFlow @Inject constructor(
 
         val eventId: Event? = redis.getCache(event.id!!)?.let { sqlExec.selectById(event.id) }
 
-        val relayOwner = Bech32.decode(config.info.npub).data.toHex()
-        val passList: List<String> = getFollowsList(relayOwner)
-        val pass: Boolean = config.policy.follows.pass
-        val work: Boolean = config.policy.proofOfWork.enabled
-
-
         when {
             eventId != null -> {
                 redis.setCache(event.id, event.id, 86_400)
@@ -58,30 +52,6 @@ class BasicProtocolFlow @Inject constructor(
             nip09.isDeletable(event) -> handleDeletableEvent(event, session)
             else -> handleNormalEvent(event, session)
         }
-    }
-
-    private fun permission(
-        event: Event,
-        passList: List<String>,
-        relayOwner: String, pass: Boolean, work: Boolean
-    ): Boolean {
-        return when {
-            // ทำ Proof of Work ถ้า work เป็น true และ event.pubkey ไม่อยู่ใน passList
-            work && event.pubkey !in passList -> true
-            // ไม่ต้องทำ Proof of Work ถ้า pass เป็น true และ event.pubkey อยู่ใน passList
-            pass && event.pubkey in passList -> false
-            // ทำ Proof of Work ถ้า pass เป็น false และ event.pubkey ไม่เท่ากับ relayOwner
-            !pass && event.pubkey != relayOwner -> true
-            else -> false // ไม่ต้องทำ Proof of Work ในกรณีอื่นๆ
-        }
-    }
-
-
-    private suspend fun getFollowsList(publicKey: String): List<String> {
-        val filter = FiltersX(authors = setOf(publicKey), kinds = setOf(3))
-        val event = sqlExec.filterList(filter)[0]
-        val tagsList = event.tags?.filter { it.isNotEmpty() && it[0] == "p" }?.map { it[1] } ?: emptyList()
-        return tagsList.plus(publicKey)
     }
 
 
