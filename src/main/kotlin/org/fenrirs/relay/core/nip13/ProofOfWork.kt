@@ -4,6 +4,7 @@ import io.micronaut.context.annotation.Bean
 import jakarta.inject.Inject
 import org.fenrirs.relay.modules.Event
 import org.fenrirs.relay.policy.NostrRelayConfig
+import org.slf4j.LoggerFactory
 import java.math.BigInteger
 
 @Bean
@@ -46,14 +47,25 @@ class ProofOfWork @Inject constructor(private val config: NostrRelayConfig) {
      * @return Pair<Boolean, String> หากคำนวณ work แล้วเป็นไปตามที่อ้างใน event จะคืนค่าเป็นจริง และสตริงว่าง
      * ถ้าคำนวณแล้ว work น้อยกว่าที่อ้าง จะคืนค่าเป็นเท็จ และสตริงค่าที่อ้าง และค่าที่คำนวณได้
      */
-    fun verifyProofOfWork(event: Event): Pair<Boolean, String> {
+    fun verifyProofOfWork(event: Event, enabled: Boolean = false): Pair<Boolean, String> {
         val nonceTag = event.tags!!.find { it.isNotEmpty() && it[0] == "nonce" }!!
-        val difficultyTarget = nonceTag[2].toLong()
+
+        val difficultyTarget = if (enabled) {
+            config.policy.proofOfWork.difficultyMinimum.toLong()
+        } else {
+            nonceTag[2].toLong()
+        }
+
         val eventDifficulty = difficulty(event.id!!)
+
         return when {
             eventDifficulty >= difficultyTarget -> true to ""
             else -> false to "pow: difficulty $eventDifficulty is less than $difficultyTarget"
         }
+    }
+
+    companion object {
+        private val LOG = LoggerFactory.getLogger(ProofOfWork::class.java)
     }
 
 }

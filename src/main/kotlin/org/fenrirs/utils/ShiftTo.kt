@@ -2,9 +2,7 @@ package org.fenrirs.utils
 
 import fr.acinq.secp256k1.Hex
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.*
 import org.fenrirs.relay.modules.Event
 import org.slf4j.LoggerFactory
 import java.lang.management.ManagementFactory
@@ -51,7 +49,6 @@ object ShiftTo {
     }
 
 
-
     fun generateId(event: Event): String {
         return lazy {
             arrayListOf(
@@ -78,10 +75,14 @@ object ShiftTo {
      * ฟังก์ชัน toJsonElementMap ใช้ในการแปลงสตริง JSON เป็น Map ของ JsonElement
      * @return Map ของ JsonElement ที่เป็นผลลัพธ์จากการแปลงสตริง JSON
      */
-    fun String.toJsonElementMap(): Map<String, JsonElement> {
-        val option = Json { isLenient = true }
-        val jsonElement = option.parseToJsonElement(this)
-        return jsonElement.jsonObject
+    fun String.toJsonEltMap(): Map<String, JsonElement> {
+        val json = Json { isLenient = true }
+        return json.parseToJsonElement(this).jsonObject
+    }
+
+    fun String.toJsonEltArray(): JsonArray {
+        val json = Json { ignoreUnknownKeys = true }
+        return json.parseToJsonElement(this).jsonArray
     }
 
 

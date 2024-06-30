@@ -19,6 +19,7 @@ class RelayInformation @Inject constructor(
     private val config: NostrRelayConfig
 ) {
 
+
     /**
      * ฟังก์ชันสำหรับดึงข้อมูล relay information (NIP-11)
      * @param contentType: ประเภทของเนื้อหาที่ต้องการ (application/json หรือ text/html)

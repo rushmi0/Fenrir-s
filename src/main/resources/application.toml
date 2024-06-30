@@ -27,10 +27,10 @@ pass = true
 
 [nostr.relay.policy.proof-of-work]
 enabled = true
-difficulty-minimum = 30
+difficulty-minimum = 32
 
 [nostr.relay.profile.backup]
-sync.relay = [
+sync = [
     "wss://nos.lol",
     "wss://relay.damus.io",
     "wss://relay.notoshi.win",

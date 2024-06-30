@@ -38,7 +38,7 @@ object CommandFactory {
             "EVENT" -> parseEvent(jsonElement)
             "REQ" -> parseREQ(jsonElement)
             "CLOSE" -> parseClose(jsonElement)
-            "AUTH" -> TODO("Not yet implemented")
+            //"AUTH" -> TODO("Not yet implemented")
             else -> throw IllegalArgumentException("Unknown command: $cmd")
         }
     }

@@ -6,10 +6,11 @@ import kotlinx.coroutines.launch
 import org.junit.jupiter.api.Test
 import java.lang.Thread.sleep
 import kotlinx.coroutines.runBlocking
-import org.fenrirs.utils.ExecTask.measure
+
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.thread
 import org.fenrirs.utils.ExecTask
+import org.fenrirs.utils.ShiftTo.measure
 
 class ThreadsVsVirtualThreads {
 

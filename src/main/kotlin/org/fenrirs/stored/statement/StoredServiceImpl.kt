@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory
 
 import jakarta.inject.Inject
 import org.fenrirs.utils.ExecTask.runWithVirtualThreads
-
 import org.fenrirs.utils.ExecTask.runWithVirtualThreadsPerTask
 
 import kotlin.coroutines.resume
@@ -34,7 +33,7 @@ class StoredServiceImpl @Inject constructor(
 
 
     override suspend fun saveEvent(event: Event): Boolean {
-        return runWithVirtualThreadsPerTask {
+        return runWithVirtualThreads {
             try {
 
                 /**

@@ -39,7 +39,7 @@ class NostrRelayConfig {
 
         @ConfigurationProperties("backup")
         class Backup {
-            lateinit var syncRelay: List<String>
+            lateinit var sync: List<String>
         }
     }
 }

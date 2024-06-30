@@ -25,6 +25,9 @@ repositories {
 
 dependencies {
 
+    // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+
     // https://mvnrepository.com/artifact/fr.acinq.secp256k1/secp256k1-kmp-jni-jvm
     implementation("fr.acinq.secp256k1:secp256k1-kmp-jni-jvm:0.15.0")
 
@@ -75,6 +78,7 @@ java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
 }
+
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
