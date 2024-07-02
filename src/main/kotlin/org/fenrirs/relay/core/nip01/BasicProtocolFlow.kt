@@ -51,18 +51,25 @@ class BasicProtocolFlow @Inject constructor(
         // ตรวจสอบว่ามีเหตุการณ์ที่มี ID เดียวกันอยู่แล้วหรือไม่
         val eventId: Event? = redis.getCache(event.id!!)?.let { sqlExec.selectById(event.id) }
 
-        // ดึงข้อมูล public key ของ relay owner และรายการ passList จาก configuration
+        // ดึงข้อมูล public key ของ relay owner และรายการ passList จาก src/main/resources/application.toml
         val relayOwner = Bech32.decode(config.info.npub).data.toHex()
         val passList: List<String> = getPassList(relayOwner)
         val pass: Boolean = config.policy.follows.pass
         val work: Boolean = config.policy.proofOfWork.enabled
 
-        // ตรวจสอบนโยบายการใช้งานเหตุการณ์ตามเงื่อนไขที่กำหนด
+        // ดักจับเหตุการณ์ เพื่อตรวจสอบนโยบายการใช้งานตามเงื่อนไขที่กำหนด
         when {
             eventId != null -> handleDuplicateEvent(event, session)
-            work && event.pubkey !in passList -> handleEventWithPolicy(event, session, work)
-            !pass && event.pubkey != relayOwner -> handleEventWithPolicy(event, session, work)
+
+            // ไม่ต้องทำ Proof of Work ถ้าหาก pass เป็น true และ event.pubkey อยู่ใน passList
             pass && event.pubkey in passList -> handlePassListEvent(event, session)
+
+            // บังคับทำ Proof of Work ถ้าหาก work เป็น true และ event.pubkey ไม่อยู่ใน passList
+            work && event.pubkey !in passList -> handleEventWithPolicy(event, session, work)
+
+            // บังคับทำ Proof of Work ถ้า pass เป็น false และ event.pubkey ไม่เท่ากับ relayOwner
+            !pass && event.pubkey != relayOwner -> handleEventWithPolicy(event, session, work)
+
             else -> RelayResponse.OK(event.id, false, "invalid: this private relay").toClient(session)
         }
     }
@@ -177,7 +184,7 @@ class BasicProtocolFlow @Inject constructor(
 
 
     /**
-     * ฟังก์ชัน handleDeletableEvent ใช้ในการจัดการเหตุการณ์ที่สามารถลบได้
+     * ฟังก์ชัน handleDeletableEvent ใช้ในการจัดการเหตุการณ์ที่ต้องการลบข้อมูลตามที่กำหนด
      *
      * @param event เหตุการณ์ที่สามารถลบได้
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
@@ -196,11 +203,11 @@ class BasicProtocolFlow @Inject constructor(
 
 
     /**
-     * ฟังก์ชัน handleProofOfWorkEvent ใช้ในการจัดการเหตุการณ์ที่ต้องการ Proof of Work
+     * ฟังก์ชัน handleProofOfWorkEvent ใช้ในการจัดการเหตุการณ์ที่มีการสร้าง Proof of Work
      *
      * @param event เหตุการณ์ที่ต้องการจัดการ
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
-     * @param enabled สถานะของ Proof of Work ที่เปิดหรือปิด
+     * @param enabled สถานะของ Proof of Work ที่เปิดหรือปิดที่ถูกกำหนดในไฟล์กำหนดตามนโยบาย
      */
     private suspend fun handleProofOfWorkEvent(event: Event, session: WebSocketSession, enabled: Boolean = false) {
         handleEvent(event, session) {
@@ -238,8 +245,8 @@ class BasicProtocolFlow @Inject constructor(
             for (filter in filtersX) {
                 val events: List<Event> = sqlExec.filterList(filter)
                 events.forEachIndexed { index, event ->
-                    val eventIndex = "${index + 1}/${events.size}"
-                    LOG.info("Relay Response event $eventIndex: $event")
+                    //val eventIndex = "${index + 1}/${events.size}"
+                    //LOG.info("Relay Response event $eventIndex: $event")
                     RelayResponse.EVENT(subscriptionId, event).toClient(session)
                 }
             }
