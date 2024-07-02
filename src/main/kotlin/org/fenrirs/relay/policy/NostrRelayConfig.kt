@@ -39,6 +39,7 @@ class NostrRelayConfig {
 
         @ConfigurationProperties("backup")
         class Backup {
+            var enabled: Boolean = false
             lateinit var sync: List<String>
         }
     }

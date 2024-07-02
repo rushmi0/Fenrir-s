@@ -47,7 +47,7 @@ class ProofOfWork @Inject constructor(private val config: NostrRelayConfig) {
      * @return Pair<Boolean, String> หากคำนวณ work แล้วเป็นไปตามที่อ้างใน event จะคืนค่าเป็นจริง และสตริงว่าง
      * ถ้าคำนวณแล้ว work น้อยกว่าที่อ้าง จะคืนค่าเป็นเท็จ และสตริงค่าที่อ้าง และค่าที่คำนวณได้
      */
-    fun verifyProofOfWork(event: Event, enabled: Boolean = false): Pair<Boolean, String> {
+    fun verifyProofOfWork(event: Event, enabled: Boolean): Pair<Boolean, String> {
         val nonceTag = event.tags!!.find { it.isNotEmpty() && it[0] == "nonce" }!!
 
         val difficultyTarget = if (enabled) {

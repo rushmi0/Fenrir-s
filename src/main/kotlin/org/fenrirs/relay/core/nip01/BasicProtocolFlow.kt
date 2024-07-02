@@ -16,8 +16,8 @@ import org.fenrirs.relay.policy.NostrRelayConfig
 
 import org.fenrirs.stored.RedisCacheFactory
 import org.fenrirs.stored.statement.StoredServiceImpl
+
 import org.fenrirs.utils.Bech32
-import org.fenrirs.utils.ShiftTo.fromHex
 import org.fenrirs.utils.ShiftTo.toHex
 
 import org.slf4j.LoggerFactory
@@ -31,23 +31,96 @@ class BasicProtocolFlow @Inject constructor(
     private val nip13: ProofOfWork
 ) {
 
+    /**
+     * ฟังก์ชัน onEvent ใช้ในการจัดการเหตุการณ์ที่มีการส่งเข้ามาทาง WebSocket
+     *
+     * @param event เหตุการณ์ที่มีการส่งเข้ามา
+     * @param status สถานะของการส่งเข้ามา (true หรือ false)
+     * @param warning ข้อความแจ้งเตือน (ถ้ามี)
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     */
     suspend fun onEvent(event: Event, status: Boolean, warning: String, session: WebSocketSession) = runBlocking {
         LOG.info("Received event: $event")
 
         if (!status) {
+            // ส่งคำตอบกลับให้ไคลเอนต์ว่าไม่สามารถดำเนินการได้เพราะอะไร
             RelayResponse.OK(event.id!!, false, warning).toClient(session)
             return@runBlocking
         }
 
+        // ตรวจสอบว่ามีเหตุการณ์ที่มี ID เดียวกันอยู่แล้วหรือไม่
         val eventId: Event? = redis.getCache(event.id!!)?.let { sqlExec.selectById(event.id) }
 
-        when {
-            eventId != null -> {
-                redis.setCache(event.id, event.id, 86_400)
-                LOG.info("Event with ID ${event.id} already exists in the database")
-                RelayResponse.OK(event.id, false, "duplicate: already have this event").toClient(session)
-            }
+        // ดึงข้อมูล public key ของ relay owner และรายการ passList จาก configuration
+        val relayOwner = Bech32.decode(config.info.npub).data.toHex()
+        val passList: List<String> = getPassList(relayOwner)
+        val pass: Boolean = config.policy.follows.pass
+        val work: Boolean = config.policy.proofOfWork.enabled
 
+        // ตรวจสอบนโยบายการใช้งานเหตุการณ์ตามเงื่อนไขที่กำหนด
+        when {
+            eventId != null -> handleDuplicateEvent(event, session)
+            work && event.pubkey !in passList -> handleEventWithPolicy(event, session, work)
+            !pass && event.pubkey != relayOwner -> handleEventWithPolicy(event, session, work)
+            pass && event.pubkey in passList -> handlePassListEvent(event, session)
+            else -> RelayResponse.OK(event.id, false, "invalid: this private relay").toClient(session)
+        }
+    }
+
+
+    /**
+     * ฟังก์ชัน getPassList ใช้ในการดึงรายการ public key หรือผู้คนที่เจ้าของ Relay ติดตามอยู่จากฐานข้อมูล
+     *
+     * @param publicKey คีย์สาธารณะของเจ้าของ Relay
+     * @return รายการของ public key ที่ติดตามโดยเจ้าของ Relay หากไม่พบข้อมูลจะคืนค่าเป็นรายการที่มี publicKey เพียงตัวเดียว
+     */
+    private suspend fun getPassList(publicKey: String): List<String> =
+        sqlExec.filterList(FiltersX(authors = setOf(publicKey), kinds = setOf(3)))
+            .firstOrNull()
+            ?.tags
+            ?.filter { it.isNotEmpty() && it[0] == "p" }
+            ?.map { it[1] }
+            ?.plus(publicKey)
+            ?: listOf(publicKey)
+
+
+
+    /**
+     * ฟังก์ชัน handleDuplicateEvent ใช้ในการจัดการเหตุการณ์ที่มี ID ซ้ำกันอยู่แล้วในฐานข้อมูล
+     *
+     * @param event เหตุการณ์ที่มี ID ซ้ำ
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     */
+    private suspend fun handleDuplicateEvent(event: Event, session: WebSocketSession) {
+        redis.setCache(event.id!!, event.id, 86_400)
+        LOG.info("Event with ID ${event.id} already exists in the database")
+        RelayResponse.OK(event.id, false, "duplicate: already have this event").toClient(session)
+    }
+
+
+    /**
+     * ฟังก์ชัน handleEventWithPolicy ใช้ในการจัดการเหตุการณ์ตามนโยบายที่กำหนด
+     *
+     * @param event เหตุการณ์ที่ต้องการจัดการ
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     * @param enabled สถานะของนโยบาย Proof of Work ที่เปิดหรือปิด
+     */
+    private suspend fun handleEventWithPolicy(event: Event, session: WebSocketSession, enabled: Boolean) {
+        when {
+            nip09.isDeletable(event) -> handleDeletableEvent(event, session)
+            else -> handleProofOfWorkEvent(event, session, enabled)
+        }
+    }
+
+
+    /**
+     * ฟังก์ชัน handlePassListEvent ใช้ในการจัดการเหตุการณ์ที่ผ่านการตรวจสอบ Pass List
+     *
+     * @param event เหตุการณ์ที่ผ่านการตรวจสอบ
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     */
+    private suspend fun handlePassListEvent(event: Event, session: WebSocketSession) {
+        when {
             nip13.isProofOfWorkEvent(event) -> handleProofOfWorkEvent(event, session)
             nip09.isDeletable(event) -> handleDeletableEvent(event, session)
             else -> handleNormalEvent(event, session)
@@ -55,6 +128,16 @@ class BasicProtocolFlow @Inject constructor(
     }
 
 
+    ///////////////////////////////////////////////////////////////////////////////////
+
+
+    /**
+     * ฟังก์ชัน handleEvent ใช้ในการจัดการเหตุการณ์ที่มีการดำเนินการตามสถานะที่ได้รับ
+     *
+     * @param event เหตุการณ์ที่ต้องการจัดการ
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     * @param action ลำดับการดำเนินการที่ต้องทำ
+     */
     private suspend fun handleEvent(
         event: Event,
         session: WebSocketSession,
@@ -78,6 +161,13 @@ class BasicProtocolFlow @Inject constructor(
         }
     }
 
+
+    /**
+     * ฟังก์ชัน handleNormalEvent ใช้ในการจัดการเหตุการณ์ทั่วไป
+     *
+     * @param event เหตุการณ์ที่ต้องการจัดการ
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     */
     private suspend fun handleNormalEvent(event: Event, session: WebSocketSession) {
         handleEvent(event, session) {
             val status: Boolean = sqlExec.saveEvent(event)
@@ -85,6 +175,13 @@ class BasicProtocolFlow @Inject constructor(
         }
     }
 
+
+    /**
+     * ฟังก์ชัน handleDeletableEvent ใช้ในการจัดการเหตุการณ์ที่สามารถลบได้
+     *
+     * @param event เหตุการณ์ที่สามารถลบได้
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     */
     private suspend fun handleDeletableEvent(event: Event, session: WebSocketSession) {
         handleEvent(event, session) {
             val (deletionSuccess, message) = nip09.deleteEvent(event)
@@ -98,9 +195,16 @@ class BasicProtocolFlow @Inject constructor(
     }
 
 
-    private suspend fun handleProofOfWorkEvent(event: Event, session: WebSocketSession) {
+    /**
+     * ฟังก์ชัน handleProofOfWorkEvent ใช้ในการจัดการเหตุการณ์ที่ต้องการ Proof of Work
+     *
+     * @param event เหตุการณ์ที่ต้องการจัดการ
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     * @param enabled สถานะของ Proof of Work ที่เปิดหรือปิด
+     */
+    private suspend fun handleProofOfWorkEvent(event: Event, session: WebSocketSession, enabled: Boolean = false) {
         handleEvent(event, session) {
-            val (valid, message) = nip13.verifyProofOfWork(event)
+            val (valid, message) = nip13.verifyProofOfWork(event, enabled)
             if (valid) {
                 val status: Boolean = sqlExec.saveEvent(event)
                 status to (if (status) "" else "error: could not save Proof of Work event")
@@ -111,6 +215,18 @@ class BasicProtocolFlow @Inject constructor(
     }
 
 
+    ///////////////////////////////////////////////////////////////////////////////////
+
+
+    /**
+     * ฟังก์ชัน onRequest ใช้ในการจัดการการร้องขอข้อมูลจากไคลเอนต์ที่เชื่อมต่อผ่าน WebSocket
+     *
+     * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงการร้องขอนั้นๆ จากไคลเอนต์
+     * @param filtersX คำขอข้อมูลที่ไคลเอนต์ต้องการ
+     * @param status สถานะของการร้องขอ (true หรือ false)
+     * @param warning ข้อความแจ้งเตือน (ถ้ามี)
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     */
     suspend fun onRequest(
         subscriptionId: String,
         filtersX: List<FiltersX>,
@@ -135,16 +251,31 @@ class BasicProtocolFlow @Inject constructor(
     }
 
 
+    /**
+     * ฟังก์ชัน onClose ใช้ในการจัดการคำขอปิดการเชื่อมต่อ WebSocket
+     *
+     * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงการร้องขอนั้นๆ จากไคลเอนต์
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     */
     suspend fun onClose(subscriptionId: String, session: WebSocketSession) {
         LOG.info("close request for subscription ID: $subscriptionId")
         RelayResponse.CLOSED(subscriptionId).toClient(session)
     }
 
+
+    /**
+     * ฟังก์ชัน onUnknown ใช้ในการปิดการเชื่อมต่อ เพื่อจัดการคำสั่งที่ไม่รู้จักที่เข้ามาผ่าน WebSocket
+     *
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     */
     suspend fun onUnknown(session: WebSocketSession) {
         LOG.warn("Unknown command")
         RelayResponse.NOTICE("Unknown command").toClient(session); session.close()
     }
 
 
-    private val LOG = LoggerFactory.getLogger(BasicProtocolFlow::class.java)
+    companion object {
+        private val LOG = LoggerFactory.getLogger(BasicProtocolFlow::class.java)
+    }
+
 }

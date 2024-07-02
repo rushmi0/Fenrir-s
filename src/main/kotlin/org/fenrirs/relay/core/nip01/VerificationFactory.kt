@@ -9,10 +9,13 @@ import org.fenrirs.relay.policy.EventValidateField
 import org.fenrirs.relay.policy.FiltersXValidateField
 import org.fenrirs.relay.policy.NostrField
 
-import org.fenrirs.relay.core.nip01.Transform.convertToEventObject
-import org.fenrirs.relay.core.nip01.Transform.convertToFiltersXObject
+import org.fenrirs.relay.core.nip01.Transform.toEvent
+import org.fenrirs.relay.core.nip01.Transform.toFiltersX
+import org.fenrirs.relay.core.nip01.VerifyEvent.isEventPublicKeyValid
 import org.fenrirs.relay.core.nip01.VerifyEvent.isValidEventId
 import org.fenrirs.relay.core.nip01.VerifyEvent.isValidSignature
+
+import org.fenrirs.relay.modules.Event
 
 import org.slf4j.LoggerFactory
 
@@ -27,9 +30,9 @@ open class VerificationFactory {
         val (isDataValid, dataError) = validateDataType(receive, relayPolicy)
 
         return when {
-            !isFieldNamesValid -> Pair(false, fieldNamesError)
-            !isDataValid -> Pair(false, dataError)
-            else -> Pair(true, "")
+            !isFieldNamesValid -> false to fieldNamesError
+            !isDataValid -> false to dataError
+            else -> true to ""
         }
     }
 
@@ -41,8 +44,7 @@ open class VerificationFactory {
         val invalidFields: List<String> = receive.keys.filter { it !in allowedFields && !isValidTag(it) }
 
         val warning = if (invalidFields.isNotEmpty()) buildErrorMessage(invalidFields) else ""
-
-        return if (warning.isEmpty()) Pair(true, "") else Pair(false, warning)
+        return if (warning.isEmpty()) true to "" else false to warning
     }
 
     private fun isValidTag(tag: String): Boolean {
@@ -57,11 +59,10 @@ open class VerificationFactory {
         }
     }
 
-    private fun buildErrorMessage(invalidFields: List<String>): String {
-        return "unsupported: [${invalidFields.joinToString(", ")}] fields"
-    }
+    private fun buildErrorMessage(invalidFields: List<String>): String =
+        "unsupported: [${invalidFields.joinToString(", ")}] fields"
 
-    fun validateDataType(
+    private fun validateDataType(
         receive: Map<String, JsonElement>,
         relayPolicy: Array<out NostrField>
     ): Pair<Boolean, String> {
@@ -72,8 +73,8 @@ open class VerificationFactory {
 
             if (expectedType != actualType) {
                 val warning = "invalid: data type at [$fieldName] field"
-                LOG.info(warning)
-                return Pair(false, warning)
+                LOG.error(warning)
+                return false to warning
             }
         }
 
@@ -82,8 +83,8 @@ open class VerificationFactory {
             if (missingFields.isNotEmpty()) {
                 val missingFieldNames = missingFields.joinToString(", ") { field -> field.fieldName }
                 val warning = "invalid: missing fields: [$missingFieldNames]"
-                LOG.info(warning)
-                return Pair(false, warning)
+                LOG.error(warning)
+                return false to warning
             }
         }
 
@@ -116,38 +117,47 @@ open class VerificationFactory {
         return when {
             relayPolicy.isArrayOfPolicy<FiltersXValidateField>() -> validateFiltersX(receive)
             relayPolicy.isArrayOfPolicy<EventValidateField>() -> validateEvent(receive)
-            else -> Pair(false, "unsupported: relay policy")
+            else -> false to "unsupported: relay policy"
         }
     }
 
     private fun validateFiltersX(receive: Map<String, JsonElement>): Pair<Boolean, String> {
-        val filter = convertToFiltersXObject(receive)
+        val filter = receive.toFiltersX()
 
         return Pair(true, "Not yet implemented")
     }
 
     private fun validateEvent(receive: Map<String, JsonElement>): Pair<Boolean, String> {
-        val event = convertToEventObject(receive)
+        val event: Event = receive.toEvent()
 
-        val (isValidId, actualId) = event.isValidEventId()
+        val (isValidId, eventIdWarning) = event.isValidEventId()
         if (!isValidId) {
-            val warning = "invalid: actual event id $actualId"
-            LOG.info(warning)
-            return Pair(false, warning)
+            LOG.error(eventIdWarning)
+            return false to eventIdWarning
         }
 
         val (isValidSignature, signatureWarning) = event.isValidSignature()
         if (!isValidSignature) {
-            LOG.info(signatureWarning)
-            return Pair(false, signatureWarning)
+            LOG.error(signatureWarning)
+            return false to signatureWarning
         }
 
-        return Pair(true, "")
+        val (isValidPubkey, pubkeyWarning) = event.isEventPublicKeyValid()
+        if (!isValidPubkey) {
+            LOG.error(pubkeyWarning)
+            return false to pubkeyWarning
+        } else {
+            true to pubkeyWarning
+        }
+
+        return true to ""
     }
 
-    private inline fun <reified T> Array<*>.isArrayOfPolicy(): Boolean = all { it is T }
 
-    private val LOG = LoggerFactory.getLogger(VerificationFactory::class.java)
+    companion object {
+        private val LOG = LoggerFactory.getLogger(VerificationFactory::class.java)
+        private inline fun <reified T> Array<*>.isArrayOfPolicy(): Boolean = all { it is T }
+    }
 
 }
 

@@ -1,16 +1,15 @@
 package org.fenrirs.relay.core.nip01
 
-import jakarta.inject.Singleton
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.serialization.json.*
+
 import org.fenrirs.relay.modules.Event
 import org.fenrirs.relay.modules.FiltersX
 import org.fenrirs.relay.modules.TagElt
+
 import org.slf4j.LoggerFactory
 
-@Singleton
 object Transform : VerificationFactory() {
-
-    private val LOG = LoggerFactory.getLogger(Transform::class.java)
 
     private fun Map<String, JsonElement>.toTagMap(): Map<TagElt, Set<String>> {
         return this.filterKeys { it.startsWith("#") }
@@ -20,7 +19,7 @@ object Transform : VerificationFactory() {
             }
     }
 
-    fun convertToFiltersXObject(field: Map<String, JsonElement>): FiltersX {
+    private fun convertToFiltersXObject(field: Map<String, JsonElement>): FiltersX {
         return FiltersX(
             ids = field["ids"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }?.toSet() ?: emptySet(),
             authors = field["authors"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }?.toSet() ?: emptySet(),
@@ -34,7 +33,7 @@ object Transform : VerificationFactory() {
     }
 
 
-    fun convertToEventObject(field: Map<String, JsonElement>): Event {
+    private fun convertToEventObject(field: Map<String, JsonElement>): Event {
         return Event(
             id = field["id"]?.jsonPrimitive?.contentOrNull,
             pubkey = field["pubkey"]?.jsonPrimitive?.contentOrNull,
@@ -46,24 +45,13 @@ object Transform : VerificationFactory() {
         )
     }
 
-    fun Map<String, JsonElement>.toFiltersX(): FiltersX {
-        return convertToFiltersXObject(this)
-    }
+    fun Map<String, JsonElement>.toFiltersX(): FiltersX = convertToFiltersXObject(this)
 
-    fun Map<String, JsonElement>.toEvent(): Event {
-        return convertToEventObject(this)
-    }
+    fun Map<String, JsonElement>.toEvent(): Event = convertToEventObject(this)
 
-    fun JsonObject.toFiltersX(): FiltersX {
-        val fieldMap = this.toMap()
-        return convertToFiltersXObject(fieldMap)
-    }
+    fun JsonObject.toFiltersX(): FiltersX = convertToFiltersXObject(this.toMap())
 
-    fun JsonObject.toEvent(): Event {
-        val fieldMap = this.toMap()
-        return convertToEventObject(fieldMap)
-    }
-
+    fun JsonObject.toEvent(): Event = convertToEventObject(this.toMap())
 
     /*
     fun JsonObject.toFiltersX(): FiltersX {
@@ -74,5 +62,6 @@ object Transform : VerificationFactory() {
         return Json.decodeFromJsonElement<Event>(this)
     }
      */
+
 
 }

@@ -232,7 +232,7 @@ class StoredServiceImpl @Inject constructor(
                     query.limit(filters.limit?.toInt() ?: 1_000)
                 }
 
-                LOG.info("SQL Command\n$query")
+                //LOG.info("SQL Command\n$query")
 
                 // ดำเนินการ fetch ข้อมูลตามเงื่อนไขที่กำหนดแล้ว map ข้อมูลที่ได้มาเป็น Event objects
                 query.fetch().map { record ->

@@ -8,8 +8,8 @@ import org.fenrirs.relay.modules.FiltersX
 import org.fenrirs.relay.policy.EventValidateField
 import org.fenrirs.relay.policy.FiltersXValidateField
 
-import org.fenrirs.relay.core.nip01.Transform.convertToFiltersXObject
 import org.fenrirs.relay.core.nip01.Transform.toEvent
+import org.fenrirs.relay.core.nip01.Transform.toFiltersX
 import org.fenrirs.relay.core.nip01.Transform.validateElement
 
 /**
@@ -76,7 +76,7 @@ object CommandFactory {
 
         val data: Map<String, JsonElement> = filtersJson.flatMap { it.entries }.associate { it.key to it.value }
 
-        val filtersX: List<FiltersX> = filtersJson.map { convertToFiltersXObject(it.jsonObject) }
+        val filtersX: List<FiltersX> = filtersJson.map { it.jsonObject.toFiltersX() }
 
         val (status, warning) = validateElement(data, FiltersXValidateField.entries.toTypedArray())
         return REQ(subscriptionId, filtersX) to (status to warning)

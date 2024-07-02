@@ -32,11 +32,9 @@ enabled = true
 difficulty-minimum = 32
 
 [nostr.relay.profile.backup]
+enabled = true
 sync = [
-    "wss://nos.lol",
-    "wss://relay.damus.io",
-    "wss://relay.notoshi.win",
-    "wss://nostr-pub.wellorder.net"
+
 ]
 
 
