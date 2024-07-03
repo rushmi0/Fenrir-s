@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 import okhttp3.*
+import org.fenrirs.relay.modules.FiltersX
 
 @Bean
 class ProfileSync @Inject constructor(
@@ -50,19 +51,19 @@ class ProfileSync @Inject constructor(
                 val request: Request = Request.Builder().url(url).build()
                 client.newWebSocket(request, SyncData())
             }
-            //val followsList = runBlocking { getFollowsList(publicKey) }
-            //LOG.info("Follows: $followsList")
+            val followsList = runBlocking { getFollowsList(publicKey) }
+            LOG.info("Follows: $followsList")
         }
     }
 
-    /*
+
     private suspend fun getFollowsList(publicKey: String): List<String> {
         val filter = FiltersX(authors = setOf(publicKey), kinds = setOf(3))
         val event = sqlExec.filterList(filter)[0]
         val tagsList = event.tags?.filter { it.isNotEmpty() && it[0] == "p" }?.map { it[1] } ?: emptyList()
         return tagsList.plus(publicKey)
     }
-     */
+
 
 
     private inner class SyncData : WebSocketListener() {

@@ -7,10 +7,15 @@ services:
 
   relay-app:
     container_name: relay-app
+    image: amazoncorretto:21.0.3
     depends_on:
       - relay-db
-    restart: unless-stopped
-    build: .
+    #restart: unless-stopped
+    volumes:
+      - .:/home/app
+    working_dir: /home/app
+    command: >
+      /bin/bash -c "./gradlew assemble && java -cp build/libs/*:build/docker/optimized/layers/app/* org.fenrirs.ApplicationKt"
     ports:
       - "6724:6724"
     networks:
@@ -30,7 +35,6 @@ services:
       - dev_network
     ports:
       - "5432:5432"
-
 
   relay-cache:
     container_name: relay-cache

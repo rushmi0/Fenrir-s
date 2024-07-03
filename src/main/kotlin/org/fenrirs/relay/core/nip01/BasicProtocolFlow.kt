@@ -244,7 +244,7 @@ class BasicProtocolFlow @Inject constructor(
         if (status) {
             for (filter in filtersX) {
                 val events: List<Event> = sqlExec.filterList(filter)
-                events.forEachIndexed { index, event ->
+                events.forEachIndexed { _, event ->
                     //val eventIndex = "${index + 1}/${events.size}"
                     //LOG.info("Relay Response event $eventIndex: $event")
                     RelayResponse.EVENT(subscriptionId, event).toClient(session)

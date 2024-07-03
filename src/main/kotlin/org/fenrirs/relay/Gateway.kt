@@ -23,14 +23,11 @@ import org.fenrirs.relay.core.nip01.command.EVENT
 import org.fenrirs.relay.core.nip01.command.REQ
 import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip11.RelayInformation
-import org.graalvm.nativeimage.Platform.IOS_AMD64
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 @Bean
-@RequestScope
-@Introspected
 @ServerWebSocket("/")
 class Gateway @Inject constructor(
     private val nip01: BasicProtocolFlow,

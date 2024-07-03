@@ -33,7 +33,7 @@ class NostrRelayConfig {
         }
     }
 
-    @ConfigurationProperties("profile")
+    @ConfigurationProperties("database")
     class Database {
         lateinit var backup: Backup
 
