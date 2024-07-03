@@ -6,7 +6,7 @@ import io.micronaut.context.annotation.ConfigurationProperties
 class NostrRelayConfig {
     lateinit var info: Info
     lateinit var policy: Policy
-    lateinit var profile: Profile
+    lateinit var database: Database
 
     @ConfigurationProperties("info")
     class Info {
@@ -34,7 +34,7 @@ class NostrRelayConfig {
     }
 
     @ConfigurationProperties("profile")
-    class Profile {
+    class Database {
         lateinit var backup: Backup
 
         @ConfigurationProperties("backup")

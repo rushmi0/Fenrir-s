@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
 
 import okhttp3.*
-import org.fenrirs.relay.modules.FiltersX
 
 @Bean
 class ProfileSync @Inject constructor(
@@ -39,10 +38,10 @@ class ProfileSync @Inject constructor(
 
     private val reqList = listOf(
         """["REQ","fffff",{"authors":["$publicKey"],"kinds":[3]}]""",
-        //"""["REQ","fffff",{"#p":["$publicKey"]}]"""
+        """["REQ","fffff",{"#p":["$publicKey"]}]"""
     )
 
-    private val sourceList: List<String> = config.profile.backup.sync
+    private val sourceList: List<String> = config.database.backup.sync
 
     fun sync() {
 

@@ -31,7 +31,7 @@ pass = true
 enabled = true
 difficulty-minimum = 32
 
-[nostr.relay.profile.backup]
+[nostr.relay.database.backup]
 enabled = true
 sync = [
     "wss://relay-jp.nostr.wirednet.jp",
