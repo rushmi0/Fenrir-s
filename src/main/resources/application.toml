@@ -10,7 +10,7 @@ port = 6724
 [micronaut.executors.scheduled]
 type = "scheduled"
 virtual = true
-parallelism = 128
+parallelism = 64
 core-pool-size = 32
 
 
@@ -34,7 +34,13 @@ difficulty-minimum = 32
 [nostr.relay.profile.backup]
 enabled = true
 sync = [
-
+    "wss://relay-jp.nostr.wirednet.jp",
+    "wss://r.kojira.io",
+    "wss://relay.notoshi.win",
+    "wss://relay.siamstr.com",
+    "wss://relay.damus.io",
+    "wss://relay.nostr.band",
+    "wss://nostr-01.yakihonne.com"
 ]
 
 
