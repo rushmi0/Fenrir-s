@@ -1,37 +1,45 @@
-version: "3.9"
+version: "3.8"
 
 networks:
   dev_network:
 
 services:
 
+  relay-app:
+    container_name: relay-app
+    environment:
+      DATABASE_URL: jdbc:postgresql://relay-db:5432/nostr
+    depends_on:
+      relay-db:
+        condition: service_healthy
+    restart: unless-stopped
+    build: .
+    ports:
+      - "6724:6724"
+    networks:
+      - dev_network
+
   relay-db:
-    container_name: relay-postgres
+    container_name: relay-db
     image: postgres:15-alpine
     environment:
       POSTGRES_USER: rushmi0
-      POSTGRES_PASSWORD: 0sql@min1
+      POSTGRES_PASSWORD: sql@min
       POSTGRES_DB: nostr
     volumes:
       - ./src/main/resources/db/migration:/docker-entrypoint-initdb.d/
     restart: unless-stopped
-    ports:
-      - "54330:5432"
     networks:
       - dev_network
+    ports:
+      - "5432:5432"
+
 
   relay-cache:
-    container_name: relay-redis
+    container_name: relay-cache
     image: redis:7.0-alpine
     restart: unless-stopped
-    ports:
-      - "63790:6379"
     networks:
       - dev_network
-
-#  cloudflared-tunnel:
-#    container_name: cloudflared-tunnel
-#    image: cloudflare/cloudflared:latest
-#    restart: unless-stopped
-#    command: tunnel --no-autoupdate run --token
-
+    ports:
+      - "6379:6379"

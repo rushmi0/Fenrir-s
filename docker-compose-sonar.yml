@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+
+  sonarqube:
+    image: sonarqube:10.3-community
+    container_name: sonarqube
+    restart: unless-stopped
+    environment:
+      - SONARQUBE_JDBC_USERNAME=sonar
+      - SONARQUBE_JDBC_PASSWORD=sona1150
+      - SONARQUBE_JDBC_URL=jdbc:postgresql://db:54321/sonarqube
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_conf:/opt/sonarqube/conf
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_bundled-plugins:/opt/sonarqube/lib/bundled-plugins
+
+  sonar-db:
+    image: postgres:15
+    container_name: sonar-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=sonar
+      - POSTGRES_PASSWORD=sona1150
+      - POSTGRES_DB=sonarqube
+    ports:
+      - "54321:5433"
+    volumes:
+      - sonarqube_db:/var/lib/postgresql10
+      - postgresql_data:/var/lib/postgresql10/data
+
+
+
+volumes:
+  postgresql_data:
+  sonarqube_bundled-plugins:
+  sonarqube_conf:
+  sonarqube_data:
+  sonarqube_db:
+  sonarqube_extensions:

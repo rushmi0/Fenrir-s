@@ -44,11 +44,11 @@ sync = [
 sql-dialect = "postgres"
 
 [datasources.default]
-jdbc-url = "jdbc:postgresql://localhost:54330/nostr"
-#jdbc-url = "jdbc:postgresql://relay-postgres:54330/nostr"
+#jdbc-url = "jdbc:postgresql://localhost:5432/nostr"
+jdbc-url = "jdbc:postgresql://relay-db:5432/nostr"
 driver-class-name = "org.postgresql.Driver"
 username = "rushmi0"
-password = "0sql@min1"
+password = "sql@min"
 db-type = "postgres"
 ## Hikari Connection Pooling ##
 minimum-idle = 5
@@ -61,7 +61,7 @@ leak-detection-threshold = 30000
 validation-timeout = 3000
 
 [redis]
-uri = "redis://localhost:63790"
+uri = "redis://localhost:6379"
 timeout = "45m"
 io-thread-pool-size = 5
 computation-thread-pool-size = 4

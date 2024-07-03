@@ -136,7 +136,6 @@ tasks.named<io.micronaut.gradle.docker.NativeImageDockerfile>("dockerfileNative"
     jdkVersion = "21"
 }
 
-
 jooq {
     version.set("3.18.7")  // default (can be omitted)
     edition.set(nu.studer.gradle.jooq.JooqEdition.OSS)  // default (can be omitted)
@@ -150,10 +149,10 @@ jooq {
                 //logging = Logging.DEBUG
                 jdbc.apply {
                     driver = "org.postgresql.Driver"
-                    url = "jdbc:postgresql://localhost:54330/nostr"
-                    //url = "jdbc:postgresql://relay-postgres:54330/nostr"
+                    //url = "jdbc:postgresql://localhost:5432/nostr"
+                    url = "jdbc:postgresql://relay-db:5432/nostr"
                     user = "rushmi0"
-                    password = "0sql@min1"
+                    password = "sql@min"
                     properties.add(Property().apply {
                         key = "ssl"
                         value = "false"
@@ -181,3 +180,4 @@ jooq {
         }
     }
 }
+
