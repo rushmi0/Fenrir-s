@@ -7,8 +7,6 @@ services:
 
   relay-app:
     container_name: relay-app
-    environment:
-      DATABASE_URL: jdbc:postgresql://relay-db:5432/nostr
     depends_on:
       - relay-db
     restart: unless-stopped
