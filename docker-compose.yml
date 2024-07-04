@@ -8,8 +8,6 @@ services:
   relay-app:
     container_name: relay-app
     image: amazoncorretto:21.0.3
-    depends_on:
-      - relay-db
     #restart: unless-stopped
     volumes:
       - .:/home/app
