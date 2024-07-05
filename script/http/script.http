@@ -1,0 +1,316 @@
+###
+
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "REQ",
+  "",
+  {
+    "search": "orange"
+  },
+  {
+    "kinds": [1, 2],
+    "search": "purple"
+  }
+]
+
+
+###
+
+GET http://localhost:6624
+accept: application/nostr+json
+
+
+###
+
+GET http://localhost:6624
+
+###
+
+GET http://localhost:6624
+accept: test
+
+
+###
+
+GET http://relay.damus.io
+accept: application/nostr+json
+
+###
+
+GET http://relay.nostr.band
+accept: application/nostr+json
+
+###
+
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+[
+  "REQ",
+  "fffffffff",
+  {
+    "authors": [
+      "e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"
+    ],
+    "kinds": [0]
+  }
+]
+
+###
+
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+[
+  "REQ",
+  {"search": "purple", "kinds": [1], "since": 1715181359}
+]
+
+###
+
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+["PING", "0102"]
+
+###
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+["EVENT",{"id":"2434fe4681cd433169f4b7d2b69e6d75f4619d28267967f81284eedad3e6f591","pubkey":"e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3","created_at":1718189891,"kind":10002,"tags":[["r","ws://192.168.1.27:6624"],["r","wss://au.relayable.org/"],["r","wss://frens.nostr1.com/"],["r","wss://nostr-01.yakihonne.com/"],["r","wss://nostr.mutinywallet.com/"],["r","wss://offchain.pub/"],["r","wss://relay.0xchat.com/"],["r","wss://relay.damus.io/"],["r","wss://relay.nostr.band/"],["r","wss://relay.notoshi.win/"],["r","wss://relay.siamstr.com/"],["r","wss://relay.snort.social/"],["r","wss://welcome.nostr.wine/"]],"content":"","sig":"5d96c9bc659ac387a8f8ee85b1980516d89d090707cb8852e4fd22a277c66a623587895ab34039e56390d96dd38893f25a72096dd766e31db548bcf31828a3d3"}]
+
+
+###
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "EVENT",
+  {
+    "created_at":1716448321,
+    "kind":0,
+    "tags":[["alt","User profile for lnwza007"]],
+    "content":"{\"name\":\"lnwza007\",\"gender\":\"\",\"area\":\"\",\"picture\":\"https://image.nostr.build/552b5424ebd3c66be6f588e08c2f427e04423f11e80514414215b5ae00877b28.gif\",\"lud16\":\"rushmi0@getalby.com\",\"website\":\"https://github.com/rushmi0\",\"display_name\":\"lnwza007\",\"banner\":\"\",\"about\":\"แดดกรุงเทพที่ร้อนจ้า ยังแพ้ตัวข้าที่ร้อน sat\"}",
+    "pubkey":"e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3",
+    "id":"ecfdf5d329ae69bdca40f04a33a8f8447b83824f958a8db926430cd8b2aeb350",
+    "sig":"6a7898997ceb936fb6f660848baf8185f84ab22ff45aa3fc36eabad577bb4fae739bfdcd3d428d52146c6feaf9264bbc8f82121ddb8eeb85ce242ff79a1b0948"
+  }
+]
+
+###event
+
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "EVENT",
+  {
+    "id": "0000005b0fc51e70b66db99ba1708b1a1b008c30db35d19d35146b3e09756029",
+    "pubkey": "161498ed3277aa583c301288de5aafda4f317d2bf1ad0a880198a9dede37a6aa",
+    "created_at": 1716617176,
+    "kind": 1,
+    "tags": [
+      ["nonce","19735841","23"]
+    ],
+    "content": "My custom content",
+    "sig": "954c662c9ee29ccad8a1f30d22b9a5cefcea774f72428ec7344b65e4f31fff24fc4dd0b7874a4d10a1a4c012de013df19a7c33018dda5f1207280f9a28193498"
+
+  }
+]
+
+
+###
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "EVENT",
+  {
+    "id": "000006d8c378af1779d2feebc7603a125d99eca0ccf1085959b307f64e5dd358",
+    "pubkey": "a48380f4cfcc1ad5378294fcac36439770f9c878dd880ffa94bb74ea54a6f243",
+    "created_at": 1651794653,
+    "kind": 1,
+    "tags": [
+    ["nonce", "776797", "20"]
+  ],
+    "content": "It's just me mining my own business",
+    "sig": "284622fc0a3f4f1303455d5175f7ba962a3300d136085b9566801bc2e0699de0c7e31e44c81fb40ad9049173742e904713c3594a1da0fc5d2382a25c11aba977"
+  }
+]
+
+###
+# ทดสอบให้แจ้งปัญหา
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "REQ",
+  "8wHEWFsnIvKCWTb-4PMak",
+  {
+    "#d":[
+      "3425e3a156471426798b80c1da1f148343c5c5b4d2ac452d3330a91b4619af65",
+      "3425e3a156471426798b80c1da1f148343c5c5b4d2ac452d3330a91b4619af65",
+      "161498ed3277aa583c301288de5aafda4f317d2bf1ad0a880198a9dede37a6aa"
+    ],
+    "kinds":[1,6,16,7,9735,2004,30023],
+    "limit":50
+  },
+  {
+    "kinds": [4],
+    "#p": ["161498ed3277aa583c301288de5aafda4f317d2bf1ad0a880198a9dede37a6aa"]
+  }
+]
+
+###
+WEBSOCKET wss://nostr-relay.app
+Content-Type: application/json
+
+[
+  "EVENT",
+{
+  "id": "91d927eac180ab6465cf2edaa2ce01df196cfcc942ad493e451a4a56f7331075",
+  "pubkey": "dea65581f7e02f8e0498daf083d4f9677e1858e98ff4cb5b16ad7c8575f70c0f",
+  "created_at": 1718115023,
+  "kind": 22242,
+  "tags": [
+    [
+      "relay",
+      "wss://nostr-relay.app/"
+    ],
+    [
+      "challenge",
+      "25266720-527c-4ec8-80db-b22c8f9b6508"
+    ]
+  ],
+  "content": "",
+  "sig": "d73205778074b5b91d1f99ffe5e3144f85a614cf5859cbb75be86392522bd0e55d581b45f6434d0dad5d29631c16745774c4d10f5aaef68d690d8978ec868c66"
+}
+]
+
+
+###
+WEBSOCKET wss://nostr-relay.app
+Content-Type: application/json
+
+["REQ","WGXZ4K2_d2GBmSXciTncg",{"kinds":[30078],"authors":["2b18d85bd8e59c4e2a17fbe53e151e9f282e5f58677cf4e2c69843ace8be7558"],"#d":["nostrudel-favorite-lists"]}]
+
+###
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+["REQ","dfae",{"kinds":[1063,1065,34235,34236],"#m":["image/jpeg","image/gif","image/png","image/webp","video/mp4","video/mpeg","video/webm","audio/aac","audio/mpeg","audio/webm","audio/wav"],"limit":200}]
+
+
+###
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+["REQ","NL8B4QXaHY1TNG8sfe1vT",{"#p":["3425e3a156471426798b80c1da1f148343c5c5b4d2ac452d3330a91b4619af65"],"kinds":[1,6,16,7,9735,2004,30023],"limit":50}]
+
+### +
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+["REQ","XRgo-m3j15alOkwZKi8vU",
+  {"kinds":[0],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]},
+  {"kinds":[3],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]},
+  {"kinds":[10000],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]},
+  {"kinds":[10002],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]},
+  {"kinds":[10030],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]},
+  {"kinds":[30078],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],"#d":["nostrudel-settings"]}]
+
+###
+# ทดสอบให้แจ้งปัญหา
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "REQ",
+  "1111252",
+  {
+    "kinds": [4],
+    "#p": ["161498ed3277aa583c301288de5aafda4f317d2bf1ad0a880198a9dede37a6aa"]
+  }
+]
+
+
+###
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "REQ",
+  "ffffff",
+  {
+    "#e": [
+      "e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"
+    ],
+    "limit":1
+  }
+]
+
+
+
+###
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+
+[
+  "REQ",
+  "1111252",
+  {
+    "kinds": [1],
+    "authors": ["161498ed3277aa583c301288de5aafda4f317d2bf1ad0a880198a9dede37a6aa"],
+    "search": "purple"
+  }
+]
+
+###
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "REQ",
+  "FavDpMq9QkV28wJuQpHvv",
+  {
+    "#e":["ad4d6d3961af8c32ad8e9239a8c7f07450e9de0ffd239acd262d7b7713bf030b"],
+    "kinds":[1,6,16,7,9735,2004,30023],
+    "limit":50
+  }
+]
+
+###
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "REQ",
+  "ffffff",
+  {"search": "tangerine_thinking_face"}
+]
+
+### ["CLOSED", "ffffff"]
+
+
+###
+# ทดสอบให้แจ้งปัญหา
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "REQ",
+  "fffffffff",
+  {
+    "kinds": [1],
+    "authors": ["161498ed3277aa583c301288de5aafda4f317d2bf1ad0a880198a9dede37a6aa"],
+    "search": "purple",
+    "#e": ["161498ed3277aa583c301288de5aafda4f317d2bf1ad0a880198a9dede37a6aa"]
+  },
+  {"search": "purple", "kinds": [1], "status": true, "since": 1715181359},
+  {"search": "purple", "kindsss": 1, "status": true, "since": 1715181359}
+]
+
+

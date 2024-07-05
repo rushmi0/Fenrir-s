@@ -1,0 +1,326 @@
+# wss://relay.damus.io
+# wss://relay.damus.io
+# ws://localhost:6624
+
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "EVENT",
+  {
+    "id": "000006d8c378af1779d2feebc7603a125d99eca0ccf1085959b307f64e5dd358",
+    "pubkey": "a48380f4cfcc1ad5378294fcac36439770f9c878dd880ffa94bb74ea54a6f243",
+    "created_at": 1651794653,
+    "kind": 1,
+    "tags": [
+      ["nonce", "776797", "21"]
+    ],
+    "content": "It's just me mining my own business",
+    "sig": "284622fc0a3f4f1303455d5175f7ba962a3300d136085b9566801bc2e0699de0c7e31e44c81fb40ad9049173742e904713c3594a1da0fc5d2382a25c11aba977"
+  }
+]
+###
+
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "EVENT",
+    {
+      "id": "4b8523bc2581128f413e51e5a59493c0c61259745ee26ef53d015d5756542402",
+      "pubkey": "8c3a51f90fe05d694a1efe95e0d31b1b00f3314029d708b120e7f8d4a983a89c",
+      "created_at": 1714658935,
+      "kind": 1,
+      "tags": [],
+      "content": "test 1",
+      "sig": "211e227b7d64d4ce0cd66c7de7f75878ecb3dbd64cedb2de68076c7675959da0eebedcaca693c4f37d0f49639bad3d796d66ec75ad66fe5fef4fbead5b8839b8"
+    }
+]
+
+###
+
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "EVENT",
+    {
+      "id": "26800c47d2efb3e1c7fa72bca09a5598cfc7ca38bb30f0dfe7be3fa8973ecc2c",
+      "pubkey": "e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3",
+      "created_at": 1714902166,
+      "kind": 1,
+      "tags": [],
+      "content": "ช่วงนี้เริ่มมาทำความรู้จัก nostr แบบจริงจังมาสักระยะเป้าหมายในการทำ nostr relay\n\nช่วงนี้ยังอยู่ในขั้นตอนเรียนรู้โปรโตคอล, วรยุทธ และเทคโนโลยีที่จะนำมาใช้ \n\nถ้ารู้ครบองค์ประกอบเหล่านี้ถึงจะเริ่ม ออกแบบระบบ ได้ครับ....\n\nปัญหาหลักๆ คือตัวเอกสาร NIP ที่เอาแน่เอานอนไม่ได้และตัวอย่างเองที่กำกวม ต้องไปงมโค้ด relay ของคนอื่นๆ เอาเอง ดูจากหลายๆ project เพื่อหาคำตอบที่สงสัย\n\nโค้ดคนอื่นนี้อ่านยากจริง แถมไม่ค่อยเขียนอธิบายด้วยนะ เหมือนพวกขับรถแล้วไม่ชอบเปิดไฟเลี้ยวอ่ะ\n\nกว่าจะได้คำตอบที่สงสัยจากเอกสาร กว่าจะทำความเข้าใจโครงสร้าง relay และ library, framework ของคนอื่นที่ใช้อีก และเริ่มไล่ debug ก็กินเวลานานเอาเรื่อง\n\nข้อดีมันก็มีนะคือบางที่จะได้ \"วรยุทธ\" ที่น่าสนใจมาจากเข้าด้วย เช่น reactive programming\n\nโดยรวมแล้วโคตรมัน มีอะไรให้ทำยาวๆ ว้าวววซ่า 55+\n",
+      "sig": "d9710448b5ce83ea3544bb4c2e68327b0ab798582699ac6aff5d2f23dd17b47f3bc3aa3dce39610c04d6c78b6e2c4003ac1c9fcb1f743e1ebb0f3d78898c82fb"
+    }
+]
+
+###
+
+WEBSOCKET wss://relay.rushmi0.win
+Content-Type: application/json
+
+[
+  "EVENT",
+    {
+      "id": "26800c47d2efb3e1c7fa72bca09a5598cfc7ca38bb30f0dfe7be3fa8973ecc2c",
+      "pubkey": "e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3",
+      "created_at": 1714902166,
+      "kind": 1,
+      "tags": [],
+      "content": "ช่วงนี้เริ่มมาทำความรู้จัก nostr แบบจริงจังมาสักระยะเป้าหมายในการทำ nostr relay\n\nช่วงนี้ยังอยู่ในขั้นตอนเรียนรู้โปรโตคอล, วรยุทธ และเทคโนโลยีที่จะนำมาใช้ \n\nถ้ารู้ครบองค์ประกอบเหล่านี้ถึงจะเริ่ม ออกแบบระบบ ได้ครับ....\n\nปัญหาหลักๆ คือตัวเอกสาร NIP ที่เอาแน่เอานอนไม่ได้และตัวอย่างเองที่กำกวม ต้องไปงมโค้ด relay ของคนอื่นๆ เอาเอง ดูจากหลายๆ project เพื่อหาคำตอบที่สงสัย\n\nโค้ดคนอื่นนี้อ่านยากจริง แถมไม่ค่อยเขียนอธิบายด้วยนะ เหมือนพวกขับรถแล้วไม่ชอบเปิดไฟเลี้ยวอ่ะ\n\nกว่าจะได้คำตอบที่สงสัยจากเอกสาร กว่าจะทำความเข้าใจโครงสร้าง relay และ library, framework ของคนอื่นที่ใช้อีก และเริ่มไล่ debug ก็กินเวลานานเอาเรื่อง\n\nข้อดีมันก็มีนะคือบางที่จะได้ \"วรยุทธ\" ที่น่าสนใจมาจากเข้าด้วย เช่น reactive programming\n\nโดยรวมแล้วโคตรมัน มีอะไรให้ทำยาวๆ ว้าวววซ่า 55+\n",
+      "sig": "d9710448b5ce83ea3544bb4c2e68327b0ab798582699ac6aff5d2f23dd17b47f3bc3aa3dce39610c04d6c78b6e2c4003ac1c9fcb1f743e1ebb0f3d78898c82fb"
+    }
+]
+
+
+###
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "EVENT",
+  {
+    "id":"9ecd9020b0b8e20f9acba516d24029ac8fd7fa061961bdf2d53f8fa5c41597e5",
+    "pubkey":"d759eb0340d5ebd639b17d2796e8a416be9bbb9b5c56a0104e9b623aa86ef603",
+    "content":"KKKKKKKKK",
+    "kind":1,
+    "created_at":1715331612,
+    "tags":[],
+    "sig":"d6a316fc619f68f9d7664fdcab606f34b9e5cf3ae43eb8f620bb419825992c5ea42fc978c0bd3ac2076bf5d4ead5242481d7ddbc5f15dfc012e120b2c49c2dac"
+  }
+]
+
+
+
+###
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "REQ",
+  "ID-01",
+  {
+    "#p": ["8c3a51f90fe05d694a1efe95e0d31b1b00f3314029d708b120e7f8d4a983a89c"]
+  }
+]
+
+###
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+[
+  "REQ",
+  "ID-01",
+  {
+    "authors" : ["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],
+    "kinds": [1]
+  }
+]
+
+###
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+[
+  "REQ",
+  "ID-01",
+  {
+    "search" : "nostr",
+    "kinds": [1]
+  }
+]
+
+###
+
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+[
+  "REQ",
+  "8df9be93cd032187a6bf0f132ff43f191af88d62f49b0476944a3859e7865445",
+  {
+    "authors": [
+      "8c3a51f90fe05d694a1efe95e0d31b1b00f3314029d708b120e7f8d4a983a89c",
+      "e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"
+    ],
+    "kinds": [1]
+  }
+]
+
+
+###
+
+WEBSOCKET ws://localhost:8081
+Content-Type: application/json
+
+[
+  "EVENT",
+  "Hello"
+]
+
+###
+
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+[
+  "REQ",
+  "ID1715181359",
+  {
+    "search": "orange"
+  },
+  {
+    "kinds": [1, 2],
+    "search": "purple"
+  }
+]
+
+###
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+[
+  "REQ",
+
+  {
+    "authors": [
+      "e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"
+    ],
+    "kinds": [4],
+    "since": 1715181359
+  }
+]
+
+
+### 1715181359
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+[
+  "REQ",
+  "ID-02",
+  {
+    "authors": [
+      "e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"
+    ],
+    "kinds": [4],
+    "since": 2
+  }
+]
+
+
+###
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+[
+  "EVENT",
+  {
+    "id":"806aca95741bcefc6163976f88d519a8531a50cc0a597bdfff3503f86dd167a0",
+    "pubkey":"e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3",
+    "content":"l5mZaN4Hdx60lje2JnZ62mG1C2dJdCnkT5Vz6GRarV6Cp/pNofUwjpKaVQSUcoyp?iv=ME4clY7fudV5iXyohr/+sw==",
+    "kind":4,
+    "created_at":1715181781,
+    "tags":[
+      ["p","03742c205cb6c8d86031c93bc4a9b3d18484c32c86563fc0e218910a2df9aa5d"]
+    ],
+    "sig": "5adaa8fe67cb053a2539c0150c822bc14d3cb657a37e7faea7e50ef89cd910ff93a0a581370ad2d27e7835100d5ab817903f1907ee0351d6025343137f826aa0"
+  }
+]
+
+###
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+[
+  "EVENT",
+  {
+    "id": "9cf9beee982a95ccc32902624ddc413d244a9c870398fd863cae6410cdae888d",
+    "pubkey": "e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3",
+    "content": "wQ0TOjy+5jJn/U/kOH1zcYSbYEoW2+gu32Wj86lxaif8WA5gIpC4Z/Roi3v+qvx RV1TDpbA0ydcw2BK+N3/qdA==?iv=T3IM53oxLFBifCV4p7bq7g==",
+    "kind": 4,
+    "created_at": 1715182468,
+    "tags": [
+      ["p", "03742c205cb6c8d86031c93bc4a9b3d18484c32c86563fc0e218910a2df9aa5d"]
+    ],
+    "sig": "80316729fcce69682f3961a4bfd6c50b0b0ea0e9e2d5285fdf99ce1fc7268314cda586ca4f9202c67c1c3963a2764375249224cd6b3d94d447f80f9eab1e62a7"
+  }
+]
+
+
+
+###
+
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+[
+  "REQ",
+  "ID1715181359",
+  {
+    "kinds": [1],
+    "#p" : ["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]
+  }
+]
+
+###
+
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "REQ",
+  "ID1715181359",
+  {
+    "kinds": [1],
+    "#p" : ["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]
+  }
+]
+
+###
+
+WEBSOCKET ws://localhost:6624
+Content-Type: application/json
+
+[
+  "REQ",
+  "",
+  {
+    "ids": ["0000"]
+  }
+]
+
+
+###
+
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+[
+  "REQ",
+  "uuuuu",
+  {
+    "#e": [
+      "e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"
+    ],
+    "limit": 1
+  }
+]
+
+###
+
+WEBSOCKET wss://relay.damus.io
+Content-Type: application/json
+
+[
+  "REQ",
+  "uuuuu",
+  {
+    "authors": [
+      "e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"
+    ],
+    "limit": 2
+  }
+]
+
