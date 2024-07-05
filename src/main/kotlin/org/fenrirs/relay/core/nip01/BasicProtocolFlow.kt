@@ -13,6 +13,7 @@ import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip09.EventDeletion
 import org.fenrirs.relay.core.nip13.ProofOfWork
 import org.fenrirs.relay.policy.NostrRelayConfig
+import org.fenrirs.relay.service.ProfileSync
 
 import org.fenrirs.stored.RedisCacheFactory
 import org.fenrirs.stored.statement.StoredServiceImpl
@@ -27,6 +28,7 @@ class BasicProtocolFlow @Inject constructor(
     private val sqlExec: StoredServiceImpl,
     private val config: NostrRelayConfig,
     private val redis: RedisCacheFactory,
+    private val nip02: ProfileSync,
     private val nip09: EventDeletion,
     private val nip13: ProofOfWork
 ) {
@@ -53,7 +55,7 @@ class BasicProtocolFlow @Inject constructor(
 
         // ดึงข้อมูล public key ของ relay owner และรายการ passList จาก src/main/resources/application.toml
         val relayOwner = Bech32.decode(config.info.npub).data.toHex()
-        val passList: List<String> = getPassList(relayOwner)
+        val passList: List<String> = nip02.getPassList(relayOwner)
         val pass: Boolean = config.policy.follows.pass
         val work: Boolean = config.policy.proofOfWork.enabled
 
@@ -75,20 +77,7 @@ class BasicProtocolFlow @Inject constructor(
     }
 
 
-    /**
-     * ฟังก์ชัน getPassList ใช้ในการดึงรายการ public key หรือผู้คนที่เจ้าของ Relay ติดตามอยู่จากฐานข้อมูล
-     *
-     * @param publicKey คีย์สาธารณะของเจ้าของ Relay
-     * @return รายการของ public key ที่ติดตามโดยเจ้าของ Relay หากไม่พบข้อมูลจะคืนค่าเป็นรายการที่มี publicKey เพียงตัวเดียว
-     */
-    private suspend fun getPassList(publicKey: String): List<String> =
-        sqlExec.filterList(FiltersX(authors = setOf(publicKey), kinds = setOf(3)))
-            .firstOrNull()
-            ?.tags
-            ?.filter { it.isNotEmpty() && it[0] == "p" }
-            ?.map { it[1] }
-            ?.plus(publicKey)
-            ?: listOf(publicKey)
+
 
 
 
@@ -98,7 +87,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param event เหตุการณ์ที่มี ID ซ้ำ
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    private suspend fun handleDuplicateEvent(event: Event, session: WebSocketSession) {
+    private fun handleDuplicateEvent(event: Event, session: WebSocketSession) {
         redis.setCache(event.id!!, event.id, 86_400)
         LOG.info("Event with ID ${event.id} already exists in the database")
         RelayResponse.OK(event.id, false, "duplicate: already have this event").toClient(session)

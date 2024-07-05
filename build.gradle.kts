@@ -149,8 +149,8 @@ jooq {
                 //logging = Logging.DEBUG
                 jdbc.apply {
                     driver = "org.postgresql.Driver"
-                    //url = "jdbc:postgresql://localhost:5432/nostr"
-                    url = "jdbc:postgresql://relay-db:5432/nostr"
+                    url = "jdbc:postgresql://localhost:5432/nostr"
+                    //url = "jdbc:postgresql://relay-db:5432/nostr"
                     user = "rushmi0"
                     password = "sql@min"
                     properties.add(Property().apply {
@@ -180,4 +180,3 @@ jooq {
         }
     }
 }
-

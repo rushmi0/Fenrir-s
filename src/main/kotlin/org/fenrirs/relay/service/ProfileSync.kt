@@ -23,11 +23,13 @@ import java.util.concurrent.TimeUnit
 
 import okhttp3.*
 import org.fenrirs.relay.modules.FiltersX
+import org.fenrirs.stored.RedisCacheFactory
 
 @Bean
 class ProfileSync @Inject constructor(
     private val sqlExec: StoredServiceImpl,
-    private val config: NostrRelayConfig
+    private val redis: RedisCacheFactory,
+    private val config: NostrRelayConfig,
 ) {
 
     private val LOG = LoggerFactory.getLogger(ProfileSync::class.java)
@@ -38,7 +40,7 @@ class ProfileSync @Inject constructor(
         .build()
 
     private val reqList = listOf(
-        """["REQ","fffff",{"authors":["$publicKey"],"kinds":[3]}]""",
+        """["REQ","fffff",{"authors":["$publicKey"],"kinds":[3]},{"authors":["$publicKey"]}]""",
         """["REQ","fffff",{"#p":["$publicKey"]}]"""
     )
 
@@ -51,19 +53,26 @@ class ProfileSync @Inject constructor(
                 val request: Request = Request.Builder().url(url).build()
                 client.newWebSocket(request, SyncData())
             }
-            val followsList = runBlocking { getFollowsList(publicKey) }
+            val followsList = runBlocking { getPassList(publicKey) }
             LOG.info("Follows: $followsList")
         }
     }
 
 
-    private suspend fun getFollowsList(publicKey: String): List<String> {
-        val filter = FiltersX(authors = setOf(publicKey), kinds = setOf(3))
-        val event = sqlExec.filterList(filter)[0]
-        val tagsList = event.tags?.filter { it.isNotEmpty() && it[0] == "p" }?.map { it[1] } ?: emptyList()
-        return tagsList.plus(publicKey)
-    }
-
+    /**
+     * ฟังก์ชัน getPassList ใช้ในการดึงรายการ public key หรือผู้คนที่เจ้าของ Relay ติดตามอยู่จากฐานข้อมูล
+     *
+     * @param publicKey คีย์สาธารณะของเจ้าของ Relay
+     * @return รายการของ public key ที่ติดตามโดยเจ้าของ Relay หากไม่พบข้อมูลจะคืนค่าเป็นรายการที่มี publicKey เพียงตัวเดียว
+     */
+    suspend fun getPassList(publicKey: String): List<String> =
+        sqlExec.filterList(FiltersX(authors = setOf(publicKey), kinds = setOf(3)))
+            .firstOrNull()
+            ?.tags
+            ?.filter { it.isNotEmpty() && it[0] == "p" }
+            ?.map { it[1] }
+            ?.plus(publicKey)
+            ?: listOf(publicKey)
 
 
     private inner class SyncData : WebSocketListener() {
@@ -80,10 +89,10 @@ class ProfileSync @Inject constructor(
                 val eventMap: Map<String, JsonElement> = eventJson.toMap()
 
                 val (status, _) = validateElement(eventMap, EventValidateField.entries.toTypedArray())
-                val existingEvent = sqlExec.selectById(event.id!!)
                 if (status) {
                     runBlocking {
-                        if (existingEvent == null) {
+                        val eventId: Event? = runBlocking { redis.getCache(event.id!!)?.let { sqlExec.selectById(event.id) } }
+                        if (eventId == null) {
                             sqlExec.saveEvent(event)
                             LOG.info("Saved event: $status")
                         }

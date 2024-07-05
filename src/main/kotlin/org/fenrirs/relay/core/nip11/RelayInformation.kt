@@ -61,7 +61,7 @@ class RelayInformation @Inject constructor(
               "pubkey": "$publicKey",
               "contact": "${config.info.contact}",
               "supported_nips": [1,2,4,9,11,12,13,15,16,20,28,50],
-              "software": "https://github.com/rushmi0/lnwza007.git",
+              "software": "https://github.com/rushmi0/Fenrir-s",
               "version": "0.1"
             }
         """.trimIndent()
@@ -75,6 +75,4 @@ class RelayInformation @Inject constructor(
      */
     private fun loadFromFile(path: String): String = File(path).readText(Charset.defaultCharset())
 
-
-    private val LOG = LoggerFactory.getLogger(RelayInformation::class.java)
 }

@@ -5,20 +5,6 @@ networks:
 
 services:
 
-  relay-app:
-    container_name: relay-app
-    image: amazoncorretto:21.0.3
-    restart: unless-stopped
-    volumes:
-      - .:/app/source-code
-    working_dir: /app/source-code
-    command: >
-      /bin/bash -c "chmod +x run_jvm.sh; ./run_jvm.sh"
-    ports:
-      - "6724:6724"
-    networks:
-      - dev_network
-
   relay-db:
     container_name: relay-db
     image: postgres:15-alpine
@@ -43,9 +29,24 @@ services:
     ports:
       - "6379:6379"
 
+  relay-app:
+    container_name: relay-app
+    image: amazoncorretto:21.0.3
+    restart: unless-stopped
+    volumes:
+      - .:/app/source-code
+    working_dir: /app/source-code
+    command: >
+      /bin/bash -c "chmod +x run_jvm.sh; ./run_jvm.sh"
+    ports:
+      - "6724:6724"
+    networks:
+      - dev_network
+
+
   cloudflared-tunnel:
     container_name: cloudflared-tunnel
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    command: tunnel --no-autoupdate run --token
+    command: tunnel --no-autoupdate run --token eyJhIjoiMjlmY2I1ZjcyNmRmMDExYjgwYzliZjQyNmMyNmQwODQiLCJ0IjoiOTE2YTQ3M2YtYThiYS00Zjg1LTgxOGUtNDZmMGNjMTdhNWE4IiwicyI6Ik5XVTJZbVJtWWpJdE5ETm1PUzAwTW1ZeExUa3pNMkl0TVRsbE5UWmxORFkwTXpWbCJ9
 
