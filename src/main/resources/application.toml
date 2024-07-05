@@ -22,8 +22,6 @@ description = "นึกแล้ว มึงต้องอ่าน"
 npub = 'npub1ujevvncwfe22hv6d2cjv6pqwqhkvwlcvge7vgm3vcn2max9tu03sgze8ry'
 contact = "Lorem@bitkuy.com"
 
-#################################################################################
-
 [nostr.relay.policy.follows]
 pass = true
 
@@ -34,8 +32,6 @@ difficulty-minimum = 32
 [nostr.relay.database.backup]
 enabled = true
 sync = [
-    "wss://relay-jp.nostr.wirednet.jp",
-    "wss://r.kojira.io",
     "wss://relay.notoshi.win",
     "wss://relay.siamstr.com",
     "wss://relay.damus.io",

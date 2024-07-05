@@ -7,7 +7,7 @@ import io.micronaut.context.annotation.Bean
 import jakarta.inject.Inject
 import kotlinx.coroutines.runBlocking
 
-import org.fenrirs.utils.ExecTask.parallelDefault
+import org.fenrirs.utils.ExecTask.parallelIO
 import org.slf4j.LoggerFactory
 
 @Bean
@@ -32,13 +32,13 @@ class RedisCacheFactory @Inject constructor(
         value: T,
         expirySeconds: Long,
         serializer: (T) -> String
-    ): String? = parallelDefault(10_000) {
+    ): String? = parallelIO(10_000) {
         // แปลงข้อมูลจาก T เป็น String โดยใช้ serializer ที่ส่งเข้ามา
         val serializedValue = serializer.invoke(value)
         // เก็บข้อมูลใน Redis พร้อมกำหนดเวลาหมดอายุ
         val result = redisCommands.setex(key, expirySeconds, serializedValue)
 
-        return@parallelDefault result
+        return@parallelIO result
     }
 
     /**
@@ -50,10 +50,10 @@ class RedisCacheFactory @Inject constructor(
     private suspend fun <T> getCacheData(
         key: String,
         deserializer: (String) -> T
-    ): T? = parallelDefault(10_000) {
+    ): T? = parallelIO(10_000) {
         // ดึงข้อมูลจาก Redis โดยใช้คีย์
         val serializedValue = redisCommands[key]
-        return@parallelDefault serializedValue?.let { deserializer.invoke(it) }
+        return@parallelIO serializedValue?.let { deserializer.invoke(it) }
     }
 
     suspend fun getCache(key: String): String? {
