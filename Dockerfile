@@ -1,11 +1,12 @@
+# Stage 1: Build the application
 FROM gradle:jdk21 AS build
-WORKDIR /app
+WORKDIR /home/app
 COPY . .
-#ENV DATABASE_URL jdbc:postgresql://relay-db:5432/nostr
-RUN gradle build --no-daemon
+RUN gradle build
 
-FROM amazoncorretto:21.0.2-alpine
+# Stage 2: Run the application
+FROM amazoncorretto:21.0.3
 WORKDIR /app
-COPY --from=build /app/build/libs/*.jar application.jar
+COPY --from=build /app/build/libs/fenrir-s-0.1-all-optimized.jar fenrir-s-0.1-all-optimized.jar
 EXPOSE 6724
-ENTRYPOINT ["java", "-jar", "application.jar"]
+ENTRYPOINT ["java", "-jar", "fenrir-s-0.1-all-optimized.jar"]

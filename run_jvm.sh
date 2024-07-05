@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
-if [ ! -f "build/docker/optimized/layers/app/application.jar" ]; then
-    ./gradlew assemble
+if [ ! -f "build/libs/fenrir-s-0.1-all-optimized.jar" ]; then
+    ./gradlew build
 fi
 
-java -jar build/docker/optimized/layers/app/application.jar
+java -jar build/libs/fenrir-s-0.1-all-optimized.jar

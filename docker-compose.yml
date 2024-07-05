@@ -10,10 +10,10 @@ services:
     image: amazoncorretto:21.0.3
     #restart: unless-stopped
     volumes:
-      - .:/home/app
-    working_dir: /home/app
+      - .:/app/source-code
+    working_dir: /app/source-code
     command: >
-      /bin/bash -c "./gradlew assemble && java -cp build/libs/*:build/docker/optimized/layers/app/* org.fenrirs.ApplicationKt"
+      /bin/bash -c "chmod +x run_jvm.sh; ./run_jvm.sh"
     ports:
       - "6724:6724"
     networks:

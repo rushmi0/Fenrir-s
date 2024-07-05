@@ -7,6 +7,7 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.withContext
 
 import org.fenrirs.relay.modules.Event
+import org.fenrirs.utils.ExecTask.runWithVirtualThreads
 import org.fenrirs.utils.ShiftTo.toJsonString
 
 import org.slf4j.Logger
@@ -78,19 +79,21 @@ sealed class RelayResponse<out T> {
      * ฟังก์ชัน toClient ใช้ในการส่งการตอบกลับไปยังไคลเอนต์ผ่าน WebSocket
      * @param session ใช้ในการสื่อสารกับไคลเอนต์
      */
-    suspend fun toClient(session: WebSocketSession) {
-        if (session.isOpen) {
-            val payload = this.toJson()
-            try {
-                session.sendSync(payload)
-                if (this is CLOSED) {
-                    session.close()
+    fun toClient(session: WebSocketSession) {
+        runWithVirtualThreads {
+            if (session.isOpen) {
+                val payload = this.toJson()
+                try {
+                    session.sendSync(payload)
+                    if (this is CLOSED) {
+                        session.close()
+                    }
+                } catch (e: Exception) {
+                    LOG.error("Error sending WebSocket message: ${e.message}")
                 }
-            } catch (e: Exception) {
-                LOG.error("Error sending WebSocket message: ${e.message}")
+            } else {
+                LOG.warn("Attempted to send message to closed WebSocket session.")
             }
-        } else {
-            LOG.warn("Attempted to send message to closed WebSocket session.")
         }
     }
 

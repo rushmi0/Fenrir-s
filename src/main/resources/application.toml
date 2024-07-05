@@ -4,7 +4,7 @@ micronaut.application.name = 'fenrir-s'
 cors.enabled = true
 cors.localhost-pass-through = true
 maxRequestSize = "1MB"
-host = "localhost"
+#host = "localhost"
 port = 6724
 
 [micronaut.executors.scheduled]
@@ -67,7 +67,7 @@ leak-detection-threshold = 30000
 validation-timeout = 3000
 
 [redis]
-uri = "redis://localhost:6379"
+uri = "redis://relay-cache:6379"
 timeout = "45m"
 io-thread-pool-size = 5
 computation-thread-pool-size = 4
