@@ -2,10 +2,6 @@ package org.fenrirs.relay.core.nip01.response
 
 import io.micronaut.websocket.WebSocketSession
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.future.await
-import kotlinx.coroutines.withContext
-
 import org.fenrirs.relay.modules.Event
 import org.fenrirs.utils.ExecTask.runWithVirtualThreads
 import org.fenrirs.utils.ShiftTo.toJsonString

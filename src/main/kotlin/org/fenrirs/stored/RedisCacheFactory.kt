@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory
 
 @Bean
 class RedisCacheFactory @Inject constructor(
-    //private val redisClient: RedisClient = RedisClient.create("redis://relay-cache:6379"),
-    private val redisClient: RedisClient = RedisClient.create("redis://localhost:6379"),
+    private val redisClient: RedisClient = RedisClient.create("redis://relay-cache:6379"),
+    //private val redisClient: RedisClient = RedisClient.create("redis://localhost:6379"),
     private val connection: StatefulRedisConnection<String, String> = redisClient.connect(),
     private val redisCommands: RedisCommands<String, String> = connection.sync()
 ) {
