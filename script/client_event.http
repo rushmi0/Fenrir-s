@@ -24,7 +24,15 @@ Content-Type: application/json
 
 [
   "EVENT",
-  {"content":"test 01","created_at":1719484899,"id":"b80aa0a2e69e7ca5801a3848aa33e90a62fb30d27284639e1836c9ede8a9d298","kind":1,"pubkey":"8a71a3266e3c1ed354cffc613e70e7b5cbfac539fbab40e054f141ae8051cf37","sig":"5bcb4f7345fa95ed68c73f09eeb68013b47e1f35e8d0d86d958504c5c5bd28290d2466f4fabb907b81f41eb4d05da1eacb7aa2271a6bdf4e8ece1ea3bedf29a3","tags":[]}
+  {
+    "content":"test 01",
+    "created_at":1719484899,
+    "id":"b80aa0a2e69e7ca5801a3848aa33e90a62fb30d27284639e1836c9ede8a9d298",
+    "kind":1,
+    "pubkey":"8a71a3266e3c1ed354cffc613e70e7b5cbfac539fbab40e054f141ae8051cf37",
+    "sig":"5bcb4f7345fa95ed68c73f09eeb68013b47e1f35e8d0d86d958504c5c5bd28290d2466f4fabb907b81f41eb4d05da1eacb7aa2271a6bdf4e8ece1ea3bedf29a3",
+    "tags":[]
+  }
 ]
 
 ###

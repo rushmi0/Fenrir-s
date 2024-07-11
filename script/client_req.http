@@ -1,4 +1,4 @@
-GET http://localhost:6724
+GET https://relay.damus.io
 accept: application/nostr+json
 
 ### 1719307113, 1719306274

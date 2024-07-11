@@ -60,7 +60,7 @@ class RelayInformation @Inject constructor(
               "description": "${config.info.description}",
               "pubkey": "$publicKey",
               "contact": "${config.info.contact}",
-              "supported_nips": [1,2,4,9,11,12,13,15,16,20,28,50],
+              "supported_nips": [1,2,4,9,11,13,28,50],
               "software": "https://github.com/rushmi0/Fenrir-s",
               "version": "0.1"
             }

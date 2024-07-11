@@ -17,26 +17,29 @@ core-pool-size = 32
 #################################################################################
 
 [nostr.relay.info]
-name = "rushmi0"
+name = ""
 description = "นึกแล้ว มึงต้องอ่าน"
-npub = 'npub1ujevvncwfe22hv6d2cjv6pqwqhkvwlcvge7vgm3vcn2max9tu03sgze8ry'
-contact = "Lorem@bitkuy.com"
+npub = ""
+contact = ""
 
-[nostr.relay.policy.follows]
-pass = true
+[nostr.relay.policy]
+all-pass = true
+follows-pass = false
 
 [nostr.relay.policy.proof-of-work]
-enabled = true
+enabled = false
 difficulty-minimum = 32
 
 [nostr.relay.database.backup]
-enabled = true
+enabled = false
 sync = [
     "wss://relay.notoshi.win",
     "wss://relay.siamstr.com",
     "wss://relay.damus.io",
     "wss://relay.nostr.band",
-    "wss://nostr-01.yakihonne.com"
+    "wss://nostr-01.yakihonne.com",
+    "wss://nos.lol",
+    "wss://purplerelay.com"
 ]
 
 
@@ -52,6 +55,7 @@ driver-class-name = "org.postgresql.Driver"
 username = "rushmi0"
 password = "sql@min"
 db-type = "postgres"
+
 ## Hikari Connection Pooling ##
 minimum-idle = 5
 maximum-pool-size = 10

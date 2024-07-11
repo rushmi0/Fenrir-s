@@ -8,7 +8,6 @@ import jakarta.inject.Inject
 import kotlinx.coroutines.runBlocking
 
 import org.fenrirs.utils.ExecTask.parallelIO
-import org.slf4j.LoggerFactory
 
 @Bean
 class RedisCacheFactory @Inject constructor(
@@ -17,8 +16,6 @@ class RedisCacheFactory @Inject constructor(
     private val connection: StatefulRedisConnection<String, String> = redisClient.connect(),
     private val redisCommands: RedisCommands<String, String> = connection.sync()
 ) {
-
-    private val LOG = LoggerFactory.getLogger(RedisCacheFactory::class.java)
 
     /**
      * ฟังก์ชันสำหรับ cache ข้อมูลลงใน Redis

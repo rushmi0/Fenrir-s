@@ -13,7 +13,6 @@ import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip09.EventDeletion
 import org.fenrirs.relay.core.nip13.ProofOfWork
 import org.fenrirs.relay.policy.NostrRelayConfig
-import org.fenrirs.relay.service.ProfileSync
 
 import org.fenrirs.stored.RedisCacheFactory
 import org.fenrirs.stored.statement.StoredServiceImpl
@@ -28,7 +27,6 @@ class BasicProtocolFlow @Inject constructor(
     private val sqlExec: StoredServiceImpl,
     private val config: NostrRelayConfig,
     private val redis: RedisCacheFactory,
-    private val nip02: ProfileSync,
     private val nip09: EventDeletion,
     private val nip13: ProofOfWork
 ) {
@@ -55,30 +53,45 @@ class BasicProtocolFlow @Inject constructor(
 
         // ดึงข้อมูล public key ของ relay owner และรายการ passList จาก src/main/resources/application.toml
         val relayOwner = Bech32.decode(config.info.npub).data.toHex()
-        val passList: List<String> = nip02.getPassList(relayOwner)
-        val pass: Boolean = config.policy.follows.pass
+        val passList: List<String> = getPassList(relayOwner)
+        val followsPass: Boolean = config.policy.followsPass
         val work: Boolean = config.policy.proofOfWork.enabled
+        val allPass: Boolean = config.policy.allPass
 
         // ดักจับเหตุการณ์ เพื่อตรวจสอบนโยบายการใช้งานตามเงื่อนไขที่กำหนด
         when {
             eventId != null -> handleDuplicateEvent(event, session)
 
+            allPass && !followsPass -> handlePassListEvent(event, session)
+
             // ไม่ต้องทำ Proof of Work ถ้าหาก pass เป็น true และ event.pubkey อยู่ใน passList
-            pass && event.pubkey in passList -> handlePassListEvent(event, session)
+            followsPass && event.pubkey in passList -> handlePassListEvent(event, session)
 
             // บังคับทำ Proof of Work ถ้าหาก work เป็น true และ event.pubkey ไม่อยู่ใน passList
             work && event.pubkey !in passList -> handleEventWithPolicy(event, session, work)
 
             // บังคับทำ Proof of Work ถ้า pass เป็น false และ event.pubkey ไม่เท่ากับ relayOwner
-            !pass && event.pubkey != relayOwner -> handleEventWithPolicy(event, session, work)
+            !followsPass && event.pubkey != relayOwner -> handleEventWithPolicy(event, session, work)
 
             else -> RelayResponse.OK(event.id, false, "invalid: this private relay").toClient(session)
         }
     }
 
 
-
-
+    /**
+     * ฟังก์ชัน getPassList ใช้ในการดึงรายการ public key หรือผู้คนที่เจ้าของ Relay ติดตามอยู่จากฐานข้อมูล
+     *
+     * @param publicKey คีย์สาธารณะของเจ้าของ Relay
+     * @return รายการของ public key ที่ติดตามโดยเจ้าของ Relay หากไม่พบข้อมูลจะคืนค่าเป็นรายการที่มี publicKey เพียงตัวเดียว
+     */
+    private suspend fun getPassList(publicKey: String): List<String> =
+        sqlExec.filterList(FiltersX(authors = setOf(publicKey), kinds = setOf(3)))
+            .firstOrNull()
+            ?.tags
+            ?.filter { it.isNotEmpty() && it[0] == "p" }
+            ?.map { it[1] }
+            ?.plus(publicKey)
+            ?: listOf(publicKey)
 
 
     /**
@@ -239,7 +252,6 @@ class BasicProtocolFlow @Inject constructor(
                     RelayResponse.EVENT(subscriptionId, event).toClient(session)
                 }
             }
-
             RelayResponse.EOSE(subscriptionId).toClient(session)
         } else {
             RelayResponse.NOTICE(warning).toClient(session)
@@ -253,7 +265,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงการร้องขอนั้นๆ จากไคลเอนต์
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    suspend fun onClose(subscriptionId: String, session: WebSocketSession) {
+    fun onClose(subscriptionId: String, session: WebSocketSession) {
         LOG.info("close request for subscription ID: $subscriptionId")
         RelayResponse.CLOSED(subscriptionId).toClient(session)
     }
@@ -264,7 +276,7 @@ class BasicProtocolFlow @Inject constructor(
      *
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    suspend fun onUnknown(session: WebSocketSession) {
+    fun onUnknown(session: WebSocketSession) {
         LOG.warn("Unknown command")
         RelayResponse.NOTICE("Unknown command").toClient(session); session.close()
     }

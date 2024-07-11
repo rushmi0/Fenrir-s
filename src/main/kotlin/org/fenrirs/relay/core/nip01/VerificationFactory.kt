@@ -14,6 +14,7 @@ import org.fenrirs.relay.core.nip01.Transform.toFiltersX
 import org.fenrirs.relay.core.nip01.VerifyEvent.isEventPublicKeyValid
 import org.fenrirs.relay.core.nip01.VerifyEvent.isValidEventId
 import org.fenrirs.relay.core.nip01.VerifyEvent.isValidSignature
+import org.fenrirs.relay.core.nip01.VerifyFilterX.validate
 
 import org.fenrirs.relay.modules.Event
 
@@ -124,8 +125,9 @@ open class VerificationFactory {
     private fun validateFiltersX(receive: Map<String, JsonElement>): Pair<Boolean, String> {
         val filter = receive.toFiltersX()
 
-        return Pair(true, "Not yet implemented")
+        return filter.validate()
     }
+
 
     private fun validateEvent(receive: Map<String, JsonElement>): Pair<Boolean, String> {
         val event: Event = receive.toEvent()

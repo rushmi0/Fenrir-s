@@ -18,13 +18,10 @@ class NostrRelayConfig {
 
     @ConfigurationProperties("policy")
     class Policy {
-        lateinit var follows: Follows
-        lateinit var proofOfWork: ProofOfWork
 
-        @ConfigurationProperties("follows")
-        class Follows {
-            var pass: Boolean = false
-        }
+        lateinit var proofOfWork: ProofOfWork
+        var followsPass: Boolean = false
+        var allPass: Boolean = false
 
         @ConfigurationProperties("proof_of_work")
         class ProofOfWork {

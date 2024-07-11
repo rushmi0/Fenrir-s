@@ -1,11 +1,11 @@
 ###
 
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
   "REQ",
-  "",
+  "ffff",
   {
     "search": "orange"
   },
@@ -18,17 +18,17 @@ Content-Type: application/json
 
 ###
 
-GET http://localhost:6624
+GET http://localhost:6724
 accept: application/nostr+json
 
 
 ###
 
-GET http://localhost:6624
+GET http://localhost:6724
 
 ###
 
-GET http://localhost:6624
+GET http://localhost:6724
 accept: test
 
 
@@ -76,14 +76,14 @@ Content-Type: application/json
 ["PING", "0102"]
 
 ###
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
-["EVENT",{"id":"2434fe4681cd433169f4b7d2b69e6d75f4619d28267967f81284eedad3e6f591","pubkey":"e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3","created_at":1718189891,"kind":10002,"tags":[["r","ws://192.168.1.27:6624"],["r","wss://au.relayable.org/"],["r","wss://frens.nostr1.com/"],["r","wss://nostr-01.yakihonne.com/"],["r","wss://nostr.mutinywallet.com/"],["r","wss://offchain.pub/"],["r","wss://relay.0xchat.com/"],["r","wss://relay.damus.io/"],["r","wss://relay.nostr.band/"],["r","wss://relay.notoshi.win/"],["r","wss://relay.siamstr.com/"],["r","wss://relay.snort.social/"],["r","wss://welcome.nostr.wine/"]],"content":"","sig":"5d96c9bc659ac387a8f8ee85b1980516d89d090707cb8852e4fd22a277c66a623587895ab34039e56390d96dd38893f25a72096dd766e31db548bcf31828a3d3"}]
+["EVENT",{"id":"2434fe4681cd433169f4b7d2b69e6d75f4619d28267967f81284eedad3e6f591","pubkey":"e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3","created_at":1718189891,"kind":10002,"tags":[["r","ws://192.168.1.27:6724"],["r","wss://au.relayable.org/"],["r","wss://frens.nostr1.com/"],["r","wss://nostr-01.yakihonne.com/"],["r","wss://nostr.mutinywallet.com/"],["r","wss://offchain.pub/"],["r","wss://relay.0xchat.com/"],["r","wss://relay.damus.io/"],["r","wss://relay.nostr.band/"],["r","wss://relay.notoshi.win/"],["r","wss://relay.siamstr.com/"],["r","wss://relay.snort.social/"],["r","wss://welcome.nostr.wine/"]],"content":"","sig":"5d96c9bc659ac387a8f8ee85b1980516d89d090707cb8852e4fd22a277c66a623587895ab34039e56390d96dd38893f25a72096dd766e31db548bcf31828a3d3"}]
 
 
 ###
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
@@ -101,7 +101,7 @@ Content-Type: application/json
 
 ###event
 
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
@@ -122,7 +122,7 @@ Content-Type: application/json
 
 
 ###
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
@@ -142,7 +142,7 @@ Content-Type: application/json
 
 ###
 # ทดสอบให้แจ้งปัญหา
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
@@ -197,20 +197,20 @@ Content-Type: application/json
 ["REQ","WGXZ4K2_d2GBmSXciTncg",{"kinds":[30078],"authors":["2b18d85bd8e59c4e2a17fbe53e151e9f282e5f58677cf4e2c69843ace8be7558"],"#d":["nostrudel-favorite-lists"]}]
 
 ###
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 ["REQ","dfae",{"kinds":[1063,1065,34235,34236],"#m":["image/jpeg","image/gif","image/png","image/webp","video/mp4","video/mpeg","video/webm","audio/aac","audio/mpeg","audio/webm","audio/wav"],"limit":200}]
 
 
 ###
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 ["REQ","NL8B4QXaHY1TNG8sfe1vT",{"#p":["3425e3a156471426798b80c1da1f148343c5c5b4d2ac452d3330a91b4619af65"],"kinds":[1,6,16,7,9735,2004,30023],"limit":50}]
 
 ### +
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 ["REQ","XRgo-m3j15alOkwZKi8vU",
@@ -223,7 +223,7 @@ Content-Type: application/json
 
 ###
 # ทดสอบให้แจ้งปัญหา
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
@@ -237,7 +237,7 @@ Content-Type: application/json
 
 
 ###
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
@@ -254,7 +254,7 @@ Content-Type: application/json
 
 
 ###
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 
@@ -269,7 +269,7 @@ Content-Type: application/json
 ]
 
 ###
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
@@ -283,7 +283,7 @@ Content-Type: application/json
 ]
 
 ###
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
@@ -297,7 +297,7 @@ Content-Type: application/json
 
 ###
 # ทดสอบให้แจ้งปัญหา
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [

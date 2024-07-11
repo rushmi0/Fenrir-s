@@ -1,13 +1,11 @@
 package org.fenrirs.relay.core.nip01
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.serialization.json.*
 
 import org.fenrirs.relay.modules.Event
 import org.fenrirs.relay.modules.FiltersX
 import org.fenrirs.relay.modules.TagElt
 
-import org.slf4j.LoggerFactory
 
 object Transform : VerificationFactory() {
 

@@ -76,20 +76,18 @@ sealed class RelayResponse<out T> {
      * @param session ใช้ในการสื่อสารกับไคลเอนต์
      */
     fun toClient(session: WebSocketSession) {
-        runWithVirtualThreads {
-            if (session.isOpen) {
-                val payload = this.toJson()
-                try {
-                    session.sendSync(payload)
-                    if (this is CLOSED) {
-                        session.close()
-                    }
-                } catch (e: Exception) {
-                    LOG.error("Error sending WebSocket message: ${e.message}")
+        if (session.isOpen) {
+            val payload = this.toJson()
+            try {
+                session.sendSync(payload)
+                if (this is CLOSED) {
+                    session.close()
                 }
-            } else {
-                LOG.warn("Attempted to send message to closed WebSocket session.")
+            } catch (e: Exception) {
+                LOG.error("Error sending WebSocket message: ${e.message}")
             }
+        } else {
+            LOG.warn("Attempted to send message to closed WebSocket session.")
         }
     }
 
