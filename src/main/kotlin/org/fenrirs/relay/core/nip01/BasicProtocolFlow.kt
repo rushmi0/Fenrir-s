@@ -18,6 +18,10 @@ import org.fenrirs.stored.RedisCacheFactory
 import org.fenrirs.stored.statement.StoredServiceImpl
 
 import org.fenrirs.utils.Bech32
+import org.fenrirs.utils.Color.CYAN
+import org.fenrirs.utils.Color.GREEN
+import org.fenrirs.utils.Color.PURPLE
+import org.fenrirs.utils.Color.RESET
 import org.fenrirs.utils.ShiftTo.toHex
 
 import org.slf4j.LoggerFactory
@@ -48,9 +52,6 @@ class BasicProtocolFlow @Inject constructor(
             return@runBlocking
         }
 
-        // ตรวจสอบว่ามีเหตุการณ์ที่มี ID เดียวกันอยู่แล้วหรือไม่
-        val eventId: Event? = redis.getCache(event.id!!)?.let { sqlExec.selectById(event.id) }
-
         // ดึงข้อมูล public key ของ relay owner และรายการ passList จาก src/main/resources/application.toml
         val relayOwner = Bech32.decode(config.info.npub).data.toHex()
         val passList: List<String> = getPassList(relayOwner)
@@ -60,7 +61,6 @@ class BasicProtocolFlow @Inject constructor(
 
         // ดักจับเหตุการณ์ เพื่อตรวจสอบนโยบายการใช้งานตามเงื่อนไขที่กำหนด
         when {
-            eventId != null -> handleDuplicateEvent(event, session)
 
             allPass && !followsPass -> handlePassListEvent(event, session)
 
@@ -73,7 +73,7 @@ class BasicProtocolFlow @Inject constructor(
             // บังคับทำ Proof of Work ถ้า pass เป็น false และ event.pubkey ไม่เท่ากับ relayOwner
             !followsPass && event.pubkey != relayOwner -> handleEventWithPolicy(event, session, work)
 
-            else -> RelayResponse.OK(event.id, false, "invalid: this private relay").toClient(session)
+            else -> RelayResponse.OK(event.id!!, false, "invalid: this private relay").toClient(session)
         }
     }
 
@@ -115,7 +115,10 @@ class BasicProtocolFlow @Inject constructor(
      * @param enabled สถานะของนโยบาย Proof of Work ที่เปิดหรือปิด
      */
     private suspend fun handleEventWithPolicy(event: Event, session: WebSocketSession, enabled: Boolean) {
+        // ตรวจสอบว่ามีเหตุการณ์ที่มี ID เดียวกันอยู่แล้วหรือไม่
+        val eventId: Event? = redis.getCache(event.id!!)?.let { sqlExec.selectById(event.id) }
         when {
+            eventId != null -> handleDuplicateEvent(event, session)
             nip09.isDeletable(event) -> handleDeletableEvent(event, session)
             else -> handleProofOfWorkEvent(event, session, enabled)
         }
@@ -129,7 +132,9 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     private suspend fun handlePassListEvent(event: Event, session: WebSocketSession) {
+        val eventId: Event? = redis.getCache(event.id!!)?.let { sqlExec.selectById(event.id) }
         when {
+            eventId != null -> handleDuplicateEvent(event, session)
             nip13.isProofOfWorkEvent(event) -> handleProofOfWorkEvent(event, session)
             nip09.isDeletable(event) -> handleDeletableEvent(event, session)
             else -> handleNormalEvent(event, session)
@@ -244,10 +249,10 @@ class BasicProtocolFlow @Inject constructor(
         session: WebSocketSession
     ) {
         if (status) {
-            for (filter in filtersX) {
-                val events: List<Event> = sqlExec.filterList(filter)
-                events.forEachIndexed { _, event ->
-                    //val eventIndex = "${index + 1}/${events.size}"
+            LOG.info("${GREEN}filters ${RESET}for subscription ID: ${CYAN}$subscriptionId")
+            filtersX.forEach { filter ->
+                sqlExec.filterList(filter).forEachIndexed { _, event ->
+                    //val eventIndex = "${i+1}/${events.size}"
                     //LOG.info("Relay Response event $eventIndex: $event")
                     RelayResponse.EVENT(subscriptionId, event).toClient(session)
                 }
@@ -266,7 +271,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     fun onClose(subscriptionId: String, session: WebSocketSession) {
-        LOG.info("close request for subscription ID: $subscriptionId")
+        LOG.info("${PURPLE}close ${RESET}subscription ID: $subscriptionId")
         RelayResponse.CLOSED(subscriptionId).toClient(session)
     }
 

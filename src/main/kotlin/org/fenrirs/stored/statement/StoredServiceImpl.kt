@@ -72,7 +72,7 @@ class StoredServiceImpl @Inject constructor(
 
 
     override fun selectById(id: String): Event? {
-        return runWithVirtualThreadsPerTask {
+        return runWithVirtualThreads {
             try {
 
                 /**
@@ -104,7 +104,7 @@ class StoredServiceImpl @Inject constructor(
 
 
     override suspend fun filterList(filters: FiltersX): List<Event> {
-        return runWithVirtualThreads {
+        return runWithVirtualThreadsPerTask {
             try {
 
                 /**

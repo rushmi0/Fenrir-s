@@ -2,11 +2,12 @@ package org.fenrirs.relay
 
 import io.micronaut.context.annotation.Bean
 import io.micronaut.core.annotation.Introspected
+
 import io.micronaut.http.HttpHeaders
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Header
-import io.micronaut.runtime.http.scope.RequestScope
+
 import io.micronaut.websocket.WebSocketSession
 import io.micronaut.websocket.annotation.OnClose
 import io.micronaut.websocket.annotation.OnMessage
@@ -24,10 +25,17 @@ import org.fenrirs.relay.core.nip01.command.REQ
 import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip11.RelayInformation
 
+import org.fenrirs.utils.Color.BLUE
+import org.fenrirs.utils.Color.GREEN
+import org.fenrirs.utils.Color.PURPLE
+import org.fenrirs.utils.Color.RESET
+import org.fenrirs.utils.Color.YELLOW
+
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 @Bean
+@Introspected
 @ServerWebSocket("/")
 class Gateway @Inject constructor(
     private val nip01: BasicProtocolFlow,
@@ -85,14 +93,6 @@ class Gateway @Inject constructor(
 
         private val LOG: Logger = LoggerFactory.getLogger(Gateway::class.java)
 
-        const val RESET = "\u001B[0m"
-        const val RED = "\u001B[31m"
-        const val GREEN = "\u001B[32m"
-        const val YELLOW = "\u001B[33m"
-        const val BLUE = "\u001B[34m"
-        const val PURPLE = "\u001B[35m"
-        const val CYAN = "\u001B[36m"
-        const val WHITE = "\u001B[37m"
     }
 
 }

@@ -72,11 +72,33 @@ dependencies {
 
 application {
     mainClass = "org.fenrirs.ApplicationKt"
+    applicationDefaultJvmArgs = listOf(
+        "-Xms512m", // กำหนดขนาดหน่วยความจำเริ่มต้น
+        "-Xmx3051m", // กำหนดขนาดหน่วยความจำสูงสุด
+        "-XX:MaxMetaspaceSize=256m", // กำหนดขนาดหน่วยความจำสูงสุดสำหรับ Metaspace
+        "-XX:+UseG1GC", // ใช้ Garbage Collector ชนิด G1
+        "-XX:MaxGCPauseMillis=200" // กำหนดเวลาหยุดสูงสุดของ Garbage Collector
+    )
 }
+
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
+}
+
+
+tasks {
+    compileTestKotlin {
+        kotlinOptions {
+            jvmTarget = "21"
+        }
+    }
+    compileKotlin {
+        kotlinOptions {
+            jvmTarget = "21"
+        }
+    }
 }
 
 

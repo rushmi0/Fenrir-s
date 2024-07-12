@@ -3,15 +3,15 @@ micronaut.application.name = 'fenrir-s'
 [micronaut.server]
 cors.enabled = true
 cors.localhost-pass-through = true
-maxRequestSize = "1MB"
+maxRequestSize = "512KB"
 #host = "localhost"
 port = 6724
 
 [micronaut.executors.scheduled]
 type = "scheduled"
 virtual = true
-parallelism = 64
-core-pool-size = 32
+parallelism = 32
+core-pool-size = 16
 
 
 #################################################################################
@@ -19,7 +19,7 @@ core-pool-size = 32
 [nostr.relay.info]
 name = ""
 description = "นึกแล้ว มึงต้องอ่าน"
-npub = ""
+npub = "npub1ujevvncwfe22hv6d2cjv6pqwqhkvwlcvge7vgm3vcn2max9tu03sgze8ry"
 contact = ""
 
 [nostr.relay.policy]
@@ -57,8 +57,8 @@ password = "sql@min"
 db-type = "postgres"
 
 ## Hikari Connection Pooling ##
-minimum-idle = 5
-maximum-pool-size = 10
+minimum-idle = 2
+maximum-pool-size = 5
 idle-timeout = 60000
 transaction-isolation = "TRANSACTION_REPEATABLE_READ"
 keepalive-time = 60000
@@ -70,8 +70,8 @@ validation-timeout = 3000
 #uri = "redis://localhost:6379"
 uri = "redis://relay-cache:6379"
 timeout = "45m"
-io-thread-pool-size = 5
-computation-thread-pool-size = 4
+io-thread-pool-size = 2
+computation-thread-pool-size = 2
 
 [micronaut.router.static-resources.default]
 mapping = "/**"

@@ -68,6 +68,7 @@ class ThreadsVsVirtualThreads {
                     Thread.sleep(2000)
                 }
             }
+            println(futures.joinToString("\n"))
             println("Virtual Threads with ExecutorService: Ready to Roll")
         }
     }

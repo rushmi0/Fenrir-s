@@ -3,7 +3,6 @@ package org.fenrirs.relay.core.nip01.response
 import io.micronaut.websocket.WebSocketSession
 
 import org.fenrirs.relay.modules.Event
-import org.fenrirs.utils.ExecTask.runWithVirtualThreads
 import org.fenrirs.utils.ShiftTo.toJsonString
 
 import org.slf4j.Logger

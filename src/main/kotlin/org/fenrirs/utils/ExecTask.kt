@@ -1,12 +1,13 @@
 package org.fenrirs.utils
 
-import org.slf4j.LoggerFactory
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 import io.micronaut.context.annotation.Factory
 import kotlinx.coroutines.*
+
+import org.slf4j.LoggerFactory
 
 @Factory
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -63,7 +64,6 @@ object ExecTask {
         Thread.startVirtualThread(runnable)
 
         return future.get()
-
     }
 
     suspend fun <T> parallelIO(parallelism: Int = 32, block: suspend CoroutineScope.() -> T): T {
