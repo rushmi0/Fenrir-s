@@ -86,7 +86,7 @@ sealed class RelayResponse<out T> {
                 LOG.error("Error sending WebSocket message: ${e.message}")
             }
         } else {
-            LOG.warn("Attempted to send message to closed WebSocket session.")
+            LOG.warn("Message sent to closed WebSocket session")
         }
     }
 
