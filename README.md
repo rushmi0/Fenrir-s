@@ -13,7 +13,7 @@
 - ✅ NIP-09 Event Deletion
 - ✅ NIP-11 Relay Information
 - ✅ NIP-13 Proof of Work
-- ⬜ NIP-15 Marketplace
+- ✅ NIP-15 Marketplace
 - ✅ NIP-28 Public Chat
 - ⬜ NIP-40 Expiration Timestamp
 - ⬜ NIP-42 Authentication of clients to relays
