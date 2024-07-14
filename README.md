@@ -1,6 +1,6 @@
 # Fenrir-s
 
-**Fenrir-s** เป็น Relay ปฏิบัติตามข้อกำหนดของ [Nostr Protocol](https://github.com/nostr-protocol/nips)
+**Fenrir-s** เป็น Nostr Relay ที่ปฏิบัติตามข้อกำหนดของ [Nostr Protocol](https://github.com/nostr-protocol/nips) ซึ่งเขียนด้วย Kotlin/JVM
 
 โดยมุ่งเน้นสำหรับการใช้งานส่วนตัวหรือในกลุ่มเพื่อนๆ สามารถกำหนดค่านโยบาย Relay ตามความต้องการ และสามารถติดตั้งได้ง่ายๆ
 โดยต้องติดตั้ง [Docker](https://www.docker.com/products/docker-desktop/) ให้เสร็จเรียบร้อยก่อนนะครับ
@@ -29,7 +29,7 @@
 
 ```toml
 [nostr.relay.info]
-name = "relay rushmi0"
+name = " lnwza007"
 description = "นึกแล้ว มึงต้องอ่าน"
 npub = "npub1ujevvncwfe22hv6d2cjv6pqwqhkvwlcvge7vgm3vcn2max9tu03sgze8ry"
 contact = "rushmi0@getalby.com"
