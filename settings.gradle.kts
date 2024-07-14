@@ -1,2 +1,1 @@
 rootProject.name = "fenrir-s"
-
