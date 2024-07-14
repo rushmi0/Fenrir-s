@@ -4,9 +4,12 @@ import fr.acinq.secp256k1.Hex
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.serialization.json.*
 import org.fenrirs.relay.modules.Event
+import org.fenrirs.utils.ShiftTo.fromHex
+import org.fenrirs.utils.ShiftTo.toHex
 import org.slf4j.LoggerFactory
 import java.lang.management.ManagementFactory
 import java.lang.management.MemoryMXBean
+import java.math.BigInteger
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
@@ -24,13 +27,19 @@ object ShiftTo {
      * ฟังก์ชัน toHex ใช้ในการแปลง ByteArray เป็นสตริงที่เป็นเลขฐาน 16
      * @return สตริงที่เป็นเลขฐาน 16
      */
-    fun ByteArray.toHex(): String = Hex.encode(this)
+    fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it) }
 
     /**
      * ฟังก์ชัน fromHex ใช้ในการแปลงสตริงที่เป็นฐาน 16 เป็น ByteArray
      * @return อาร์เรย์ไบต์ที่ถูกแปลงจากสตริงเลขฐาน 16
      */
-    fun String.fromHex(): ByteArray = Hex.decode(this)
+    fun String.fromHex(): ByteArray {
+        check(length % 2 == 0) { "String length must be even" }
+
+        return chunked(2)
+            .map { it.toInt(16).toByte() }
+            .toByteArray()
+    }
 
     /**
      * ฟังก์ชัน toSha256 ใช้ในการคำนวณ Hash SHA-256 ของ ByteArray
@@ -48,6 +57,11 @@ object ShiftTo {
         return toByteArray().toSha256().toHex()
     }
 
+    fun String.toBSha256(): ByteArray {
+        return toByteArray().toSha256()
+    }
+
+    fun ByteArray.toBigInteger() = BigInteger(1, this)
 
     fun generateId(event: Event): String {
         return lazy {

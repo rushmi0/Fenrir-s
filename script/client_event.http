@@ -13,7 +13,6 @@ Content-Type: application/json
     ],
     "content": "My custom content",
     "sig": "954c662c9ee29ccad8a1f30d22b9a5cefcea774f72428ec7344b65e4f31fff24fc4dd0b7874a4d10a1a4c012de013df19a7c33018dda5f1207280f9a28193498"
-
   }
 ]
 

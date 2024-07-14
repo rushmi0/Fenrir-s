@@ -64,8 +64,7 @@ class Gateway @Inject constructor(
 
     @OnMessage
     suspend fun onMessage(message: String, session: WebSocketSession) {
-        LOG.info("message: \n$message")
-
+        //LOG.info("message: \n$message")
         try {
             // Pair<Command?, Pair<Boolean, String>>
             val (cmd, validationResult) = parse(message)
