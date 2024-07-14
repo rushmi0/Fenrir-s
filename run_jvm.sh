@@ -11,6 +11,6 @@ if [ ! -f "build/libs/fenrir-s-0.1-all-optimized.jar" ]; then
     fi
 fi
 
-# รันแอปพลิเคชัน Java จาก JAR ที่คอมไพล์แล้ว
+# รันแอปพลิเคชัน
 echo "Starting application..."
 java -jar build/libs/fenrir-s-0.1-all-optimized.jar

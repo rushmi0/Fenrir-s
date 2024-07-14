@@ -72,13 +72,6 @@ dependencies {
 
 application {
     mainClass = "org.fenrirs.ApplicationKt"
-    applicationDefaultJvmArgs = listOf(
-        "-Xms512m", // กำหนดขนาดหน่วยความจำเริ่มต้น
-        "-Xmx3051m", // กำหนดขนาดหน่วยความจำสูงสุด
-        "-XX:MaxMetaspaceSize=256m", // กำหนดขนาดหน่วยความจำสูงสุดสำหรับ Metaspace
-        "-XX:+UseG1GC", // ใช้ Garbage Collector ชนิด G1
-        "-XX:MaxGCPauseMillis=200" // กำหนดเวลาหยุดสูงสุดของ Garbage Collector
-    )
 }
 
 
@@ -109,26 +102,7 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-graalvmNative {
-    binaries {
-        all {
-            // * https://www.graalvm.org/latest/re2ference-manual/native-image/overview/BuildOutput/?fbclid=IwAR007Rh7fYg-CJZywqhFM8PF5XDWPvgOfaV9txFDqpy6PWjtZp2bXpgncL0_aem_Af0UTqW_wKY5RFkebOwqrANSJn-d6fpSoJLMyra23KLgMNQuur3l75gjN29_Ymw1JYkeX7upxGBzGPFkJ4iRuojh
-            buildArgs.add("-H:+AddAllCharsets")
-            buildArgs.add("-R:MaxHeapSize=3G")
-            buildArgs.add("-J-XX:MaxRAMPercentage=60.0")
-            //buildArgs.add("--target=$platform")
-            imageName.set("${project.name}-$version-alpha")
-            javaLauncher.set(javaToolchains.launcherFor {
-                languageVersion.set(JavaLanguageVersion.of(21))
-                vendor.set(JvmVendorSpec.GRAAL_VM)
-            })
-            verbose.set(true)
-        }
-    }
-}
 
-
-//graalvmNative.toolchainDetection = false
 micronaut {
     runtime("netty")
     testRuntime("kotest5")
