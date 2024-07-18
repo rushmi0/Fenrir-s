@@ -11,7 +11,8 @@ plugins {
     id("io.micronaut.test-resources") version "4.4.0"
     id("io.micronaut.aot") version "4.4.0"
     id("nu.studer.jooq") version "8.2"
-    id("org.sonarqube") version "4.4.1.3373"
+    //id("org.sonarqube") version "4.4.1.3373"
+    //id("org.graalvm.buildtools.native") version "0.10.2"
     kotlin("plugin.serialization") version "1.9.23"
 }
 
@@ -102,10 +103,9 @@ tasks.withType<KotlinCompile> {
     }
 }
 
-
 micronaut {
     runtime("netty")
-    testRuntime("kotest5")
+    testRuntime("junit5")
     processing {
         incremental(true)
         annotations("org.fenrirs.*")
@@ -116,7 +116,7 @@ micronaut {
     aot {
         // Please review carefully the optimizations enabled below
         // Check https://micronaut-projects.github.io/micronaut-aot/latest/guide/ for more details
-        optimizeServiceLoading = false
+        optimizeServiceLoading = true
         convertYamlToJava = false
         precomputeOperations = true
         cacheEnvironment = true
