@@ -66,8 +66,12 @@ class Gateway @Inject constructor(
     suspend fun onMessage(message: String, session: WebSocketSession) {
         //LOG.info("message: \n$message")
         try {
-            // Pair<Command?, Pair<Boolean, String>>
-            val (cmd, validationResult) = parse(message)
+
+            /*
+            * ทำการตรวจสอบความถูกต้องของข้อมูล ที่ได้รับจากไคลเอนต์และตอบกลับอย่างเหมาะสม
+            * ถ้าข้อมูลถูกต้องเป็นไปตามข้อกำหนดจะถูกแปลงข้อมูลให้อยู่ในรูปของ Kotlin Object เพื่อสามารถนำไปใช้งานต่อได้สะดวก
+            * */
+            val (cmd, validationResult) = parse(message) // Pair<Command?, Pair<Boolean, String>>
             val (status, warning) = validationResult
 
             when (cmd) {
