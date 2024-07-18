@@ -62,7 +62,7 @@ class Gateway @Inject constructor(
     }
 
 
-    @OnMessage
+    @OnMessage(maxPayloadLength = 524288)
     suspend fun onMessage(message: String, session: WebSocketSession) {
         //LOG.info("message: \n$message")
         try {
