@@ -1,0 +1,11 @@
+FROM gradle:jdk21 AS build
+WORKDIR /app
+RUN apt-get update && apt-get install -y git
+RUN git clone https://github.com/rushmi0/Fenrir-s.git .
+RUN ./gradlew build
+
+FROM amazoncorretto:21.0.3
+WORKDIR /app
+COPY --from=build /app/build/libs/fenrir-s-0.1-all-optimized.jar ./
+EXPOSE 6724
+ENTRYPOINT ["java", "-jar", "fenrir-s-0.1-all-optimized.jar"]
