@@ -44,9 +44,9 @@ services:
       - dev_network
 
 
-#  cloudflared-tunnel:
-#    container_name: cloudflared-tunnel
-#    image: cloudflare/cloudflared:latest
-#    restart: unless-stopped
-#    command: tunnel --no-autoupdate run --token
+  cloudflared-tunnel:
+    container_name: cloudflared-tunnel
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token
 
