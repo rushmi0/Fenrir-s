@@ -3,7 +3,6 @@
 **Fenrir-s** เป็น Nostr Relay ที่ปฏิบัติตามข้อกำหนดของ [Nostr Protocol](https://github.com/nostr-protocol/nips) ซึ่งเขียนด้วย Kotlin/JVM
 
 โดยมุ่งเน้นสำหรับการใช้งานส่วนตัวหรือในกลุ่มเพื่อนๆ สามารถกำหนดค่านโยบาย Relay ตามความต้องการ และสามารถติดตั้งได้ง่ายๆ
-โดยต้องติดตั้ง [Docker](https://www.docker.com/products/docker-desktop/) ให้เสร็จเรียบร้อยก่อนนะครับ
 
 # คุณสมบัติที่รองรับ (NIPs)
 
@@ -63,6 +62,7 @@ difficulty-minimum = 32
 | nostr.relay.policy.proof-of-work.enabled            | รับหรือไม่รับ Event ที่มีค่าความยากต่ำกว่าที่กำหนดหรือไม่มีการทำ proof of work | false       | สูง            |
 | nostr.relay.policy.proof-of-work.difficulty-minimum | ค่าความยากขั้นต่ำสุดที่ต้องการสำหรับ proof of work                             | 32          | -              |
 
+> [!WARNING]\
 > _ค่าความยากในระดับ 32 ค่อนข้างโหดพอสมควร ถ้าใจดีหน่อยลดลงมาสัก 23 ก็ไม่แย่_
 
 ### 3. ตัวเลือกกำหนดค่าบริการของพิเศษของ Relay
@@ -72,9 +72,11 @@ difficulty-minimum = 32
 | nostr.relay.database.backup.enabled | ทำการดึงข้อมูลเจ้าของ Relay ที่กำลังติดตาม (NIP-02) จากรายการ Relay ต่างๆที่กำหนดเมื่อ Relay เริ่มทำงาน | false       |
 | nostr.relay.database.backup.sync    | รายการ Relay อื่นๆ ที่จะการดึงข้อมูลมา                                                                  | -           |
 
-<br>
 
 # ขั้นตอนการติดตั้ง
+
+> [!IMPORTANT]\
+> ต้องติดตั้ง [Docker](https://www.docker.com/products/docker-desktop/) ให้เสร็จเรียบร้อยก่อนนะครับ และแน่ใจว่าเปิดใช้งานอยู่
 
 1. เริ่มต้นด้วยการเปิด terminal ขั้นมาก่อนโหลดตัวโปรเจ็กต์จาก GitHub ลงเครื่องของเราก่อน
    และเขาไปข้างในไดเร็กทอรีนั้นโดยใช้คำสั่งชุดนี้
@@ -89,7 +91,7 @@ cd Fenrir-s
 2. เมื่อเรามาขั้นตอนนี้เรารันคำสั่งชุดนี้ได้เลย แต่จะต้อนแน่ใจว่าเปิด Docker แล้วนะครับ
 
 ```shell
-docker compose up -d relay-db relay-cache relay-app
+docker compose up relay-db relay-cache relay-app
 ```
 
 ผมได้จัดเตรียม cloudflare tunnel ไว้ให้แล้วในส่วน [docker-compose.yml](docker-compose.yml) เพียงแค่นำ token ไปใส่นะครับ
