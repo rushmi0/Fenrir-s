@@ -1,8 +1,9 @@
 FROM gradle:jdk21 AS build
 WORKDIR /app
-RUN apt-get update && apt-get install -y git
-RUN git clone https://github.com/rushmi0/Fenrir-s.git .
-RUN ./gradlew build
+COPY . .
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN chmod +x ./gradlew; ./gradlew build
 
 FROM amazoncorretto:21.0.3
 WORKDIR /app
