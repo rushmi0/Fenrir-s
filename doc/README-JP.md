@@ -17,7 +17,7 @@
         - [3. Relayの特別なサービスの選択肢](#3-Relayの特別なサービスの選択肢)
     - [🛠 インストールと使用の手順](#-インストールと使用の手順)
         - [インストール](#インストール)
-        - [Cloudflare Tunnelの設定 (Optional)](#Cloudflare Tunnelの設定(Optional))
+        - [Cloudflare Tunnelの設定 (Optional)](#Cloudflare-Tunnelの設定(Optional))
         - [Relayへのアクセス](#Relayへのアクセス)
     - [🔧 基本的な問題解決](#-基本的な問題解決)
     - [🔄 アップデート](#-アップデート)
