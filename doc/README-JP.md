@@ -1,5 +1,7 @@
 # Fenrir-s
 
+[ภาษาไทย](README.md), [日本語](doc/README-JP.md)
+
 **Fenrir-s**は [Nostr Protocol](https://github.com/nostr-protocol/nostr)の規定に準拠したNostr RelayでKotlin/JVMで開発されました。
 
 このプロジェクトは個人的の使用、または、グループでの使用を目的としています。それに、Relayのポリシーを思う通りに設定できて、簡単にインストールすることができます。
