@@ -1,6 +1,6 @@
 # Fenrir-s
 
-[ภาษาไทย](README.md), [日本語](https://github.com/rushmi0/Fenrir-s/blob/main/doc/README-JP.md)
+[ภาษาไทย](https://github.com/rushmi0/Fenrir-s/blob/main/README.md), [日本語](https://github.com/rushmi0/Fenrir-s/blob/main/doc/README-JP.md)
 
 **Fenrir-s**は [Nostr Protocol](https://github.com/nostr-protocol/nostr)の規定に準拠したNostr RelayでKotlin/JVMで開発されました。
 
