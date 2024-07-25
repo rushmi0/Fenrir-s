@@ -1,5 +1,7 @@
 # Fenrir-s
 
+[ภาษาไทย](README.md), [日本語](doc/README-JP.md)
+
 **Fenrir-s** เป็น Nostr Relay ที่ปฏิบัติตามข้อกำหนดของ [Nostr Protocol](https://github.com/nostr-protocol/nostr)
 ซึ่งพัฒนาด้วย Kotlin/JVM
 
@@ -145,7 +147,7 @@ docker compose up relay-db relay-cache relay-app
 
 1. หยุดการทำงานของ Docker containers
 2. Pull โค้ดล่าสุดจาก GitHub
-3. รีบิวด์และรีสตาร์ท containers:
+3. รีบิวด์และรีสตาร์ท containers
 
 ```shell
 git pull
