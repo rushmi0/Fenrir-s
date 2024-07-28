@@ -167,7 +167,7 @@ docker compose up --build -d
 
 ## 💬 ติดต่อและสนับสนุน
 
-- Nostr : npub1ujevvncwfe22hv6d2cjv6pqwqhkvwlcvge7vgm3vcn2max9tu03sgze8ry
+- Nostr : `lnwza007@rushmi0.win`
 - Zap : ⚡rushmi0@getalby.com
 
 ---
