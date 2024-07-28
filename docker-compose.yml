@@ -32,7 +32,7 @@ services:
   relay-app:
     container_name: relay-app
     image: amazoncorretto:21.0.3
-    #restart: unless-stopped
+    restart: unless-stopped
     volumes:
       - .:/app/source-code
     working_dir: /app/source-code
@@ -44,9 +44,9 @@ services:
       - dev_network
 
 
-#  cloudflared-tunnel:
-#    container_name: cloudflared-tunnel
-#    image: cloudflare/cloudflared:latest
-#    restart: unless-stopped
-#    command: tunnel --no-autoupdate run --token
+  cloudflared-tunnel:
+    container_name: cloudflared-tunnel
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token
 
