@@ -11,8 +11,7 @@ plugins {
     id("io.micronaut.test-resources") version "4.4.0"
     id("io.micronaut.aot") version "4.4.0"
     id("nu.studer.jooq") version "8.2"
-    //id("org.sonarqube") version "4.4.1.3373"
-    //id("org.graalvm.buildtools.native") version "0.10.2"
+    id("org.sonarqube") version "4.4.1.3373"
     kotlin("plugin.serialization") version "1.9.23"
 }
 
