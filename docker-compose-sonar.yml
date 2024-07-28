@@ -33,7 +33,6 @@ services:
       - postgresql_data:/var/lib/postgresql10/data
 
 
-
 volumes:
   postgresql_data:
   sonarqube_bundled-plugins:
