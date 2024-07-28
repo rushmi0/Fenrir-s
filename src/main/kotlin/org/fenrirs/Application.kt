@@ -12,7 +12,7 @@ fun main(args: Array<String>) {
      |     \\  ___/|   |  \  | \/  ||  | \/ /_____/  \___ \ 
      \___  / \___  >___|  /__|  |__||__|            /____  >
          \/      \/     \/                               \/ 
-         version 0.1.0 by rushmi0
+         (version 0.1.0)
 
     """.trimIndent())
     val relay = Micronaut.build()
