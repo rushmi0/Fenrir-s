@@ -50,7 +50,7 @@
 name = "lnwza007"
 description = "นึกแล้ว มึงต้องอ่าน"
 npub = "npub1ujevvncwfe22hv6d2cjv6pqwqhkvwlcvge7vgm3vcn2max9tu03sgze8ry"
-contact = "rushmi0@getalby.com"
+contact = "lnwza007@rushmi0.win "
 ```
 
 | パラメータ | 説明                             |
