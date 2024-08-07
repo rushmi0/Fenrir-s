@@ -1,8 +1,8 @@
 # wss://relay.damus.io
 # wss://relay.damus.io
-# ws://localhost:6624
+# ws://localhost:6724
 
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
@@ -21,7 +21,7 @@ Content-Type: application/json
 ]
 ###
 
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
@@ -39,7 +39,7 @@ Content-Type: application/json
 
 ###
 
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
@@ -75,7 +75,7 @@ Content-Type: application/json
 
 
 ###
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
@@ -94,7 +94,7 @@ Content-Type: application/json
 
 
 ###
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
@@ -266,7 +266,7 @@ Content-Type: application/json
 
 ###
 
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [
@@ -280,7 +280,7 @@ Content-Type: application/json
 
 ###
 
-WEBSOCKET ws://localhost:6624
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 [

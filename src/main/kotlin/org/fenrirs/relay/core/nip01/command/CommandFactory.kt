@@ -11,6 +11,7 @@ import org.fenrirs.relay.policy.FiltersXValidateField
 import org.fenrirs.relay.core.nip01.Transform.toEvent
 import org.fenrirs.relay.core.nip01.Transform.toFiltersX
 import org.fenrirs.relay.core.nip01.Transform.validateElement
+import org.slf4j.LoggerFactory
 
 /**
  * CommandFactory เป็นอ็อบเจกต์ที่ใช้ในการประมวลผลคำสั่งที่ส่งมาจากไคลเอนต์
@@ -27,11 +28,11 @@ object CommandFactory {
         val jsonElement = try {
             Json.parseToJsonElement(payload)
         } catch (e: Exception) {
-            throw IllegalArgumentException("Invalid: JSON format")
+            throw IllegalArgumentException("invalid: JSON format")
         }
 
         if (jsonElement !is JsonArray || jsonElement.isEmpty()) {
-            throw IllegalArgumentException("Invalid: command format")
+            throw IllegalArgumentException("invalid: command format")
         }
 
         return when (val cmd = jsonElement[0].jsonPrimitive.content) {
@@ -51,7 +52,7 @@ object CommandFactory {
      */
     private fun parseEvent(jsonArray: JsonArray): Pair<Command, Pair<Boolean, String>> {
         if (jsonArray.size != 2 || jsonArray[1] !is JsonObject) {
-            throw IllegalArgumentException("Invalid: EVENT command format")
+            throw IllegalArgumentException("invalid: EVENT command format")
         }
         val eventJson = jsonArray[1].jsonObject
         val event: Event = eventJson.toEvent()
@@ -69,10 +70,15 @@ object CommandFactory {
      */
     private fun parseREQ(jsonArray: JsonArray): Pair<Command, Pair<Boolean, String>> {
         if (jsonArray.size < 3 || jsonArray[1] !is JsonPrimitive || jsonArray.drop(2).any { it !is JsonObject }) {
-            throw IllegalArgumentException("Invalid: REQ command format")
+            throw IllegalArgumentException("invalid: REQ command format")
         }
         val subscriptionId: String = jsonArray[1].jsonPrimitive.content
         val filtersJson: List<JsonObject> = jsonArray.drop(2).map { it.jsonObject }
+        //LOG.info("filters object ${filtersJson.size}: $filtersJson")
+
+        if (filtersJson.size > 5) {
+            throw IllegalArgumentException("rate-limited: max filters 5")
+        }
 
         val data: Map<String, JsonElement> = filtersJson.flatMap { it.entries }.associate { it.key to it.value }
 
@@ -90,11 +96,13 @@ object CommandFactory {
      */
     private fun parseClose(jsonArray: JsonArray): Pair<Command, Pair<Boolean, String>> {
         if (jsonArray.size != 2 || jsonArray[1] !is JsonPrimitive) {
-            throw IllegalArgumentException("Invalid: CLOSE command format")
+            throw IllegalArgumentException("invalid: CLOSE command format")
         }
         val subscriptionId = jsonArray[1].jsonPrimitive.content
         return CLOSE(subscriptionId) to (true to "")
     }
+
+    private val LOG = LoggerFactory.getLogger(CommandFactory::class.java)
 
 
 }

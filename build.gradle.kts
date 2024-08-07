@@ -1,6 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jooq.meta.jaxb.Logging
-import org.jooq.meta.jaxb.Property
+
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.23"
@@ -10,7 +9,7 @@ plugins {
     id("io.micronaut.application") version "4.4.0"
     id("io.micronaut.test-resources") version "4.4.0"
     id("io.micronaut.aot") version "4.4.0"
-    id("nu.studer.jooq") version "8.2"
+    //id("nu.studer.jooq") version "8.2"
     id("org.sonarqube") version "4.4.1.3373"
     kotlin("plugin.serialization") version "1.9.23"
 }
@@ -23,7 +22,31 @@ repositories {
     mavenCentral()
 }
 
+val exposedVersion: String by project
+
 dependencies {
+
+    implementation("org.jetbrains.exposed:exposed-crypt:$exposedVersion")
+
+    implementation("org.jetbrains.exposed:exposed-jodatime:$exposedVersion")
+
+    implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
+
+    implementation("org.jetbrains.exposed:exposed-money:$exposedVersion")
+
+    implementation("org.jetbrains.exposed:exposed-json:$exposedVersion")
+
+    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-core
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+
+    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-dao
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+
+    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-jdbc
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+
+    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-java-time
+    implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
 
     // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
@@ -46,7 +69,7 @@ dependencies {
     // https://mvnrepository.com/artifact/org.mockito/mockito-core
     testImplementation("org.mockito:mockito-core:5.11.0")
 
-    jooqGenerator("org.postgresql:postgresql:42.3.9")
+    //jooqGenerator("org.postgresql:postgresql:42.3.9")
 
     implementation("io.reactivex.rxjava3:rxkotlin:3.0.1")
 
@@ -131,6 +154,7 @@ tasks.named<io.micronaut.gradle.docker.NativeImageDockerfile>("dockerfileNative"
     jdkVersion = "21"
 }
 
+/*
 jooq {
     version.set("3.18.7")  // default (can be omitted)
     edition.set(nu.studer.gradle.jooq.JooqEdition.OSS)  // default (can be omitted)
@@ -144,8 +168,8 @@ jooq {
                 //logging = Logging.DEBUG
                 jdbc.apply {
                     driver = "org.postgresql.Driver"
-                    //url = "jdbc:postgresql://localhost:5432/nostr"
-                    url = "jdbc:postgresql://relay-db:5432/nostr"
+                    url = "jdbc:postgresql://localhost:5432/nostr"
+                    //url = "jdbc:postgresql://relay-db:5432/nostr"
                     user = "rushmi0"
                     password = "sql@min"
                     properties.add(Property().apply {
@@ -175,3 +199,4 @@ jooq {
         }
     }
 }
+ */

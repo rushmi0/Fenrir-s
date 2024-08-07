@@ -31,7 +31,7 @@ class RelayInformation @Inject constructor(
             // หากไม่มีข้อมูลใน cache ให้โหลดจากไฟล์ระบบ
             val data = loadContent(contentType)
             // แคชข้อมูลที่โหลดมาใหม่ลง Redis พร้อมตั้งเวลาอายุเป็น
-            redis.setCache(contentType, data, 2_000)
+            redis.setCache(contentType, data, 5)
             data
         }
     }
@@ -53,16 +53,25 @@ class RelayInformation @Inject constructor(
 
 
     private fun relayInfo(): String {
-        val publicKey = Bech32.decode(config.info.npub).data.toHex()
+        val publicKey: String = if (config.info.npub.startsWith("npub")) Bech32.decode(config.info.npub).data.toHex() else config.info.npub
+        val pow = config.policy.proofOfWork.difficultyMinimum
         return """
             {
               "name": "${config.info.name}",
+              "icon": "https://image.nostr.build/fc4a04e980020ed876874fa0142edd9fc22774efa8fa067f96285f2f44965e38.jpg",
               "description": "${config.info.description}",
               "pubkey": "$publicKey",
               "contact": "${config.info.contact}",
               "supported_nips": [1,2,4,9,11,13,15,28,50],
               "software": "https://github.com/rushmi0/Fenrir-s",
-              "version": "0.1"
+              "version": "0.1",
+              "limitation": {
+                 "max_filters": 5,
+                 "min_pow_difficulty": $pow,
+                 "max_limit": 1000,
+                 "max_message_length": 524288,
+                 "payment_required": false,
+              }
             }
         """.trimIndent()
     }

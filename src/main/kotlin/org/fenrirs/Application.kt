@@ -1,7 +1,9 @@
 package org.fenrirs
 
 import io.micronaut.runtime.Micronaut
-import org.fenrirs.relay.service.ProfileSync
+import org.fenrirs.stored.DatabaseFactory
+
+//import org.fenrirs.relay.service.ProfileSync
 
 fun main(args: Array<String>) {
 
@@ -15,13 +17,14 @@ fun main(args: Array<String>) {
          (version 0.1.0)
 
     """.trimIndent())
-    val relay = Micronaut.build()
+    Micronaut.build()
         .args(*args)
         .banner(false)
         .start()
 
-    if (relay.isRunning) {
-        relay.getBean(ProfileSync::class.java).sync()
-    }
+    DatabaseFactory.initialize()
+//    if (relay.isRunning) {
+//        relay.getBean(ProfileSync::class.java).sync()
+//    }
 
 }

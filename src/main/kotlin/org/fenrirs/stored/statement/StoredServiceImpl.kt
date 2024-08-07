@@ -1,3 +1,4 @@
+/*
 package org.fenrirs.stored.statement
 
 import io.micronaut.context.annotation.Bean
@@ -127,8 +128,8 @@ class StoredServiceImpl @Inject constructor(
 
                 // ถ้ามีการระบุ ids ใน filters ให้เพิ่มเงื่อนไขการค้นหา EVENT_ID ใน ids ที่กำหนด
                 filters.ids.takeIf { it.isNotEmpty() }?.let { ids ->
-                    val fullLengthIds = ids.filter { it.length == 64 }
-                    val shortIds = ids.filter { it.length < 64 && it.all { char -> char == '0' } }
+                    val fullLengthIds: List<String> = ids.filter { it.length == 64 }
+                    val shortIds: List<String> = ids.filter { it.length < 64 && it.all { char -> char == '0' } }
 
                     if (fullLengthIds.isNotEmpty()) {
                         query.where(EVENT.EVENT_ID.`in`(fullLengthIds))
@@ -279,3 +280,4 @@ class StoredServiceImpl @Inject constructor(
         private val LOG = LoggerFactory.getLogger(StoredServiceImpl::class.java)
     }
 }
+ */
