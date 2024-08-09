@@ -9,7 +9,6 @@ plugins {
     id("io.micronaut.application") version "4.4.0"
     id("io.micronaut.test-resources") version "4.4.0"
     id("io.micronaut.aot") version "4.4.0"
-    //id("nu.studer.jooq") version "8.2"
     id("org.sonarqube") version "4.4.1.3373"
     kotlin("plugin.serialization") version "1.9.23"
 }
@@ -25,6 +24,8 @@ repositories {
 val exposedVersion: String by project
 
 dependencies {
+
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
     implementation("org.jetbrains.exposed:exposed-crypt:$exposedVersion")
 
@@ -68,8 +69,6 @@ dependencies {
 
     // https://mvnrepository.com/artifact/org.mockito/mockito-core
     testImplementation("org.mockito:mockito-core:5.11.0")
-
-    //jooqGenerator("org.postgresql:postgresql:42.3.9")
 
     implementation("io.reactivex.rxjava3:rxkotlin:3.0.1")
 
@@ -153,50 +152,3 @@ micronaut {
 tasks.named<io.micronaut.gradle.docker.NativeImageDockerfile>("dockerfileNative") {
     jdkVersion = "21"
 }
-
-/*
-jooq {
-    version.set("3.18.7")  // default (can be omitted)
-    edition.set(nu.studer.gradle.jooq.JooqEdition.OSS)  // default (can be omitted)
-
-    configurations {
-        create("main") {  // name of the jOOQ configuration
-            generateSchemaSourceOnCompilation.set(true)  // default (can be omitted)
-
-            jooqConfiguration.apply {
-                logging = Logging.WARN
-                //logging = Logging.DEBUG
-                jdbc.apply {
-                    driver = "org.postgresql.Driver"
-                    url = "jdbc:postgresql://localhost:5432/nostr"
-                    //url = "jdbc:postgresql://relay-db:5432/nostr"
-                    user = "rushmi0"
-                    password = "sql@min"
-                    properties.add(Property().apply {
-                        key = "ssl"
-                        value = "false"
-                    })
-                }
-                generator.apply {
-                    name = "org.jooq.codegen.DefaultGenerator"
-                    database.apply {
-                        name = "org.jooq.meta.postgres.PostgresDatabase"
-                        inputSchema = "public"
-                    }
-                    generate.apply {
-                        isDeprecated = false
-                        isRecords = true
-                        isImmutablePojos = true
-                        isFluentSetters = true
-                    }
-                    target.apply {
-                        packageName = "nostr.relay.infra.database"
-                        directory = "target/infra/jooq/main"
-                    }
-                    strategy.name = "org.jooq.codegen.DefaultGeneratorStrategy"
-                }
-            }
-        }
-    }
-}
- */

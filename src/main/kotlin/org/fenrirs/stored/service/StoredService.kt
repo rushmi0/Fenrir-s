@@ -10,14 +10,14 @@ interface StoredService {
      * @param event เหตุการณ์ที่ต้องการบันทึก
      * @return ค่าเป็น true หากการบันทึกสำเร็จ และ false หากไม่สำเร็จ
      */
-    suspend fun saveEvent(event: Event): Boolean
+    fun saveEvent(event: Event): Boolean
 
     /**
      * deleteEvent ใช้ในการลบเหตุการณ์จากฐานข้อมูล
      * @param eventId ไอดีของเหตุการณ์ที่ต้องการลบ
      * @return ค่าเป็น true หากการลบสำเร็จ และ false หากไม่สำเร็จ
      */
-    suspend fun deleteEvent(eventId: String): Boolean
+    fun deleteEvent(eventId: String): Boolean
 
     /**
      * selectById ใช้ในการเลือกเหตุการณ์จากฐานข้อมูลโดยใช้ไอดี
@@ -31,7 +31,7 @@ interface StoredService {
      * @param filters เงื่อนไขการคัดกรองข้อมูล ตามที่ไคลเอนต์ต้องการ
      * @return รายการเหตุการณ์ที่ตรงกับเงื่อนไข
      */
-    suspend fun filterList(filters: FiltersX): List<Event>
+    fun filterList(filters: FiltersX): List<Event>
 
 
 

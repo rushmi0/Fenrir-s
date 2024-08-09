@@ -2,8 +2,14 @@ package org.fenrirs.stored
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+
+import org.fenrirs.stored.Environment.DATABASE_PASSWORD
+import org.fenrirs.stored.Environment.DATABASE_URL
+import org.fenrirs.stored.Environment.DATABASE_USERNAME
+
 import org.fenrirs.stored.table.EVENT
 import org.fenrirs.utils.ExecTask.runWithVirtualThreadsPerTask
+
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -27,12 +33,12 @@ object DatabaseFactory {
         config.driverClassName = "org.postgresql.Driver"
 
         // กำหนด่าสำหรับการเชื่อมต่อกับฐานข้อมูล
-        config.jdbcUrl = "jdbc:postgresql://localhost:5432/nostr"
-        config.username = "rushmi0"
-        config.password = "sql@min"
+        config.jdbcUrl = DATABASE_URL //"jdbc:postgresql://localhost:5432/nostr"
+        config.username = DATABASE_USERNAME//"rushmi0"
+        config.password = DATABASE_PASSWORD//"sql@min"
 
-        config.minimumIdle = 2
-        config.maximumPoolSize = 10
+        config.minimumIdle = 3
+        config.maximumPoolSize = 7
 
         // กำหนดให้ไม่ทำ Auto Commit โดยอัตโนมัติ
         config.isAutoCommit = false
@@ -53,7 +59,7 @@ object DatabaseFactory {
     }
 
 
-    fun <T> dbQuery(block: () -> T): T = runWithVirtualThreadsPerTask {
+    fun <T> queryTask(block: () -> T): T = runWithVirtualThreadsPerTask {
         transaction {
             block()
         }

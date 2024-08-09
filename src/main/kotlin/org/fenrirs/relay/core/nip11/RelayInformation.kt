@@ -3,7 +3,7 @@ package org.fenrirs.relay.core.nip11
 import io.micronaut.context.annotation.Bean
 import io.micronaut.http.MediaType
 import jakarta.inject.Inject
-import org.fenrirs.stored.RedisCacheFactory
+import org.fenrirs.stored.RedisFactory
 import java.io.File
 import java.nio.charset.Charset
 
@@ -11,11 +11,10 @@ import kotlinx.coroutines.runBlocking
 import org.fenrirs.relay.policy.NostrRelayConfig
 import org.fenrirs.utils.Bech32
 import org.fenrirs.utils.ShiftTo.toHex
-import org.slf4j.LoggerFactory
 
 @Bean
 class RelayInformation @Inject constructor(
-    private val redis: RedisCacheFactory,
+    private val redis: RedisFactory,
     private val config: NostrRelayConfig
 ) {
 
@@ -31,7 +30,7 @@ class RelayInformation @Inject constructor(
             // หากไม่มีข้อมูลใน cache ให้โหลดจากไฟล์ระบบ
             val data = loadContent(contentType)
             // แคชข้อมูลที่โหลดมาใหม่ลง Redis พร้อมตั้งเวลาอายุเป็น
-            redis.setCache(contentType, data, 5)
+            redis.setCache(contentType, data, 2000)
             data
         }
     }
@@ -51,10 +50,10 @@ class RelayInformation @Inject constructor(
         }
     }
 
-
     private fun relayInfo(): String {
         val publicKey: String = if (config.info.npub.startsWith("npub")) Bech32.decode(config.info.npub).data.toHex() else config.info.npub
         val pow = config.policy.proofOfWork.difficultyMinimum
+        val diff = if (config.policy.proofOfWork.enabled) pow else 0
         return """
             {
               "name": "${config.info.name}",
@@ -66,9 +65,9 @@ class RelayInformation @Inject constructor(
               "software": "https://github.com/rushmi0/Fenrir-s",
               "version": "0.1",
               "limitation": {
-                 "max_filters": 5,
-                 "min_pow_difficulty": $pow,
-                 "max_limit": 1000,
+                 "max_filters": 7,
+                 "min_pow_difficulty": $diff,
+                 "max_limit": 500,
                  "max_message_length": 524288,
                  "payment_required": false,
               }

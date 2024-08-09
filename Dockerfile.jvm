@@ -5,8 +5,10 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN ./gradlew build
 
-FROM amazoncorretto:21.0.3
+FROM amazoncorretto:21-alpine
 WORKDIR /app
 COPY --from=build /app/build/libs/fenrir-s-0.1-all-optimized.jar ./
+COPY .env /app/.env
+
 EXPOSE 6724
 ENTRYPOINT ["java", "-jar", "fenrir-s-0.1-all-optimized.jar"]

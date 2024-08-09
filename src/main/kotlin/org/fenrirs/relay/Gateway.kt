@@ -98,9 +98,7 @@ class Gateway @Inject constructor(
     }
 
     companion object {
-
         private val LOG: Logger = LoggerFactory.getLogger(Gateway::class.java)
-
     }
 
 }

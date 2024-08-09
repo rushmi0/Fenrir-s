@@ -76,8 +76,8 @@ object CommandFactory {
         val filtersJson: List<JsonObject> = jsonArray.drop(2).map { it.jsonObject }
         //LOG.info("filters object ${filtersJson.size}: $filtersJson")
 
-        if (filtersJson.size > 5) {
-            throw IllegalArgumentException("rate-limited: max filters 5")
+        if (filtersJson.size > 7) { // เจ็ดยับ
+            throw IllegalArgumentException("rate-limited: max filters 7 object")
         }
 
         val data: Map<String, JsonElement> = filtersJson.flatMap { it.entries }.associate { it.key to it.value }

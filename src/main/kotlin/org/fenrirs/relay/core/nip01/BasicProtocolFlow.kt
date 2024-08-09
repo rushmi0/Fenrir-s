@@ -10,15 +10,13 @@ import org.fenrirs.relay.modules.Event
 import org.fenrirs.relay.modules.FiltersX
 
 import org.fenrirs.relay.core.nip01.response.RelayResponse
-//import org.fenrirs.relay.core.nip09.EventDeletion
+import org.fenrirs.relay.core.nip09.EventDeletion
 import org.fenrirs.relay.core.nip13.ProofOfWork
 import org.fenrirs.relay.policy.NostrRelayConfig
 
-import org.fenrirs.stored.RedisCacheFactory
-import org.fenrirs.stored.statement.TestSQL.filterList
-import org.fenrirs.stored.statement.TestSQL.saveEvent
-import org.fenrirs.stored.statement.TestSQL.selectById
-//import org.fenrirs.stored.statement.StoredServiceImpl
+import org.fenrirs.stored.RedisFactory
+import org.fenrirs.stored.statement.StoredServiceImpl
+
 
 import org.fenrirs.utils.Bech32
 import org.fenrirs.utils.Color.CYAN
@@ -31,10 +29,10 @@ import org.slf4j.LoggerFactory
 
 @Bean
 class BasicProtocolFlow @Inject constructor(
-    //private val sqlExec: StoredServiceImpl,
+    private val sqlExec: StoredServiceImpl,
     private val config: NostrRelayConfig,
-    private val redis: RedisCacheFactory,
-    //private val nip09: EventDeletion,
+    private val redis: RedisFactory,
+    private val nip09: EventDeletion,
     private val nip13: ProofOfWork
 ) {
 
@@ -57,7 +55,7 @@ class BasicProtocolFlow @Inject constructor(
 
         // ดึงข้อมูล public key ของ relay owner และรายการ passList จาก src/main/resources/application.toml
         val relayOwner = Bech32.decode(config.info.npub).data.toHex()
-        //val passList: List<String> = getPassList(relayOwner)
+        val passList: List<String> = getPassList(relayOwner)
         val followsPass: Boolean = config.policy.followsPass
         val work: Boolean = config.policy.proofOfWork.enabled
         val allPass: Boolean = config.policy.allPass
@@ -68,10 +66,10 @@ class BasicProtocolFlow @Inject constructor(
             allPass && !followsPass -> handlePassListEvent(event, session)
 
             // ไม่ต้องทำ Proof of Work ถ้าหาก pass เป็น true และ event.pubkey อยู่ใน passList
-            //followsPass && event.pubkey in passList -> handlePassListEvent(event, session)
+            followsPass && event.pubkey in passList -> handlePassListEvent(event, session)
 
             // บังคับทำ Proof of Work ถ้าหาก work เป็น true และ event.pubkey ไม่อยู่ใน passList
-            //work && event.pubkey !in passList -> handleEventWithPolicy(event, session, work)
+            work && event.pubkey !in passList -> handleEventWithPolicy(event, session, work)
 
             // บังคับทำ Proof of Work ถ้า pass เป็น false และ event.pubkey ไม่เท่ากับ relayOwner
             !followsPass && event.pubkey != relayOwner -> handleEventWithPolicy(event, session, work)
@@ -87,14 +85,14 @@ class BasicProtocolFlow @Inject constructor(
      * @param publicKey คีย์สาธารณะของเจ้าของ Relay
      * @return รายการของ public key ที่ติดตามโดยเจ้าของ Relay หากไม่พบข้อมูลจะคืนค่าเป็นรายการที่มี publicKey เพียงตัวเดียว
      */
-//    private suspend fun getPassList(publicKey: String): List<String> =
-//        sqlExec.filterList(FiltersX(authors = setOf(publicKey), kinds = setOf(3)))
-//            .firstOrNull()
-//            ?.tags
-//            ?.filter { it.isNotEmpty() && it[0] == "p" }
-//            ?.map { it[1] }
-//            ?.plus(publicKey)
-//            ?: listOf(publicKey)
+    private suspend fun getPassList(publicKey: String): List<String> =
+        sqlExec.filterList(FiltersX(authors = setOf(publicKey), kinds = setOf(3)))
+            .firstOrNull()
+            ?.tags
+            ?.filter { it.isNotEmpty() && it[0] == "p" }
+            ?.map { it[1] }
+            ?.plus(publicKey)
+            ?: listOf(publicKey)
 
 
     /**
@@ -119,10 +117,10 @@ class BasicProtocolFlow @Inject constructor(
      */
     private suspend fun handleEventWithPolicy(event: Event, session: WebSocketSession, enabled: Boolean) {
         // ตรวจสอบว่ามีเหตุการณ์ที่มี ID เดียวกันอยู่แล้วหรือไม่
-        val eventId: Event? = redis.getCache(event.id!!)?.let { selectById(event.id) }
+        val eventId: Event? = redis.getCache(event.id!!)?.let { sqlExec.selectById(event.id) }
         when {
             eventId != null -> handleDuplicateEvent(event, session)
-            //nip09.isDeletable(event) -> handleDeletableEvent(event, session)
+            nip09.isDeletable(event) -> handleDeletableEvent(event, session)
             else -> handleProofOfWorkEvent(event, session, enabled)
         }
     }
@@ -135,11 +133,11 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     private suspend fun handlePassListEvent(event: Event, session: WebSocketSession) {
-        val eventId: Event? = redis.getCache(event.id!!)?.let { selectById(event.id) }
+        val eventId: Event? = redis.getCache(event.id!!)?.let { sqlExec.selectById(event.id) }
         when {
             eventId != null -> handleDuplicateEvent(event, session)
             nip13.isProofOfWorkEvent(event) -> handleProofOfWorkEvent(event, session)
-            //nip09.isDeletable(event) -> handleDeletableEvent(event, session)
+            nip09.isDeletable(event) -> handleDeletableEvent(event, session)
             else -> handleNormalEvent(event, session)
         }
     }
@@ -187,7 +185,7 @@ class BasicProtocolFlow @Inject constructor(
      */
     private suspend fun handleNormalEvent(event: Event, session: WebSocketSession) {
         handleEvent(event, session) {
-            val status: Boolean = saveEvent(event)
+            val status: Boolean = sqlExec.saveEvent(event)
             status to (if (status) "" else "error: could not save event to the database")
         }
     }
@@ -199,17 +197,17 @@ class BasicProtocolFlow @Inject constructor(
      * @param event เหตุการณ์ที่สามารถลบได้
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-//    private suspend fun handleDeletableEvent(event: Event, session: WebSocketSession) {
-//        handleEvent(event, session) {
-//            val (deletionSuccess, message) = nip09.deleteEvent(event)
-//            if (deletionSuccess) {
-//                val status: Boolean = saveEvent(event)
-//                status to (if (status) message else "error: could not save event to the database after deletion")
-//            } else {
-//                false to message
-//            }
-//        }
-//    }
+    private suspend fun handleDeletableEvent(event: Event, session: WebSocketSession) {
+        handleEvent(event, session) {
+            val (deletionSuccess, message) = nip09.deleteEvent(event)
+            if (deletionSuccess) {
+                val status: Boolean = sqlExec.saveEvent(event)
+                status to (if (status) message else "error: could not save event to the database after deletion")
+            } else {
+                false to message
+            }
+        }
+    }
 
 
     /**
@@ -223,7 +221,7 @@ class BasicProtocolFlow @Inject constructor(
         handleEvent(event, session) {
             val (valid, message) = nip13.verifyProofOfWork(event, enabled)
             if (valid) {
-                val status: Boolean = saveEvent(event)
+                val status: Boolean = sqlExec.saveEvent(event)
                 status to (if (status) "" else "error: could not save Proof of Work event")
             } else {
                 false to message
@@ -244,7 +242,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param warning ข้อความแจ้งเตือน (ถ้ามี)
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    suspend fun onRequest(
+    fun onRequest(
         subscriptionId: String,
         filtersX: List<FiltersX>,
         status: Boolean,
@@ -254,7 +252,7 @@ class BasicProtocolFlow @Inject constructor(
         if (status) {
             LOG.info("${GREEN}filters ${RESET}for subscription ID: ${CYAN}$subscriptionId")
             filtersX.forEach { filter ->
-                filterList(filter).forEachIndexed { _, event ->
+                sqlExec.filterList(filter).forEachIndexed { _, event ->
                     //val eventIndex = "${i+1}/${events.size}"
                     //LOG.info("Relay Response event $eventIndex: $event")
                     RelayResponse.EVENT(subscriptionId, event).toClient(session)

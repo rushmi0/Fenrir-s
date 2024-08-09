@@ -1,7 +1,15 @@
 SELECT *
 FROM event;
 
+SELECT *
+FROM event
+WHERE to_tsvector('simple', content) @@ plainto_tsquery('simple', 'test 1');
+
+
 TRUNCATE TABLE event;
+
+DELETE FROM event
+WHERE event_id = '0000005b0fc51e70b66db99ba1708b1a1b008c30db35d19d35146b3e09756029';
 
 EXPLAIN
 SELECT * -- 71 - 100
