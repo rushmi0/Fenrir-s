@@ -118,7 +118,7 @@ cd Fenrir-s
 3. รัน Docker Compose:
 
 ```shell
-docker compose up relay-db relay-cache relay-app
+docker compose up relay-db relay-cache relay-app-jvm
 ```
 
 ### การตั้งค่า Cloudflare Tunnel (Optional)
