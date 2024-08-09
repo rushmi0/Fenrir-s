@@ -7,13 +7,11 @@ import io.lettuce.core.api.sync.RedisCommands
 import jakarta.inject.Inject
 import kotlinx.coroutines.runBlocking
 import io.micronaut.context.annotation.Bean
-import io.micronaut.context.annotation.Factory
 import org.fenrirs.stored.Environment.REDIS_URL
 import org.fenrirs.utils.ExecTask.parallelIO
 import org.slf4j.LoggerFactory
 
 @Bean
-@Factory
 class RedisFactory @Inject constructor(
     private val redisClient: RedisClient = RedisClient.create(REDIS_URL),
     private val connection: StatefulRedisConnection<String, String> = redisClient.connect(),

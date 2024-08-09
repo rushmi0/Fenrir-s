@@ -17,4 +17,3 @@ object Environment {
     val DATABASE_PASSWORD : String by lazy { dotenv["DATABASE_PASSWORD"] }
 
 }
-
