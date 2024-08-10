@@ -8,5 +8,5 @@ WORKDIR /app
 COPY --from=build /app/build/native/nativeOptimizedCompile/fenrir-s-v0.1 ./
 COPY .env /app/.env
 
-EXPOSE 6724
+EXPOSE 6725
 ENTRYPOINT ["/app/fenrir-s-v0.1"]
