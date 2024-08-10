@@ -4,6 +4,7 @@ import io.micronaut.context.annotation.Bean
 import io.micronaut.core.annotation.Introspected
 
 import io.micronaut.http.HttpHeaders
+import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Header
@@ -43,7 +44,9 @@ class Gateway @Inject constructor(
 ) {
 
     @OnOpen
-    fun onOpen(session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): HttpResponse<String>? {
+    fun onOpen(request: HttpRequest<*>, session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): HttpResponse<String>? {
+        //val clientIp = request.remoteAddress?.address?.hostAddress
+        //LOG.info("Client IP: $clientIp")
         session?.let {
             LOG.info("${GREEN}open$RESET $session")
             return HttpResponse.ok("Session opened")
@@ -58,6 +61,8 @@ class Gateway @Inject constructor(
         val data = runBlocking {
             nip11.loadRelayInfo(contentType)
         }
+
+        //LOG.info("res nip-11 \n$data")
         return HttpResponse.ok(data).contentType(contentType)
     }
 
@@ -93,9 +98,7 @@ class Gateway @Inject constructor(
     }
 
     companion object {
-
         private val LOG: Logger = LoggerFactory.getLogger(Gateway::class.java)
-
     }
 
 }

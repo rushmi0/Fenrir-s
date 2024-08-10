@@ -1,6 +1,12 @@
 GET https://relay.damus.io
 accept: application/nostr+json
 
+###
+
+GET http://localhost:6724
+accept: application/nostr+json
+
+
 ### 1719307113, 1719306274
 
 WEBSOCKET wss://relay.damus.io
@@ -94,8 +100,15 @@ Content-Type: application/json
 WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
-["REQ","hsZEOtaDsENYkP5H-JIWp",{"ids":["00"]}]
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"ids":["00000"]}]
 
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"kinds":[1]}]
 
 ###
 
@@ -159,3 +172,15 @@ WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 ["REQ","6Y92Rj5mPPvkyh9_pYBXD",{"#p":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],"kinds":[1,6,16,7,9735,2004,30023],"limit":150}]
+
+###
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+[
+  "REQ",
+  "ID-01",
+  {
+    "search" : "custom"
+  }
+]

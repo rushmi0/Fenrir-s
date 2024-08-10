@@ -117,7 +117,7 @@ cd Fenrir-s
 3. Docker Composeを実行する:
 
 ```shell
-docker compose up relay-db relay-cache relay-app
+docker compose up relay-db relay-cache relay-app-jvm
 ```
 
 ### Cloudflare Tunnelの設定(Optional)

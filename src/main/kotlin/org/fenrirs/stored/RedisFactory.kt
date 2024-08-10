@@ -3,19 +3,24 @@ package org.fenrirs.stored
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.sync.RedisCommands
-import io.micronaut.context.annotation.Bean
+
 import jakarta.inject.Inject
 import kotlinx.coroutines.runBlocking
-
+import io.micronaut.context.annotation.Bean
+import org.fenrirs.stored.Environment.REDIS_URL
 import org.fenrirs.utils.ExecTask.parallelIO
+import org.slf4j.LoggerFactory
 
 @Bean
-class RedisCacheFactory @Inject constructor(
-    private val redisClient: RedisClient = RedisClient.create("redis://relay-cache:6379"),
-    //private val redisClient: RedisClient = RedisClient.create("redis://localhost:6379"),
+class RedisFactory @Inject constructor(
+    private val redisClient: RedisClient = RedisClient.create(REDIS_URL),
     private val connection: StatefulRedisConnection<String, String> = redisClient.connect(),
     private val redisCommands: RedisCommands<String, String> = connection.sync()
 ) {
+
+    init {
+        LOG.info("Connecting to Redis with URL: $REDIS_URL")
+    }
 
     /**
      * ฟังก์ชันสำหรับ cache ข้อมูลลงใน Redis
@@ -63,5 +68,8 @@ class RedisCacheFactory @Inject constructor(
     }
 
 
+    companion object {
+        private val LOG = LoggerFactory.getLogger(RedisFactory::class.java)
+    }
 
 }

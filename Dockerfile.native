@@ -1,0 +1,12 @@
+FROM ghcr.io/graalvm/graalvm-community:21.0.2 AS build
+WORKDIR /app
+COPY . .
+RUN ./gradlew nativeOptimizedCompile
+
+FROM debian:stable-slim
+WORKDIR /app
+COPY --from=build /app/build/native/nativeOptimizedCompile/fenrir-s-v0.1 ./
+COPY .env /app/.env
+
+EXPOSE 6724
+ENTRYPOINT ["/app/fenrir-s-v0.1"]

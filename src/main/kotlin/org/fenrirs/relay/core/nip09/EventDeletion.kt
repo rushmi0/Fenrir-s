@@ -6,6 +6,7 @@ import jakarta.inject.Singleton
 import kotlinx.coroutines.runBlocking
 
 import org.fenrirs.relay.modules.Event
+
 import org.fenrirs.stored.statement.StoredServiceImpl
 import org.fenrirs.utils.ExecTask.runWithVirtualThreads
 

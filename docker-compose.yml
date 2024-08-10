@@ -2,6 +2,7 @@ version: "3.8"
 
 networks:
   dev_network:
+    driver: bridge
 
 services:
 
@@ -20,33 +21,34 @@ services:
     ports:
       - "5432:5432"
 
-  relay-cache:
-    container_name: relay-cache
-    image: redis:7.0-alpine
-    restart: unless-stopped
-    networks:
-      - dev_network
-    ports:
-      - "6379:6379"
-
-  relay-app:
-    container_name: relay-app
-    image: amazoncorretto:21.0.3
-    restart: unless-stopped
-    volumes:
-      - .:/app/source-code
-    working_dir: /app/source-code
-    command: >
-      /bin/bash -c "chmod +x run_jvm.sh; ./run_jvm.sh"
+  relay-app-native:
+    container_name: fenrir-s-native
+    build:
+      context: .
+      dockerfile: Dockerfile.native
+    depends_on:
+      - relay-db
     ports:
       - "6724:6724"
     networks:
       - dev_network
 
-
-  cloudflared-tunnel:
-    container_name: cloudflared-tunnel
-    image: cloudflare/cloudflared:latest
+  relay-app-jvm:
+    container_name: fenrir-s-jvm
     restart: unless-stopped
-    command: tunnel --no-autoupdate run --token
+    build:
+      context: .
+      dockerfile: Dockerfile.jvm
+    depends_on:
+      - relay-db
+    ports:
+      - "6724:6724"
+    networks:
+      - dev_network
+
+#  cloudflared-tunnel:
+#    container_name: cloudflared-tunnel
+#    image: cloudflare/cloudflared:latest
+#    restart: unless-stopped
+#    command: tunnel --no-autoupdate run --token
 
