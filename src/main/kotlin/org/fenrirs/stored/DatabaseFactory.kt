@@ -2,6 +2,7 @@ package org.fenrirs.stored
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import org.fenrirs.stored.Environment.DATABASE_NAME
 
 import org.fenrirs.stored.Environment.DATABASE_PASSWORD
 import org.fenrirs.stored.Environment.DATABASE_URL
@@ -34,12 +35,12 @@ object DatabaseFactory {
         config.driverClassName = "org.postgresql.Driver"
 
         // กำหนด่าสำหรับการเชื่อมต่อกับฐานข้อมูล
-        config.jdbcUrl = DATABASE_URL //"jdbc:postgresql://localhost:5432/nostr"
-        config.username = DATABASE_USERNAME//"rushmi0"
-        config.password = DATABASE_PASSWORD//"sql@min"
+        config.jdbcUrl = "$DATABASE_URL/$DATABASE_NAME"
+        config.username = DATABASE_USERNAME
+        config.password = DATABASE_PASSWORD
 
-        config.minimumIdle = 3
-        config.maximumPoolSize = 7
+        config.minimumIdle = 2
+        config.maximumPoolSize = 10
 
         // กำหนดให้ไม่ทำ Auto Commit โดยอัตโนมัติ
         config.isAutoCommit = false

@@ -1,8 +1,17 @@
 <configuration>
 
+    <!-- Console Appender -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <!-- encoders are assigned the type
-             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>
+                [%boldMagenta(%d{dd-MM-yyyy})][%boldMagenta(%d{HH:mm:ss.SSS})] %green([%thread]) %highlight(%-5level) %boldYellow(%logger{36}) - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- File Appender -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>src/main/resources/log/app.log</file>
         <encoder>
             <pattern>
                 [%boldMagenta(%d{dd-MM-yyyy})][%boldMagenta(%d{HH:mm:ss.SSS})] %green([%thread]) %highlight(%-5level) %boldYellow(%logger{36}) - %msg%n
@@ -22,5 +31,6 @@
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
     </root>
 </configuration>

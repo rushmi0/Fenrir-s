@@ -3,7 +3,6 @@ package org.fenrirs.relay.core.nip11
 import io.micronaut.context.annotation.Bean
 import io.micronaut.http.MediaType
 import jakarta.inject.Inject
-import org.fenrirs.stored.RedisFactory
 import java.io.File
 import java.nio.charset.Charset
 
