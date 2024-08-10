@@ -45,8 +45,8 @@ class Gateway @Inject constructor(
 
     @OnOpen
     fun onOpen(request: HttpRequest<*>, session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): HttpResponse<String>? {
-        val clientIp = request.remoteAddress?.address?.hostAddress
-        LOG.info("Client IP: $clientIp")
+        //val clientIp = request.remoteAddress?.address?.hostAddress
+        //LOG.info("Client IP: $clientIp")
         session?.let {
             LOG.info("${GREEN}open$RESET $session")
             return HttpResponse.ok("Session opened")

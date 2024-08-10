@@ -14,9 +14,7 @@ import org.fenrirs.relay.core.nip09.EventDeletion
 import org.fenrirs.relay.core.nip13.ProofOfWork
 import org.fenrirs.relay.policy.NostrRelayConfig
 
-import org.fenrirs.stored.RedisFactory
 import org.fenrirs.stored.statement.StoredServiceImpl
-
 
 import org.fenrirs.utils.Bech32
 import org.fenrirs.utils.Color.CYAN
@@ -31,7 +29,6 @@ import org.slf4j.LoggerFactory
 class BasicProtocolFlow @Inject constructor(
     private val sqlExec: StoredServiceImpl,
     private val config: NostrRelayConfig,
-    private val redis: RedisFactory,
     private val nip09: EventDeletion,
     private val nip13: ProofOfWork
 ) {
@@ -102,9 +99,8 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     private fun handleDuplicateEvent(event: Event, session: WebSocketSession) {
-        redis.setCache(event.id!!, event.id, 86_400)
         LOG.info("Event with ID ${event.id} already exists in the database")
-        RelayResponse.OK(event.id, false, "duplicate: already have this event").toClient(session)
+        RelayResponse.OK(event.id!!, false, "duplicate: already have this event").toClient(session)
     }
 
 
@@ -117,7 +113,7 @@ class BasicProtocolFlow @Inject constructor(
      */
     private suspend fun handleEventWithPolicy(event: Event, session: WebSocketSession, enabled: Boolean) {
         // ตรวจสอบว่ามีเหตุการณ์ที่มี ID เดียวกันอยู่แล้วหรือไม่
-        val eventId: Event? = redis.getCache(event.id!!)?.let { sqlExec.selectById(event.id) }
+        val eventId: Event? =sqlExec.selectById(event.id!!)
         when {
             eventId != null -> handleDuplicateEvent(event, session)
             nip09.isDeletable(event) -> handleDeletableEvent(event, session)
@@ -133,7 +129,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     private suspend fun handlePassListEvent(event: Event, session: WebSocketSession) {
-        val eventId: Event? = redis.getCache(event.id!!)?.let { sqlExec.selectById(event.id) }
+        val eventId: Event? = sqlExec.selectById(event.id!!)
         when {
             eventId != null -> handleDuplicateEvent(event, session)
             nip13.isProofOfWorkEvent(event) -> handleProofOfWorkEvent(event, session)
@@ -162,9 +158,8 @@ class BasicProtocolFlow @Inject constructor(
             val (success, message) = action.invoke()
 
             if (success) {
-                redis.setCache(event.id!!, event.id, 604_800) // 86_400, 604_800
                 LOG.info("Event handled successfully")
-                RelayResponse.OK(event.id, true, message).toClient(session)
+                RelayResponse.OK(event.id!!, true, message).toClient(session)
             } else {
                 LOG.warn("Failed to handle event: ${event.id}")
                 RelayResponse.OK(event.id!!, false, message).toClient(session)

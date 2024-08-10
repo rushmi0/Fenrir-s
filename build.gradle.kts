@@ -9,7 +9,7 @@ plugins {
     id("io.micronaut.application") version "4.4.0"
     id("io.micronaut.test-resources") version "4.4.0"
     id("io.micronaut.aot") version "4.4.0"
-    id("org.sonarqube") version "4.4.1.3373"
+    id("org.graalvm.buildtools.native") version "0.10.0"
     kotlin("plugin.serialization") version "1.9.23"
 }
 
@@ -80,7 +80,6 @@ dependencies {
     implementation("io.micronaut.rxjava3:micronaut-rxjava3")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
     implementation("io.micronaut.sql:micronaut-jdbc-hikari")
-    implementation("io.micronaut.sql:micronaut-jooq")
     implementation("io.micronaut.toml:micronaut-toml")
     implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
@@ -123,6 +122,23 @@ tasks.withType<KotlinCompile> {
         javaParameters = true
     }
 }
+
+graalvmNative {
+    binaries {
+        all {
+            // * https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildOutput/?fbclid=IwAR007Rh7fYg-CJZywqhFM8PF5XDWPvgOfaV9txFDqpy6PWjtZp2bXpgncL0_aem_Af0UTqW_wKY5RFkebOwqrANSJn-d6fpSoJLMyra23KLgMNQuur3l75gjN29_Ymw1JYkeX7upxGBzGPFkJ4iRuojh
+            buildArgs.add("-H:+AddAllCharsets")
+            buildArgs.add("-R:MaxHeapSize=3G")
+            imageName.set("${project.name}-v$version")
+            javaLauncher.set(javaToolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(21))
+                vendor.set(JvmVendorSpec.GRAAL_VM)
+            })
+            verbose.set(true)
+        }
+    }
+}
+
 
 micronaut {
     runtime("netty")

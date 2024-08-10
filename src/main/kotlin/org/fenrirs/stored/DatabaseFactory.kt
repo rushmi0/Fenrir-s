@@ -17,6 +17,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 object DatabaseFactory {
 
+    @JvmStatic
     fun initialize() {
         Database.connect(hikariConfig())
         transaction {

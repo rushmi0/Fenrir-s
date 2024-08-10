@@ -45,11 +45,6 @@ sync = [
 
 #################################################################################
 
-[redis]
-#uri = "redis://relay-cache:6379/0"
-timeout = "45m"
-io-thread-pool-size = 3
-computation-thread-pool-size = 7
 
 [micronaut.router.static-resources.default]
 mapping = "/**"

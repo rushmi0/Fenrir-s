@@ -14,7 +14,7 @@ import org.fenrirs.utils.ShiftTo.toHex
 
 @Bean
 class RelayInformation @Inject constructor(
-    private val redis: RedisFactory,
+    //private val redis: RedisFactory,
     private val config: NostrRelayConfig
 ) {
 
@@ -24,15 +24,8 @@ class RelayInformation @Inject constructor(
      * @param contentType: ประเภทของเนื้อหาที่ต้องการ (application/json หรือ text/html)
      * @return ข้อมูล relay information ที่ถูกดึงจาก Redis cache หรือไฟล์ระบบ
      */
-    suspend fun loadRelayInfo(contentType: String): String = runBlocking {
-        // ดึงข้อมูลจาก Redis cache โดยใช้ contentType เป็น key
-        redis.getCache(contentType) ?: run {
-            // หากไม่มีข้อมูลใน cache ให้โหลดจากไฟล์ระบบ
-            val data = loadContent(contentType)
-            // แคชข้อมูลที่โหลดมาใหม่ลง Redis พร้อมตั้งเวลาอายุเป็น
-            redis.setCache(contentType, data, 2000)
-            data
-        }
+    fun loadRelayInfo(contentType: String): String = runBlocking {
+        loadContent(contentType)
     }
 
     /**
