@@ -1,14 +1,27 @@
 FROM gradle:jdk21 AS build
-WORKDIR /app
-COPY . .
-RUN apt-get update -y && apt-get upgrade -y && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-RUN ./gradlew build
+
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN useradd -ms /bin/bash builder
+USER builder
+WORKDIR /home/builder/app
+
+COPY --chown=builder:builder gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
+COPY --chown=builder:builder src ./src
+COPY --chown=builder:builder gradle ./gradle
+
+RUN ./gradlew clean build -x test
 
 FROM amazoncorretto:21-alpine
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
 WORKDIR /app
-COPY --from=build /app/build/libs/fenrir-s-0.1-all-optimized.jar ./
-COPY .env /app/.env
+
+COPY --from=build /home/builder/app/build/libs/fenrir-s-0.1-all-optimized.jar ./
+COPY --chown=appuser:appgroup .env /app/.env
 
 EXPOSE 6724
 ENTRYPOINT ["java", "-jar", "fenrir-s-0.1-all-optimized.jar"]

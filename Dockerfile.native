@@ -1,12 +1,21 @@
 FROM ghcr.io/graalvm/graalvm-community:21.0.2 AS build
-WORKDIR /app
-COPY . .
-RUN ./gradlew nativeOptimizedCompile
+RUN useradd -ms /bin/bash builder
+USER builder
+WORKDIR /home/builder/app
+
+COPY --chown=builder:builder gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
+COPY --chown=builder:builder src ./src
+COPY --chown=builder:builder gradle ./gradle
+
+RUN ./gradlew clean nativeOptimizedCompile
 
 FROM debian:stable-slim
+RUN useradd -ms /bin/bash appuser
+USER appuser
 WORKDIR /app
-COPY --from=build /app/build/native/nativeOptimizedCompile/fenrir-s-v0.1 ./
-COPY .env /app/.env
 
-EXPOSE 6725
+COPY --from=build /home/builder/app/build/native/nativeOptimizedCompile/fenrir-s-v0.1 ./
+COPY --chown=appuser:appuser .env /app/.env
+
+EXPOSE 6724
 ENTRYPOINT ["/app/fenrir-s-v0.1"]

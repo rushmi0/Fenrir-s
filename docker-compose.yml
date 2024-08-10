@@ -22,7 +22,7 @@ services:
       - "5432:5432"
 
   relay-app-native:
-    container_name: fenrir-s-native
+    container_name: relay-app-native
     build:
       context: .
       dockerfile: Dockerfile.native
@@ -34,7 +34,7 @@ services:
       - dev_network
 
   relay-app-jvm:
-    container_name: fenrir-s-jvm
+    container_name: relay-app-jvm
     restart: unless-stopped
     build:
       context: .
