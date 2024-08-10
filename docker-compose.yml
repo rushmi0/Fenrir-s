@@ -21,15 +21,17 @@ services:
     ports:
       - "5432:5432"
 
-  relay-cache:
-    container_name: relay-cache
-    image: redis:7.0-alpine
-    restart: unless-stopped
+  relay-app-native:
+    container_name: fenrir-s-native
+    build:
+      context: .
+      dockerfile: Dockerfile.native
+    depends_on:
+      - relay-db
+    ports:
+      - "6724:6724"
     networks:
       - dev_network
-    ports:
-      - "6379:6379"
-
 
   relay-app-jvm:
     container_name: fenrir-s-jvm
@@ -39,7 +41,6 @@ services:
       dockerfile: Dockerfile.jvm
     depends_on:
       - relay-db
-      - relay-cache
     ports:
       - "6724:6724"
     networks:
