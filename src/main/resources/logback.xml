@@ -9,16 +9,6 @@
         </encoder>
     </appender>
 
-    <!-- File Appender -->
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>src/main/resources/log/app.log</file>
-        <encoder>
-            <pattern>
-                [%boldMagenta(%d{dd-MM-yyyy})][%boldMagenta(%d{HH:mm:ss.SSS})] %green([%thread]) %highlight(%-5level) %boldYellow(%logger{36}) - %msg%n
-            </pattern>
-        </encoder>
-    </appender>
-
     <logger name="org.fenrirs.*" level="INFO"/>
     <logger name="io.micronaut.http.client" level="TRACE"/>
     <!--    <Logger name="io.micronaut.context.condition" level="DEBUG"/>-->
