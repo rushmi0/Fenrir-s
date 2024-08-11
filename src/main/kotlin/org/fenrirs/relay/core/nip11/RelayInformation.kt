@@ -59,7 +59,7 @@ class RelayInformation @Inject constructor(
               "limitation": {
                  "max_filters": 7,
                  "min_pow_difficulty": $diff,
-                 "max_limit": 500,
+                 "max_limit": 100,
                  "max_message_length": 524288,
                  "payment_required": false,
               }

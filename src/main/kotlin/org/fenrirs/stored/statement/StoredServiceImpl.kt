@@ -131,10 +131,14 @@ class StoredServiceImpl : StoredService {
                     }
                 }
 
-                // กำหนด limit ของการดึงข้อมูล ถ้า filters.limit ไม่มีการกำหนดหรือเป็น null ให้ใช้ค่าเริ่มต้นเป็น 500 record
+                // กำหนด limit ของการดึงข้อมูล ถ้า filters.limit ไม่มีการกำหนดหรือเป็น null ให้ใช้ค่าเริ่มต้นเป็น 100 record
                 if (!filters.kinds.contains(0) && !filters.kinds.contains(3)) {
-                    query.limit(filters.limit?.toInt() ?: 1_000)
+                    query.limit(filters.limit?.toInt() ?: 100)
                 }
+
+                // กำหนด limit ของการดึงข้อมูล: จำกัดสูงสุดที่ 100 รายการเสมอ
+                val limit = filters.limit?.toInt()?.coerceAtMost(100) ?: 100
+                query.limit(limit)
 
                 // ดำเนินการ fetch ข้อมูลตามเงื่อนไขที่กำหนดแล้ว map ข้อมูลที่ได้มาเป็น Event objects
                 query.map { row ->
@@ -195,6 +199,7 @@ class StoredServiceImpl : StoredService {
                  */
 
                 val record = EVENT.selectAll().where { EVENT_ID eq id }.singleOrNull()
+
                 record?.let {
                     Event(
                         id = it[EVENT_ID],
