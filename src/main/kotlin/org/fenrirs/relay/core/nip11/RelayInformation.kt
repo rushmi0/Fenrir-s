@@ -12,10 +12,7 @@ import org.fenrirs.utils.Bech32
 import org.fenrirs.utils.ShiftTo.toHex
 
 @Bean
-class RelayInformation @Inject constructor(
-    //private val redis: RedisFactory,
-    private val config: NostrRelayConfig
-) {
+class RelayInformation @Inject constructor(private val config: NostrRelayConfig) {
 
 
     /**
