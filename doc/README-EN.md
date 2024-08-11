@@ -60,8 +60,8 @@ contact = "lnwza007@rushmi0.win "
 
 ### 2. Policy Configuration
 If no configuration is set, the default will be a Public Relay open for everyone.
-```toml
-[nostr.relay.policy]
+
+```toml[nostr.relay.policy]
 all-pass = true
 follows-pass = false
 
