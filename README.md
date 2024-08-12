@@ -1,9 +1,28 @@
-# Fenrir-s
+<div align="center">
+
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="srcdoc/img/logo-0.png" width="315">
+    <img alt="Exposed logo" src="doc/img/logo-1.png" width="315">
+  </picture>
+
+</div>
+<br>
+
+<div align="center">
+
+[![Kotlin](https://img.shields.io/badge/kotlin-1.9.23-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/GraalVM-21.0.2-blue.svg?logo=github)](https://github.com/graalvm/graalvm-ce-builds/releases/tag/jdk-21.0.2)
+[![Docker](https://img.shields.io/badge/docker-4.33.1-blue.svg?logo=docker)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/sonarqube-10.3-blue.svg?logo=sonarqube)](http://kotlinlang.org)
+[![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/rushmi0/Fenrir-s/blob/main/LICENSE)
+
 
 [ภาษาไทย](https://github.com/rushmi0/Fenrir-s/blob/main/README.md), [日本語](https://github.com/rushmi0/Fenrir-s/blob/main/doc/README-JP.md), [English](https://github.com/rushmi0/Fenrir-s/blob/main/doc/README-EN.md)
+</div>
+
 
 **Fenrir-s** เป็น Nostr Relay ที่ปฏิบัติตามข้อกำหนดของ [Nostr Protocol](https://github.com/nostr-protocol/nostr)
-ซึ่งพัฒนาด้วย Kotlin/JVM
+ซึ่งพัฒนาด้วย Kotlin
 
 โปรเจคนี้มุ่งเน้นสำหรับการใช้งานส่วนตัวหรือในกลุ่มเพื่อน สามารถกำหนดค่านโยบาย Relay ตามความต้องการ และติดตั้งได้ง่าย
 
