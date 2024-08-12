@@ -10,12 +10,13 @@
 
 <div align="center">
 
-[![Kotlin](https://img.shields.io/badge/kotlin-1.9.23-blue.svg?logo=kotlin)](http://kotlinlang.org)
-[![Kotlin](https://img.shields.io/badge/GraalVM-21.0.2-blue.svg?logo=github)](https://github.com/graalvm/graalvm-ce-builds/releases/tag/jdk-21.0.2)
-[![Kotlin](https://img.shields.io/badge/micronaut-4.5.0-blue.svg?logo=github)](https://github.com/micronaut-projects/micronaut-core)
-[![Docker](https://img.shields.io/badge/docker-4.33.1-blue.svg?logo=docker)](https://docs.docker.com/desktop/release-notes/)
-[![Kotlin](https://img.shields.io/badge/sonarqube-10.3-blue.svg?logo=sonarqube)](https://www.sonarsource.com/products/sonarqube/whats-new/sonarqube-10-5/)
-[![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/rushmi0/Fenrir-s/blob/main/LICENSE)
+[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.23-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![GraalVM](https://img.shields.io/badge/GraalVM-21.0.2-blue.svg?logo=github)](https://github.com/graalvm/graalvm-ce-builds/releases/tag/jdk-21.0.2)
+[![Micronaut](https://img.shields.io/badge/Micronaut-4.5.0-blue.svg?logo=github)](https://github.com/micronaut-projects/micronaut-core)
+[![Docker](https://img.shields.io/badge/Docker-4.33.1-blue.svg?logo=docker)](https://docs.docker.com/desktop/release-notes/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg?logo=postgresql)](https://www.postgresql.org/about/news/postgresql-15-released-2526/)
+[![SonarQube](https://img.shields.io/badge/SonarQube-10.3-blue.svg?logo=sonarqube)](https://www.sonarsource.com/products/sonarqube/whats-new/sonarqube-10-5/)
+[![GitHub License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat)](https://github.com/rushmi0/Fenrir-s/blob/main/LICENSE)
 
 
 [ภาษาไทย](https://github.com/rushmi0/Fenrir-s/blob/main/README.md), [日本語](https://github.com/rushmi0/Fenrir-s/blob/main/doc/README-JP.md), [English](https://github.com/rushmi0/Fenrir-s/blob/main/doc/README-EN.md)
@@ -69,7 +70,7 @@
 name = "lnwza007"
 description = "นึกแล้ว มึงต้องอ่าน"
 npub = "npub1ujevvncwfe22hv6d2cjv6pqwqhkvwlcvge7vgm3vcn2max9tu03sgze8ry"
-contact = "lnwza007@rushmi0.win "
+contact = "lnwza007@rushmi0.win"
 ```
 
 | パラメータ | 説明                             |
@@ -138,6 +139,9 @@ cd Fenrir-s
 ```shell
 docker compose up relay-db relay-app-jvm
 ```
+
+- `relay-app-jvm` : JVM 21
+- `relay-app-native` : Native Binaries
 
 ### Cloudflare Tunnelの設定(Optional)
 
