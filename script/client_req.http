@@ -14,9 +14,18 @@ Content-Type: application/json
 
 ["REQ","hsZEOtaDsENYkP5H-JIWp",{"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],"#p":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]}]
 
+
 ###
 
-WEBSOCKET wss://nostr.wine
+WEBSOCKET wss://localhost:6724
+Content-Type: application/json
+
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"kinds": [1],"limit": 2}, {"kinds": [4],"limit": 150}]
+
+
+###
+
+WEBSOCKET wss://localhost:6724
 Content-Type: application/json
 
 ["REQ","hsZEOtaDsENYkP5H-JIWp",{"until": 1719396884,"since":0,"limit": 2}]
