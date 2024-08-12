@@ -12,8 +12,9 @@
 
 [![Kotlin](https://img.shields.io/badge/kotlin-1.9.23-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![Kotlin](https://img.shields.io/badge/GraalVM-21.0.2-blue.svg?logo=github)](https://github.com/graalvm/graalvm-ce-builds/releases/tag/jdk-21.0.2)
-[![Docker](https://img.shields.io/badge/docker-4.33.1-blue.svg?logo=docker)](http://kotlinlang.org)
-[![Kotlin](https://img.shields.io/badge/sonarqube-10.3-blue.svg?logo=sonarqube)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/micronaut-4.5.0-blue.svg?logo=github)](https://github.com/micronaut-projects/micronaut-core)
+[![Docker](https://img.shields.io/badge/docker-4.33.1-blue.svg?logo=docker)](https://docs.docker.com/desktop/release-notes/)
+[![Kotlin](https://img.shields.io/badge/sonarqube-10.3-blue.svg?logo=sonarqube)](https://www.sonarsource.com/products/sonarqube/whats-new/sonarqube-10-5/)
 [![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/rushmi0/Fenrir-s/blob/main/LICENSE)
 
 
