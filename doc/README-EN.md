@@ -1,8 +1,8 @@
 <div align="center">
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="img/logo-0.png" width="315">
-    <img alt="Exposed logo" src="img/logo-1.png" width="315">
+    <source media="(prefers-color-scheme: dark)" srcset="./img/logo-0.png" width="315">
+    <img alt="Exposed logo" src="./img/logo-1.png" width="315">
   </picture>
 
 </div>
