@@ -12,25 +12,22 @@ import org.fenrirs.relay.modules.FiltersX
 import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip09.EventDeletion
 import org.fenrirs.relay.core.nip13.ProofOfWork
-import org.fenrirs.relay.policy.NostrRelayConfig
 
+import org.fenrirs.stored.Environment
 import org.fenrirs.stored.statement.StoredServiceImpl
 
-import org.fenrirs.utils.Bech32
 import org.fenrirs.utils.Color.CYAN
 import org.fenrirs.utils.Color.GREEN
 import org.fenrirs.utils.Color.PURPLE
 import org.fenrirs.utils.Color.RESET
-import org.fenrirs.utils.ShiftTo.toHex
-
 import org.slf4j.LoggerFactory
 
 @Bean
 class BasicProtocolFlow @Inject constructor(
     private val sqlExec: StoredServiceImpl,
-    private val config: NostrRelayConfig,
     private val nip09: EventDeletion,
-    private val nip13: ProofOfWork
+    private val nip13: ProofOfWork,
+    private val env: Environment
 ) {
 
     /**
@@ -41,7 +38,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param warning ข้อความแจ้งเตือน (ถ้ามี)
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    suspend fun onEvent(event: Event, status: Boolean, warning: String, session: WebSocketSession) = runBlocking {
+    fun onEvent(event: Event, status: Boolean, warning: String, session: WebSocketSession) = runBlocking {
         //LOG.info("Received event: $event")
 
         if (!status) {
@@ -51,11 +48,11 @@ class BasicProtocolFlow @Inject constructor(
         }
 
         // ดึงข้อมูล public key ของ relay owner และรายการ passList จาก src/main/resources/application.toml
-        val relayOwner = Bech32.decode(config.info.npub).data.toHex()
+        val relayOwner = env.RELAY_OWNER
         val passList: List<String> = getPassList(relayOwner)
-        val followsPass: Boolean = config.policy.followsPass
-        val work: Boolean = config.policy.proofOfWork.enabled
-        val allPass: Boolean = config.policy.allPass
+        val followsPass: Boolean = env.FOLLOWS_PASS
+        val work: Boolean = env.PROOF_OF_WORK_ENABLED
+        val allPass: Boolean = env.ALL_PASS
 
         // ดักจับเหตุการณ์ เพื่อตรวจสอบนโยบายการใช้งานตามเงื่อนไขที่กำหนด
         when {
@@ -82,7 +79,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param publicKey คีย์สาธารณะของเจ้าของ Relay
      * @return รายการของ public key ที่ติดตามโดยเจ้าของ Relay หากไม่พบข้อมูลจะคืนค่าเป็นรายการที่มี publicKey เพียงตัวเดียว
      */
-    private suspend fun getPassList(publicKey: String): List<String> =
+    private fun getPassList(publicKey: String): List<String> =
         sqlExec.filterList(FiltersX(authors = setOf(publicKey), kinds = setOf(3)))
             .firstOrNull()
             ?.tags
@@ -113,7 +110,7 @@ class BasicProtocolFlow @Inject constructor(
      */
     private suspend fun handleEventWithPolicy(event: Event, session: WebSocketSession, enabled: Boolean) {
         // ตรวจสอบว่ามีเหตุการณ์ที่มี ID เดียวกันอยู่แล้วหรือไม่
-        val eventId: Event? =sqlExec.selectById(event.id!!)
+        val eventId: Event? = sqlExec.selectById(event.id!!)
         when {
             eventId != null -> handleDuplicateEvent(event, session)
             nip09.isDeletable(event) -> handleDeletableEvent(event, session)

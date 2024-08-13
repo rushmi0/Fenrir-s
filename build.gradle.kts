@@ -13,15 +13,15 @@ plugins {
     kotlin("plugin.serialization") version "1.9.23"
 }
 
-version = "0.1"
-group = "org.fenrirs"
-
 val kotlinVersion = project.properties["kotlinVersion"]
 repositories {
     mavenCentral()
 }
 
 val exposedVersion: String by project
+
+version = project.properties["fenrirVersion"] as String
+group = "org.fenrirs"
 
 dependencies {
 
@@ -93,6 +93,7 @@ dependencies {
 
 application {
     mainClass = "org.fenrirs.ApplicationKt"
+    applicationDefaultJvmArgs = listOf("-Dapplication.version=$version")
 }
 
 

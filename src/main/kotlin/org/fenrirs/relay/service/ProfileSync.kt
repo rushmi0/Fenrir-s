@@ -3,7 +3,7 @@ package org.fenrirs.relay.service
 import org.fenrirs.relay.core.nip01.Transform.toEvent
 import org.fenrirs.relay.core.nip01.Transform.validateElement
 import org.fenrirs.relay.policy.EventValidateField
-import org.fenrirs.relay.policy.NostrRelayConfig
+import org.fenrirs.stored.Environment
 
 import org.fenrirs.utils.Bech32
 import org.fenrirs.utils.ShiftTo.toHex
@@ -25,15 +25,13 @@ import okhttp3.*
 @Bean
 class ProfileSync @Inject constructor(
     private val sqlExec: StoredServiceImpl,
-    private val config: NostrRelayConfig,
+    private val env: Environment,
 ) {
 
     private val LOG = LoggerFactory.getLogger(ProfileSync::class.java)
 
     private val publicKey: String? by lazy {
-        config.info.npub.takeIf { it.isNotEmpty() }?.let {
-            Bech32.decode(it).data.toHex()
-        }
+        if (env.RELAY_OWNER.startsWith("npub")) Bech32.decode(env.RELAY_OWNER).data.toHex() else env.RELAY_OWNER
     }
 
     private val client = OkHttpClient.Builder()
@@ -41,8 +39,8 @@ class ProfileSync @Inject constructor(
         .build()
 
     private val reqList = listOf("""["REQ","fffff",{"authors":["$publicKey"],"kinds":[3]}]""")
-    private val sourceList: List<String> = config.database.backup.sync
-    private val syncPass = config.database.backup.enabled
+    private val sourceList: List<String> = env.BACKUP_SYNC
+    private val syncPass = env.BACKUP_ENABLED
 
     fun sync() {
         if (sourceList.isNotEmpty() && syncPass) {

@@ -2,11 +2,6 @@ package org.fenrirs.stored
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import org.fenrirs.stored.Environment.DATABASE_NAME
-
-import org.fenrirs.stored.Environment.DATABASE_PASSWORD
-import org.fenrirs.stored.Environment.DATABASE_URL
-import org.fenrirs.stored.Environment.DATABASE_USERNAME
 
 import org.fenrirs.stored.table.EVENT
 import org.fenrirs.utils.ExecTask.runWithVirtualThreadsPerTask
@@ -18,14 +13,20 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 object DatabaseFactory {
 
+    lateinit var ENV: Environment
+
     @JvmStatic
     fun initialize() {
+
+        if (!::ENV.isInitialized) {
+            throw IllegalStateException("ENV has not been initialized")
+        }
+
         Database.connect(hikariConfig())
         transaction {
             SchemaUtils.create(EVENT)
         }
     }
-
 
     private fun hikariConfig(): HikariDataSource {
 
@@ -34,9 +35,9 @@ object DatabaseFactory {
             driverClassName = "org.postgresql.Driver"
 
             // กำหนด่าสำหรับการเชื่อมต่อกับฐานข้อมูล
-            jdbcUrl = "$DATABASE_URL/$DATABASE_NAME"
-            username = DATABASE_USERNAME
-            password = DATABASE_PASSWORD
+            jdbcUrl = "${ENV.DATABASE_URL}/${ENV.DATABASE_NAME}"
+            username = ENV.DATABASE_USERNAME
+            password = ENV.DATABASE_PASSWORD
 
             minimumIdle = 2
             maximumPoolSize = 10

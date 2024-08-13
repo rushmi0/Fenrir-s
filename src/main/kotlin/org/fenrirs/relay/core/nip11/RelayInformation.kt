@@ -1,19 +1,22 @@
 package org.fenrirs.relay.core.nip11
 
-import io.micronaut.context.annotation.Bean
-import io.micronaut.http.MediaType
 import jakarta.inject.Inject
+
+import io.micronaut.http.MediaType
+import io.micronaut.context.annotation.Bean
+
+import kotlinx.coroutines.runBlocking
+import org.fenrirs.stored.Environment
+
 import java.io.File
 import java.nio.charset.Charset
 
-import kotlinx.coroutines.runBlocking
-import org.fenrirs.relay.policy.NostrRelayConfig
-import org.fenrirs.utils.Bech32
-import org.fenrirs.utils.ShiftTo.toHex
-
 @Bean
-class RelayInformation @Inject constructor(private val config: NostrRelayConfig) {
+class RelayInformation @Inject constructor(private val env: Environment) {
 
+    private val publicKey: String = env.RELAY_OWNER
+    private val pow: Int = env.PROOF_OF_WORK_DIFFICULTY
+    private val diff: Int = if (env.PROOF_OF_WORK_ENABLED) pow else 0
 
     /**
      * ฟังก์ชันสำหรับดึงข้อมูล relay information (NIP-11)
@@ -40,30 +43,26 @@ class RelayInformation @Inject constructor(private val config: NostrRelayConfig)
     }
 
     private fun relayInfo(): String {
-        val publicKey: String = if (config.info.npub.startsWith("npub")) Bech32.decode(config.info.npub).data.toHex() else config.info.npub
-        val pow = config.policy.proofOfWork.difficultyMinimum
-        val diff = if (config.policy.proofOfWork.enabled) pow else 0
         return """
             {
-              "name": "${config.info.name}",
-              "icon": "https://image.nostr.build/fc4a04e980020ed876874fa0142edd9fc22774efa8fa067f96285f2f44965e38.jpg",
-              "description": "${config.info.description}",
+              "name": "${env.RELAY_NAME}",
+              "description": "${env.RELAY_DESCRIPTION}",
               "pubkey": "$publicKey",
-              "contact": "${config.info.contact}",
+              "contact": "${env.RELAY_CONTACT}",
               "supported_nips": [1,2,4,9,11,13,15,28,50],
               "software": "https://github.com/rushmi0/Fenrir-s",
-              "version": "0.1",
+              "version": "1.0",
               "limitation": {
                  "max_filters": 7,
                  "min_pow_difficulty": $diff,
                  "max_limit": 100,
                  "max_message_length": 524288,
                  "payment_required": false,
+                 "auth_required": false,
               }
             }
         """.trimIndent()
     }
-
 
     /**
      * ฟังก์ชันสำหรับอ่านข้อมูลจากไฟล์
@@ -71,5 +70,4 @@ class RelayInformation @Inject constructor(private val config: NostrRelayConfig)
      * @return ข้อมูลที่อ่านจากไฟล์
      */
     private fun loadFromFile(path: String): String = File(path).readText(Charset.defaultCharset())
-
 }
