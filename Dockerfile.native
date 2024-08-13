@@ -1,21 +1,39 @@
+# Use GraalVM community edition for building the native image
 FROM ghcr.io/graalvm/graalvm-community:21.0.2 AS build
+
+# Create a non-root user and set the work directory
 RUN useradd -ms /bin/bash builder
 USER builder
 WORKDIR /home/builder/app
 
+# Copy the necessary files and set permissions for the builder user
 COPY --chown=builder:builder gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
 COPY --chown=builder:builder src ./src
 COPY --chown=builder:builder gradle ./gradle
 
+# Build the native image using Gradle
 RUN ./gradlew clean nativeOptimizedCompile
 
+# Use a slim base image for the final runtime environment
 FROM debian:stable-slim
+
+# Update and upgrade packages, then clean up
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user for running the application
 RUN useradd -ms /bin/bash appuser
 USER appuser
 WORKDIR /app
 
-COPY --from=build /home/builder/app/build/native/nativeOptimizedCompile/fenrir-s-v0.1 ./
+# Copy the built native executable and environment file
+COPY --from=build /home/builder/app/build/native/nativeOptimizedCompile/fenrir-s-v1.0 ./
 COPY --chown=appuser:appuser .env /app/.env
 
+# Expose the application port
 EXPOSE 6724
-ENTRYPOINT ["/app/fenrir-s-v0.1"]
+
+# Set the entry point to run the application
+ENTRYPOINT ["/app/fenrir-s-v1.0"]
