@@ -1,8 +1,8 @@
 <div align="center">
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/rushmi0/Fenrir-s/main/doc/img/logo-1.png" width="445">
-    <img alt="Fenrir-s logo" src="https://raw.githubusercontent.com/rushmi0/Fenrir-s/main/doc/img/logo-0.png" width="445">
+    <source media="(prefers-color-scheme: dark)" srcset="./img/logo-px-white.svg" width="445">
+    <img alt="Fenrir-s logo" src="./img/logo-px-black.svg" width="445">
   </picture>
 
 </div>
@@ -17,7 +17,6 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg?logo=postgresql)](https://www.postgresql.org/about/news/postgresql-15-released-2526/)
 [![SonarQube](https://img.shields.io/badge/SonarQube-10.3-blue.svg?logo=sonarqube)](https://www.sonarsource.com/products/sonarqube/whats-new/sonarqube-10-3/)
 [![GitHub License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat)](https://github.com/rushmi0/Fenrir-s/blob/main/LICENSE)
-
 
 [ภาษาไทย](https://github.com/rushmi0/Fenrir-s/blob/main/README.md), [日本語](https://github.com/rushmi0/Fenrir-s/blob/main/doc/README-JP.md), [English](https://github.com/rushmi0/Fenrir-s/blob/main/doc/README-EN.md)
 </div>
@@ -73,12 +72,12 @@ npub = "npub1ujevvncwfe22hv6d2cjv6pqwqhkvwlcvge7vgm3vcn2max9tu03sgze8ry"
 contact = "lnwza007@rushmi0.win"
 ```
 
-| パラメータ | 説明                             |
-|-------------|--------------------------------|
-| name        | Relayの名前                  |
-| description | Relayについての説明        |
-| npub        | Relayの所有者のnpub          |
-| contact     | 連絡先のメールアドレス |
+| パラメータ       | 説明             |
+|-------------|----------------|
+| name        | Relayの名前       |
+| description | Relayについての説明   |
+| npub        | Relayの所有者のnpub |
+| contact     | 連絡先のメールアドレス    |
 
 ### 2. ポリシーの設定
 
@@ -94,12 +93,12 @@ enabled = false
 difficulty-minimum = 32
 ```
 
-| パラメータ                      | 説明                                             | デフォルト | 優先度 |
-|----------------------------------|------------------------------------------------------|-------------|----------------|
-| all-pass                         | 誰からでもEventを受信                                   | true        | 中        |
-| follows-pass                     | Relayの所有者がフォローしている人だけのEventを受信(NIP-02) | false       | 高い            |
-| proof-of-work.enabled            | Proof of Workの確認を有効にする                   | false       | 高い            |
-| proof-of-work.difficulty-minimum | Proof of Workの難易度の最小限                | 32          | -              |
+| パラメータ                            | 説明                                     | デフォルト | 優先度 |
+|----------------------------------|----------------------------------------|-------|-----|
+| all-pass                         | 誰からでもEventを受信                          | true  | 中   |
+| follows-pass                     | Relayの所有者がフォローしている人だけのEventを受信(NIP-02) | false | 高い  |
+| proof-of-work.enabled            | Proof of Workの確認を有効にする                 | false | 高い  |
+| proof-of-work.difficulty-minimum | Proof of Workの難易度の最小限                  | 32    | -   |
 
 > [!WARNING]\
 > 難易度レベル32はかなり高いので、厳しさを下げたい場合、より低く設定するか閉じることをおすすめです。
@@ -115,13 +114,12 @@ sync = ["wss://relay.damus.io", "wss://relay.snort.social", "wss://relay.siamstr
 | พารามิเตอร์ | คำอธิบาย                                              | ค่าเริ่มต้น |
 |-------------|-------------------------------------------------------|-------------|
 | enabled     | Relay (NIP-02) の所有者をフォローしている人のデータを他のRelayから取る機能を有効にする | false       |
-| sync        | 他のRelayを取るリスト                   | -           |
+| sync        | 他のRelayを取るリスト                                         | -           |
 
 ## 🛠 インストールと使用の手順
 
 > [!IMPORTANT]\
 > インストールする前に、 [Docker](https://www.docker.com/products/docker-desktop/)をインストールしていることと有効にしていることをきちんと確認してください。
-
 
 ### インストール
 
@@ -179,9 +177,8 @@ docker compose up --build -d
 
 ## 👥 プロジェクトへの参加
 
-1. 問題の報告　→ Github上のOpen Issue
+1. 問題の報告 → Github上のOpen Issue
 2. 変更内容の説明と一緒にPull Requestを送信
-
 
 ## 📚 関連資料
 
