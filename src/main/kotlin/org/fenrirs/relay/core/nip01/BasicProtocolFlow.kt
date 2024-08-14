@@ -81,7 +81,7 @@ class BasicProtocolFlow @Inject constructor(
      */
     private fun getPassList(publicKey: String): List<String> =
         sqlExec.filterList(FiltersX(authors = setOf(publicKey), kinds = setOf(3)))
-            .firstOrNull()
+            ?.firstOrNull()
             ?.tags
             ?.filter { it.isNotEmpty() && it[0] == "p" }
             ?.map { it[1] }
@@ -244,9 +244,14 @@ class BasicProtocolFlow @Inject constructor(
         if (status) {
             LOG.info("${GREEN}filters ${RESET}for subscription ID: ${CYAN}$subscriptionId")
             filtersX.forEach { filter ->
-                sqlExec.filterList(filter).forEachIndexed { _, event ->
+                val events = sqlExec.filterList(filter) ?: run {
+                    // คืน EOSE ถ้า filterList คืนค่า null
+                    RelayResponse.EOSE(subscriptionId).toClient(session)
+                    return;
+                }
+                events.forEachIndexed { _, event ->
                     //val eventIndex = "${i+1}/${events.size}"
-                    //LOG.info("Relay Response event $eventIndex: $event")
+                    //LOG.info("Relay Response event $eventIndex")
                     RelayResponse.EVENT(subscriptionId, event).toClient(session)
                 }
             }
@@ -255,6 +260,7 @@ class BasicProtocolFlow @Inject constructor(
             RelayResponse.NOTICE(warning).toClient(session)
         }
     }
+
 
 
     /**

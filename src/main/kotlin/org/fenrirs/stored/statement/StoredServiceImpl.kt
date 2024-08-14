@@ -1,6 +1,7 @@
 package org.fenrirs.stored.statement
 
 import io.micronaut.context.annotation.Bean
+import jakarta.inject.Inject
 import org.fenrirs.stored.service.StoredService
 
 import org.slf4j.LoggerFactory
@@ -8,6 +9,7 @@ import org.slf4j.LoggerFactory
 import org.fenrirs.relay.modules.Event
 import org.fenrirs.relay.modules.FiltersX
 import org.fenrirs.stored.DatabaseFactory.queryTask
+import org.fenrirs.stored.Environment
 
 import org.fenrirs.stored.table.EVENT
 import org.fenrirs.stored.table.EVENT.CONTENT
@@ -26,10 +28,11 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.json.contains
 
 
-@Bean
-class StoredServiceImpl : StoredService {
 
-    override fun filterList(filters: FiltersX): List<Event> {
+@Bean
+class StoredServiceImpl @Inject constructor(private val env: Environment) : StoredService {
+
+    override fun filterList(filters: FiltersX): List<Event>? {
         return queryTask {
             try {
 
@@ -72,36 +75,25 @@ class StoredServiceImpl : StoredService {
                     query.andWhere { PUBKEY.inList(it) }
                 }
 
-                filters.kinds.takeIf { it.isNotEmpty() }?.let { kinds ->
+                filters.kinds.takeIf { it.isNotEmpty() && filters.authors.isNotEmpty() }?.let { kinds ->
+
+                    /*
+                    * SELECT *
+                    * FROM event
+                    * WHERE pubkey = 'e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3'
+                    *   AND kind = 3
+                    * ORDER BY created_at DESC
+                    * LIMIT 1;
+                    * */
 
                     when {
-
-                        /**
-                         * SELECT *
-                         * FROM event
-                         * WHERE pubkey = 'e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3'
-                         *   AND kind = 3
-                         * ORDER BY created_at DESC
-                         * LIMIT 1;
-                         */
-
-                        // ถ้าค่า kinds เป็น 0 และมีการกำหนด authors สั่งให้ดึงข้อมูลที่มี CREATED_AT มากสุด
-                        kinds.contains(0) && filters.authors.isNotEmpty() -> {
-                            query.andWhere { KIND eq 0 }
-                                .orderBy(CREATED_AT to SortOrder.DESC)
-                                .limit(1)
-                        }
-
-                        // ถ้าค่า kinds เป็น 3 และมีการกำหนด authors สั่งให้ดึงข้อมูลที่มี KIND เท่ากับ 3 และ CREATED_AT มากสุด
-                        kinds.contains(3) && filters.authors.isNotEmpty() -> {
-                            query.andWhere { KIND eq 3 }
-                                .orderBy(CREATED_AT to SortOrder.DESC)
-                                .limit(1)
-                        }
-
+                        kinds.contains(0) -> query.andWhere { KIND eq 0 }
+                        kinds.contains(3) -> query.andWhere { KIND eq 3 }
+                        kinds.contains(10002) -> query.andWhere { KIND eq 10002 }
                         else -> query.andWhere { KIND.inList(kinds.map { it.toInt() }.toSet()) }
                     }
 
+                    query.orderBy(CREATED_AT to SortOrder.DESC).limit(1)
                 }
 
                 // ถ้ามีการระบุ tags ใน filters ให้เพิ่มเงื่อนไขการค้นหา TAGS ที่ตรงกับค่าที่กำหนด
@@ -131,14 +123,17 @@ class StoredServiceImpl : StoredService {
                     }
                 }
 
-                // กำหนด limit ของการดึงข้อมูล ถ้า filters.limit ไม่มีการกำหนดหรือเป็น null ให้ใช้ค่าเริ่มต้นเป็น 100 record
-                if (!filters.kinds.contains(0) && !filters.kinds.contains(3)) {
-                    query.limit(filters.limit?.toInt() ?: 100)
+                // กำหนด limit ของการดึงข้อมูล ถ้า filters.limit ไม่มีการกำหนดหรือเป็น null ให้ใช้ค่าเริ่มต้นเป็น 150 record
+                if (
+                    !filters.kinds.contains(0) &&
+                    !filters.kinds.contains(3) &&
+                    !filters.kinds.contains(10002)
+                ) {
+                    // กำหนด limit ของการดึงข้อมูล: จำกัดสูงสุดที่ 100 รายการเสมอ
+                    val limit = filters.limit?.toInt()?.coerceAtMost(env.MAX_LIMIT) ?: env.MAX_LIMIT
+                    query.limit(limit)
                 }
 
-                // กำหนด limit ของการดึงข้อมูล: จำกัดสูงสุดที่ 100 รายการเสมอ
-                val limit = filters.limit?.toInt()?.coerceAtMost(100) ?: 100
-                query.limit(limit)
 
                 // ดำเนินการ fetch ข้อมูลตามเงื่อนไขที่กำหนดแล้ว map ข้อมูลที่ได้มาเป็น Event objects
                 query.map { row ->
@@ -154,7 +149,7 @@ class StoredServiceImpl : StoredService {
                 }
             } catch (e: Exception) {
                 LOG.error("Error filtering events: ${e.stackTrace.joinToString("\n")}")
-                emptyList()
+                null
             }
         }
     }

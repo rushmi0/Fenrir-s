@@ -31,7 +31,7 @@ interface StoredService {
      * @param filters เงื่อนไขการคัดกรองข้อมูล ตามที่ไคลเอนต์ต้องการ
      * @return รายการเหตุการณ์ที่ตรงกับเงื่อนไข
      */
-    fun filterList(filters: FiltersX): List<Event>
+    fun filterList(filters: FiltersX): List<Event>?
 
 
 

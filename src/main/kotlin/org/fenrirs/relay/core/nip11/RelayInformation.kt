@@ -14,9 +14,6 @@ import java.nio.charset.Charset
 @Bean
 class RelayInformation @Inject constructor(private val env: Environment) {
 
-    private val publicKey: String = env.RELAY_OWNER
-    private val pow: Int = env.PROOF_OF_WORK_DIFFICULTY
-    private val diff: Int = if (env.PROOF_OF_WORK_ENABLED) pow else 0
 
     /**
      * ฟังก์ชันสำหรับดึงข้อมูล relay information (NIP-11)
@@ -47,18 +44,18 @@ class RelayInformation @Inject constructor(private val env: Environment) {
             {
               "name": "${env.RELAY_NAME}",
               "description": "${env.RELAY_DESCRIPTION}",
-              "pubkey": "$publicKey",
+              "pubkey": "${env.RELAY_OWNER}",
               "contact": "${env.RELAY_CONTACT}",
               "supported_nips": [1,2,4,9,11,13,15,28,50],
               "software": "https://github.com/rushmi0/Fenrir-s",
               "version": "1.0",
               "limitation": {
-                 "max_filters": 7,
-                 "min_pow_difficulty": $diff,
-                 "max_limit": 100,
+                 "max_filters": ${env.MAX_FILTERS},
+                 "min_pow_difficulty": ${if (env.PROOF_OF_WORK_ENABLED) env.PROOF_OF_WORK_DIFFICULTY else 0},
+                 "max_limit": ${env.MAX_LIMIT},
                  "max_message_length": 524288,
-                 "payment_required": false,
-                 "auth_required": false,
+                 "payment_required": ${env.PAYMENT_REQ},
+                 "auth_required": ${env.AUTH_REQ},
               }
             }
         """.trimIndent()
@@ -70,4 +67,5 @@ class RelayInformation @Inject constructor(private val env: Environment) {
      * @return ข้อมูลที่อ่านจากไฟล์
      */
     private fun loadFromFile(path: String): String = File(path).readText(Charset.defaultCharset())
+
 }

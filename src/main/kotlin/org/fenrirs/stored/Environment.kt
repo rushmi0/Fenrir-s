@@ -36,6 +36,12 @@ class Environment @Inject constructor(private val config: NostrRelayConfig) {
     val PROOF_OF_WORK_DIFFICULTY: Int by lazy { config.policy.proofOfWork.difficultyMinimum }
     val ALL_PASS: Boolean by lazy { config.policy.allPass }
 
+    // Limitation settings
+    val MAX_FILTERS: Int = 9
+    val MAX_LIMIT: Int = 150
+    val PAYMENT_REQ: Boolean = false
+    val AUTH_REQ: Boolean = false
+
     // Database backup settings
     val BACKUP_ENABLED: Boolean by lazy { config.database.backup.enabled }
     val BACKUP_SYNC: List<String> by lazy { config.database.backup.sync }
