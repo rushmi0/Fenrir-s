@@ -1,38 +1,38 @@
-# Use Eclipse Temurin JDK for the build stage
 FROM eclipse-temurin:21-jdk-jammy AS build
 
-# Create a non-root user and set work directory
+# สร้างผู้ใช้ที่ไม่ใช่ root สำหรับการ build และตั้งไดเรกทอรีทำงาน
 RUN useradd -ms /bin/bash builder
 USER builder
 WORKDIR /home/builder/app
 
-# Copy necessary files to build the application
+# คัดลอกไฟล์ที่จำเป็นและกำหนดสิทธิ์ให้กับผู้ใช้ builder
 COPY --chown=builder:builder gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
 COPY --chown=builder:builder src ./src
 COPY --chown=builder:builder gradle ./gradle
 
-# Build the application
+# สร้างแอปพลิเคชันโดยไม่รันการทดสอบ
 RUN ./gradlew clean build -x test
 
-# Use a smaller base image for the runtime stage
+# ใช้ eclipse-temurin 21-jre-alpine สำหรับ runtime environment
 FROM eclipse-temurin:21-jre-alpine
 
-# Update and install bash in a single layer to reduce image size
+# อัปเดตและติดตั้ง bash, จากนั้นทำความสะอาดเพื่อให้ image มีขนาดเล็กที่สุด
 RUN apk update && apk add --no-cache bash && rm -rf /var/cache/apk/*
 
-# Create a non-root user for running the application
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# สร้างกลุ่มและผู้ใช้ที่ไม่ใช่ root สำหรับการรันแอปพลิเคชัน
+RUN addgroup -S appgroup -g 1000 && \
+    adduser -S appuser -G appgroup -u 1000 -h /app
+
+# เปลี่ยนเป็นผู้ใช้ appuser ที่สร้างขึ้น
 USER appuser
 WORKDIR /app
 
-# Copy the built jar file from the build stage
+# คัดลอกไฟล์ jar ที่สร้างและไฟล์ environment เข้ามาใน container
 COPY --from=build /home/builder/app/build/libs/fenrir-s-1.0-all-optimized.jar ./
-
-# Copy environment variables file
 COPY --chown=appuser:appgroup .env /app/.env
 
-# Expose the application port
+# เปิดพอร์ต 6724 สำหรับการเชื่อมต่อกับแอปพลิเคชัน
 EXPOSE 6724
 
-# Set the entry point to run the application
+# กำหนด entry point เพื่อรันแอปพลิเคชัน
 ENTRYPOINT ["java", "-jar", "fenrir-s-1.0-all-optimized.jar"]
