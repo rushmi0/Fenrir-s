@@ -242,7 +242,7 @@ class BasicProtocolFlow @Inject constructor(
         session: WebSocketSession
     ) {
         if (status) {
-            LOG.info("${GREEN}filters ${RESET}for subscription ID: ${CYAN}$subscriptionId")
+            LOG.info("${GREEN}filters ${RESET}for subscription ID: ${CYAN}$subscriptionId \n$filtersX")
             filtersX.forEach { filter ->
                 val events = sqlExec.filterList(filter) ?: run {
                     // คืน EOSE ถ้า filterList คืนค่า null
