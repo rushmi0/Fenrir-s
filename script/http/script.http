@@ -219,7 +219,8 @@ Content-Type: application/json
   {"kinds":[10000],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]},
   {"kinds":[10002],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]},
   {"kinds":[10030],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]},
-  {"kinds":[30078],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],"#d":["nostrudel-settings"]}]
+  {"kinds":[30078],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],"#d":["nostrudel-settings"]}
+]
 
 ###
 # ทดสอบให้แจ้งปัญหา

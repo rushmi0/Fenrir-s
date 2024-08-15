@@ -11,6 +11,9 @@ import org.fenrirs.relay.policy.FiltersXValidateField
 import org.fenrirs.relay.core.nip01.Transform.toEvent
 import org.fenrirs.relay.core.nip01.Transform.toFiltersX
 import org.fenrirs.relay.core.nip01.Transform.validateElement
+import org.fenrirs.relay.policy.NostrRelayConfig
+import org.fenrirs.stored.Environment
+
 import org.slf4j.LoggerFactory
 
 /**
@@ -18,6 +21,9 @@ import org.slf4j.LoggerFactory
  */
 object CommandFactory {
 
+    private val env: Environment by lazy {
+        Environment(NostrRelayConfig())
+    }
 
     /**
      * parse ใช้ในการแยกและวิเคราะห์คำสั่งที่ส่งมาจากไคลเอนต์
@@ -76,8 +82,8 @@ object CommandFactory {
         val filtersJson: List<JsonObject> = jsonArray.drop(2).map { it.jsonObject }
         //LOG.info("filters object ${filtersJson.size}: $filtersJson")
 
-        if (filtersJson.size > 7) { // เจ็ดยับ
-            throw IllegalArgumentException("rate-limited: max filters 7 object")
+        if (filtersJson.size > env.MAX_FILTERS) {
+            throw IllegalArgumentException("rate-limited: max filters ${env.MAX_FILTERS} objects allowed")
         }
 
         val data: Map<String, JsonElement> = filtersJson.flatMap { it.entries }.associate { it.key to it.value }

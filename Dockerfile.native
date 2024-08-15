@@ -1,21 +1,45 @@
 FROM ghcr.io/graalvm/graalvm-community:21.0.2 AS build
-RUN useradd -ms /bin/bash builder
+
+# สร้างผู้ใช้ที่ไม่ใช่ root และกำหนดไดเร็กทอรีทำงาน
+RUN useradd -ms /bin/sh builder
+
+# เปลี่ยนเป็นผู้ใช้ builder ที่สร้างขึ้น
 USER builder
+
+# กำหนดไดเร็กทอรีทำงานเป็น /home/builder/app
 WORKDIR /home/builder/app
 
+# คัดลอกไฟล์ที่จำเป็นและกำหนดสิทธิ์การเข้าถึงให้กับผู้ใช้ builder
 COPY --chown=builder:builder gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
 COPY --chown=builder:builder src ./src
 COPY --chown=builder:builder gradle ./gradle
 
+# สร้าง native binaries
 RUN ./gradlew clean nativeOptimizedCompile
 
-FROM debian:stable-slim
-RUN useradd -ms /bin/bash appuser
+# ใช้ Alpine Linux สำหรับสภาพแวดล้อมการทำงานขั้นสุดท้าย
+FROM alpine:latest
+
+# ติดตั้ง dependencies ที่จำเป็น
+RUN apk update && \
+    apk add --no-cache libc6-compat
+
+# สร้างกลุ่มและผู้ใช้ที่ไม่ใช่ root สำหรับการรันแอปพลิเคชัน
+RUN addgroup -S appgroup -g 1000 && \
+    adduser -S -G appgroup -u 1000 -h /app appuser
+
+# เปลี่ยนไปใช้ผู้ใช้ใหม่ที่สร้างขึ้น
 USER appuser
+
+# กำหนดไดเร็กทอรีทำงานเป็น /app
 WORKDIR /app
 
-COPY --from=build /home/builder/app/build/native/nativeOptimizedCompile/fenrir-s-v0.1 ./
-COPY --chown=appuser:appuser .env /app/.env
+# คัดลอก native executable ที่สร้างขึ้นและไฟล์ environment
+COPY --from=build /home/builder/app/build/native/nativeOptimizedCompile/fenrir-s-v1.0 ./
+COPY --chown=appuser:appgroup .env /app/.env
 
+# เปิดพอร์ตที่แอปพลิเคชันจะใช้
 EXPOSE 6724
-ENTRYPOINT ["/app/fenrir-s-v0.1"]
+
+# กำหนด entry point ให้รันแอปพลิเคชัน
+ENTRYPOINT ["/app/fenrir-s-v1.0"]

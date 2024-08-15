@@ -3,6 +3,7 @@ package org.fenrirs
 import io.micronaut.runtime.Micronaut
 import org.fenrirs.relay.service.ProfileSync
 import org.fenrirs.stored.DatabaseFactory
+import org.fenrirs.stored.Environment
 import java.io.InputStreamReader
 
 fun main(args: Array<String>) {
@@ -20,6 +21,8 @@ fun main(args: Array<String>) {
         .banner(false)
         .start()
 
+    // Initialize ENV using the Micronaut application context
+    DatabaseFactory.ENV = relay.getBean(Environment::class.java)
     DatabaseFactory.initialize()
     if (relay.isRunning) {
         relay.getBean(ProfileSync::class.java).sync()

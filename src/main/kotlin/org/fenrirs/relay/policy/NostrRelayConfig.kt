@@ -1,7 +1,9 @@
 package org.fenrirs.relay.policy
 
 import io.micronaut.context.annotation.ConfigurationProperties
+import io.micronaut.context.annotation.Context
 
+@Context
 @ConfigurationProperties("nostr.relay")
 class NostrRelayConfig {
     lateinit var info: Info

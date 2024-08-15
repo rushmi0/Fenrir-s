@@ -1,18 +1,18 @@
 package org.fenrirs.relay.core.nip11
 
-import io.micronaut.context.annotation.Bean
-import io.micronaut.http.MediaType
 import jakarta.inject.Inject
+
+import io.micronaut.http.MediaType
+import io.micronaut.context.annotation.Bean
+
+import kotlinx.coroutines.runBlocking
+import org.fenrirs.stored.Environment
+
 import java.io.File
 import java.nio.charset.Charset
 
-import kotlinx.coroutines.runBlocking
-import org.fenrirs.relay.policy.NostrRelayConfig
-import org.fenrirs.utils.Bech32
-import org.fenrirs.utils.ShiftTo.toHex
-
 @Bean
-class RelayInformation @Inject constructor(private val config: NostrRelayConfig) {
+class RelayInformation @Inject constructor(private val env: Environment) {
 
 
     /**
@@ -40,30 +40,26 @@ class RelayInformation @Inject constructor(private val config: NostrRelayConfig)
     }
 
     private fun relayInfo(): String {
-        val publicKey: String = if (config.info.npub.startsWith("npub")) Bech32.decode(config.info.npub).data.toHex() else config.info.npub
-        val pow = config.policy.proofOfWork.difficultyMinimum
-        val diff = if (config.policy.proofOfWork.enabled) pow else 0
         return """
             {
-              "name": "${config.info.name}",
-              "icon": "https://image.nostr.build/fc4a04e980020ed876874fa0142edd9fc22774efa8fa067f96285f2f44965e38.jpg",
-              "description": "${config.info.description}",
-              "pubkey": "$publicKey",
-              "contact": "${config.info.contact}",
+              "name": "${env.RELAY_NAME}",
+              "description": "${env.RELAY_DESCRIPTION}",
+              "pubkey": "${env.RELAY_OWNER}",
+              "contact": "${env.RELAY_CONTACT}",
               "supported_nips": [1,2,4,9,11,13,15,28,50],
               "software": "https://github.com/rushmi0/Fenrir-s",
-              "version": "0.1",
+              "version": "1.0",
               "limitation": {
-                 "max_filters": 7,
-                 "min_pow_difficulty": $diff,
-                 "max_limit": 100,
+                 "max_filters": ${env.MAX_FILTERS},
+                 "min_pow_difficulty": ${if (env.PROOF_OF_WORK_ENABLED) env.PROOF_OF_WORK_DIFFICULTY else 0},
+                 "max_limit": ${env.MAX_LIMIT},
                  "max_message_length": 524288,
-                 "payment_required": false,
+                 "payment_required": ${env.PAYMENT_REQ},
+                 "auth_required": ${env.AUTH_REQ},
               }
             }
         """.trimIndent()
     }
-
 
     /**
      * ฟังก์ชันสำหรับอ่านข้อมูลจากไฟล์

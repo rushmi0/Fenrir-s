@@ -20,9 +20,9 @@ import kotlinx.coroutines.runBlocking
 
 import org.fenrirs.relay.core.nip01.BasicProtocolFlow
 import org.fenrirs.relay.core.nip01.command.CLOSE
-import org.fenrirs.relay.core.nip01.command.CommandFactory.parse
 import org.fenrirs.relay.core.nip01.command.EVENT
 import org.fenrirs.relay.core.nip01.command.REQ
+import org.fenrirs.relay.core.nip01.command.CommandFactory.parse
 import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip11.RelayInformation
 
@@ -45,8 +45,8 @@ class Gateway @Inject constructor(
 
     @OnOpen
     fun onOpen(request: HttpRequest<*>, session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): HttpResponse<String>? {
-        //val clientIp = request.remoteAddress?.address?.hostAddress
-        //LOG.info("Client IP: $clientIp")
+        val clientIp = request.remoteAddress?.address?.hostAddress
+        LOG.info("Client IP: $clientIp")
         session?.let {
             LOG.info("${GREEN}open$RESET $session")
             return HttpResponse.ok("Session opened")
@@ -68,7 +68,7 @@ class Gateway @Inject constructor(
 
 
     @OnMessage(maxPayloadLength = 524288)
-    suspend fun onMessage(message: String, session: WebSocketSession) {
+    fun onMessage(message: String, session: WebSocketSession) {
         //LOG.info("message: \n$message")
         try {
 

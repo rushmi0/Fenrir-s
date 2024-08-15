@@ -1,6 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.9.23"
     id("org.jetbrains.kotlin.plugin.allopen") version "1.9.23"
@@ -13,7 +12,7 @@ plugins {
     kotlin("plugin.serialization") version "1.9.23"
 }
 
-version = "0.1"
+version = "1.0"
 group = "org.fenrirs"
 
 val kotlinVersion = project.properties["kotlinVersion"]
@@ -93,6 +92,7 @@ dependencies {
 
 application {
     mainClass = "org.fenrirs.ApplicationKt"
+    applicationDefaultJvmArgs = listOf("-Dapplication.version=$version")
 }
 
 
@@ -119,9 +119,10 @@ tasks {
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_21.toString()
-        javaParameters = true
     }
 }
+
+
 
 graalvmNative {
     binaries {
@@ -129,6 +130,7 @@ graalvmNative {
             // * https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildOutput/?fbclid=IwAR007Rh7fYg-CJZywqhFM8PF5XDWPvgOfaV9txFDqpy6PWjtZp2bXpgncL0_aem_Af0UTqW_wKY5RFkebOwqrANSJn-d6fpSoJLMyra23KLgMNQuur3l75gjN29_Ymw1JYkeX7upxGBzGPFkJ4iRuojh
             buildArgs.add("-H:+AddAllCharsets")
             buildArgs.add("-R:MaxHeapSize=3G")
+            buildArgs.add("--no-fallback")
             imageName.set("${project.name}-v$version")
             javaLauncher.set(javaToolchains.launcherFor {
                 languageVersion.set(JavaLanguageVersion.of(21))
