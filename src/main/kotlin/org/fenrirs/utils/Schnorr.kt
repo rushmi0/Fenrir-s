@@ -14,16 +14,6 @@ object Schnorr {
      * @param signature ลายเซ็น Schnorr ที่ต้องการตรวจสอบ
      * @return ผลลัพธ์การตรวจสอบเป็น Boolean (true ถ้าลายเซ็นถูกต้อง, false ถ้าลายเซ็นไม่ถูกต้อง)
      */
-    /*
-    fun verify(
-        data: String,
-        publicKey: String,
-        signature: String
-    ): Boolean {
-        return Secp256k1.verifySchnorr(signature.fromHex(), data.fromHex(), publicKey.fromHex())
-    }
-     */
-
     fun verify(data: String, publicKey: String, signature: String): Boolean {
         return try {
             verifySignature(data.fromHex(), publicKey.fromHex(), signature.fromHex())

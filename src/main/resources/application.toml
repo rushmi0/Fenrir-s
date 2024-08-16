@@ -2,17 +2,21 @@ micronaut.application.name = 'fenrir-s'
 
 [micronaut.server]
 cors.enabled = true
+cors.configurations.all.allowed-origins = "*"
+cors.configurations.all.allow-credentials = false
 cors.localhost-pass-through = true
 maxRequestSize = "512KB"
 #host = "localhost"
-port = 6724
+port = 8080
+
+micronaut.security.enabled=false
+
 
 [micronaut.executors.scheduled]
 type = "scheduled"
 virtual = true
 parallelism = 32
 core-pool-size = 16
-
 
 #################################################################################
 
