@@ -3,10 +3,7 @@ package org.fenrirs.relay
 import io.micronaut.context.annotation.Bean
 import io.micronaut.core.annotation.Introspected
 
-import io.micronaut.http.HttpHeaders
-import io.micronaut.http.HttpRequest
-import io.micronaut.http.HttpResponse
-import io.micronaut.http.MediaType
+import io.micronaut.http.*
 import io.micronaut.http.annotation.Header
 
 import io.micronaut.websocket.WebSocketSession
@@ -50,6 +47,7 @@ class Gateway @Inject constructor(
         session?.let {
             LOG.info("${GREEN}open$RESET $session")
             return HttpResponse.ok("Session opened")
+                .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         }
 
         LOG.info("${YELLOW}accept: $RESET$accept ${BLUE}session: $RESET$session")
@@ -62,8 +60,9 @@ class Gateway @Inject constructor(
             nip11.loadRelayInfo(contentType)
         }
 
-        //LOG.info("res nip-11 \n$data")
-        return HttpResponse.ok(data).contentType(contentType)
+        return HttpResponse.ok(data)
+            .contentType(contentType)
+            .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
     }
 
 
