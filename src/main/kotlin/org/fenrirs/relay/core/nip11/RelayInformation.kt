@@ -4,12 +4,13 @@ import jakarta.inject.Inject
 
 import io.micronaut.http.MediaType
 import io.micronaut.context.annotation.Bean
+import io.micronaut.core.io.ResourceResolver
+import io.micronaut.core.io.scan.ClassPathResourceLoader
 
 import kotlinx.coroutines.runBlocking
 import org.fenrirs.stored.Environment
 
-import java.io.File
-import java.nio.charset.Charset
+import java.io.FileNotFoundException
 
 @Bean
 class RelayInformation @Inject constructor(private val env: Environment) {
@@ -35,7 +36,7 @@ class RelayInformation @Inject constructor(private val env: Environment) {
             relayInfo()
         } else {
             // ถ้า contentType เป็น text/html ให้โหลดไฟล์ HTML
-            loadFromFile("src/main/resources/public/index.html")
+            loadFromClasspath("public/index.html")
         }
     }
 
@@ -62,10 +63,15 @@ class RelayInformation @Inject constructor(private val env: Environment) {
     }
 
     /**
-     * ฟังก์ชันสำหรับอ่านข้อมูลจากไฟล์
-     * @param path: เส้นทางของไฟล์ที่จะอ่าน
+     * ฟังก์ชันสำหรับอ่านไฟล์จาก classpath
+     * @param path เส้นทางของไฟล์ใน classpath
      * @return ข้อมูลที่อ่านจากไฟล์
      */
-    private fun loadFromFile(path: String): String = File(path).readText(Charset.defaultCharset())
-
+    private fun loadFromClasspath(path: String): String {
+        val resourceLoader: ClassPathResourceLoader = ResourceResolver().getLoader(ClassPathResourceLoader::class.java).get()
+        val resource = resourceLoader.getResource("classpath:$path").orElseThrow {
+            throw FileNotFoundException("File not found: $path")
+        }
+        return resource.openStream().bufferedReader().use { it.readText() }
+    }
 }
