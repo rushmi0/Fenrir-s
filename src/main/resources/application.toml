@@ -7,7 +7,7 @@ cors.configurations.all.allow-credentials = false
 cors.localhost-pass-through = true
 maxRequestSize = "512KB"
 #host = "localhost"
-port = 8080
+port = 6724
 
 micronaut.security.enabled=false
 
