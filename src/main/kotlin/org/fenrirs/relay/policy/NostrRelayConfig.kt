@@ -2,8 +2,10 @@ package org.fenrirs.relay.policy
 
 import io.micronaut.context.annotation.ConfigurationProperties
 import io.micronaut.context.annotation.Context
+import jakarta.inject.Singleton
 
 @Context
+@Singleton
 @ConfigurationProperties("nostr.relay")
 class NostrRelayConfig {
     lateinit var info: Info

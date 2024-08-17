@@ -5,12 +5,14 @@ import io.github.cdimascio.dotenv.dotenv
 import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Context
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import org.fenrirs.relay.policy.NostrRelayConfig
 import org.fenrirs.utils.Bech32
 import org.fenrirs.utils.ShiftTo.toHex
 
 @Bean
 @Context
+@Singleton
 class Environment @Inject constructor(private val config: NostrRelayConfig) {
 
     private val dotenv: Dotenv = dotenv {
@@ -37,8 +39,8 @@ class Environment @Inject constructor(private val config: NostrRelayConfig) {
     val ALL_PASS: Boolean by lazy { config.policy.allPass }
 
     // Limitation settings
-    val MAX_FILTERS: Int = 9
-    val MAX_LIMIT: Int = 150
+    val MAX_FILTERS: Int = 10
+    val MAX_LIMIT: Int = 100
     val PAYMENT_REQ: Boolean = false
     val AUTH_REQ: Boolean = false
 

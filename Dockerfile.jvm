@@ -35,4 +35,5 @@ COPY --chown=appuser:appgroup .env /app/.env
 EXPOSE 6724
 
 # กำหนด entry point เพื่อรันแอปพลิเคชัน
-ENTRYPOINT ["java", "-jar", "fenrir-s-1.0-all-optimized.jar"]
+ENTRYPOINT ["java", "-Xms512m", "-Xmx3g", "-XX:+UseG1GC", "-jar", "fenrir-s-1.0-all-optimized.jar"]
+#ENTRYPOINT ["java", "-Xms512m", "-Xmx3g", "-XX:+UseContainerSupport", "-XX:+UseG1GC", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:HeapDumpPath=/app/heapdump.hprof", "-XX:+PrintGCDetails", "-XX:+PrintGCDateStamps", "-XX:+PrintGCTimeStamps", "-XX:+PrintGCApplicationStoppedTime", "-jar", "fenrir-s-1.0-all-optimized.jar"]
