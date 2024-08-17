@@ -39,7 +39,7 @@ services:
       relay-db:
         condition: service_healthy
     ports:
-      - "8080:6724"
+      - "6724:6724"
     networks:
       - dev_network
 
@@ -52,7 +52,7 @@ services:
       relay-db:
         condition: service_healthy
     ports:
-      - "6724:6724"
+      - "6725:6724"
     networks:
       - dev_network
 
@@ -61,5 +61,5 @@ services:
     container_name: cloudflared-tunnel
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    command: tunnel --no-autoupdate run --token eyJhIjoiMjlmY2I1ZjcyNmRmMDExYjgwYzliZjQyNmMyNmQwODQiLCJ0IjoiYTVhOTJjMDUtNWI3ZS00MThjLTk2NTctZWRmZTc1ZGMzYTZkIiwicyI6Ik1ERmpNREZsTjJJdE1UTmlaUzAwTW1RMUxUazVZVGd0WldKbE5UUTFZek5qTkRWbCJ9
+    command: tunnel --no-autoupdate run --token 
 
