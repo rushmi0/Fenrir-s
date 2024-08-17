@@ -18,22 +18,16 @@ services:
     volumes:
       - ./src/main/resources/db/migration:/docker-entrypoint-initdb.d/
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME} || exit 1"]
+      interval: 10s
+      retries: 10
+      start_period: 60s
+      timeout: 10s
     networks:
       - dev_network
     ports:
       - "5432:5432"
-
-  relay-app-native:
-    container_name: relay-app-native
-    build:
-      context: .
-      dockerfile: Dockerfile.native
-    depends_on:
-      - relay-db
-    ports:
-      - "6724:6724"
-    networks:
-      - dev_network
 
   relay-app-jvm:
     container_name: relay-app-jvm
@@ -42,15 +36,30 @@ services:
       context: .
       dockerfile: Dockerfile.jvm
     depends_on:
-      - relay-db
+      relay-db:
+        condition: service_healthy
+    ports:
+      - "8080:6724"
+    networks:
+      - dev_network
+
+  relay-app-native:
+    container_name: relay-app-native
+    build:
+      context: .
+      dockerfile: Dockerfile.native
+    depends_on:
+      relay-db:
+        condition: service_healthy
     ports:
       - "6724:6724"
     networks:
       - dev_network
 
+
   cloudflared-tunnel:
     container_name: cloudflared-tunnel
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    command: tunnel --no-autoupdate run --token
+    command: tunnel --no-autoupdate run --token eyJhIjoiMjlmY2I1ZjcyNmRmMDExYjgwYzliZjQyNmMyNmQwODQiLCJ0IjoiYTVhOTJjMDUtNWI3ZS00MThjLTk2NTctZWRmZTc1ZGMzYTZkIiwicyI6Ik1ERmpNREZsTjJJdE1UTmlaUzAwTW1RMUxUazVZVGd0WldKbE5UUTFZek5qTkRWbCJ9
 
