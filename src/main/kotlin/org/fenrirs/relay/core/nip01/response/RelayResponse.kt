@@ -3,6 +3,7 @@ package org.fenrirs.relay.core.nip01.response
 import io.micronaut.websocket.WebSocketSession
 
 import org.fenrirs.relay.modules.Event
+import org.fenrirs.utils.ExecTask.runWithVirtualThreads
 import org.fenrirs.utils.ShiftTo.toJsonString
 
 import org.slf4j.Logger
@@ -75,20 +76,27 @@ sealed class RelayResponse<out T> {
      * @param session ใช้ในการสื่อสารกับไคลเอนต์
      */
     fun toClient(session: WebSocketSession) {
-        if (session.isOpen) {
-            val payload = this.toJson()
+        runWithVirtualThreads {
             try {
-                session.sendSync(payload)
-                if (this is CLOSED) {
-                    session.close()
+                if (session.isOpen) {
+                    val payload = this@RelayResponse.toJson()
+                    session.sendAsync(payload).whenComplete { _, exception ->
+                        if (exception != null) {
+                            LOG.error("Error sending WebSocket message: ${exception.message}")
+                        }
+                    }
+                    if (this@RelayResponse is CLOSED) {
+                        session.close()
+                    }
+                } else {
+                    LOG.warn("Message sent to closed $session")
                 }
             } catch (e: Exception) {
-                LOG.error("Error sending WebSocket message: ${e.message}")
+                LOG.error("Error in Virtual Thread: ${e.message}")
             }
-        } else {
-            LOG.warn("Message sent to closed WebSocket session")
         }
     }
+
 
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(RelayResponse::class.java)
