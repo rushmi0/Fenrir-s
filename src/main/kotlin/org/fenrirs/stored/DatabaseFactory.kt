@@ -2,6 +2,8 @@ package org.fenrirs.stored
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
 import org.fenrirs.stored.table.EVENT
 import org.fenrirs.utils.ExecTask.runWithVirtualThreadsPerTask
@@ -10,9 +12,10 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
-
+@Singleton
 object DatabaseFactory {
 
+    @Inject
     lateinit var ENV: Environment
 
     @JvmStatic

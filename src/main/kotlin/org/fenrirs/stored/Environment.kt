@@ -2,13 +2,16 @@ package org.fenrirs.stored
 
 import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv
+
 import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Context
+
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import org.fenrirs.relay.policy.NostrRelayConfig
+
 import org.fenrirs.utils.Bech32
 import org.fenrirs.utils.ShiftTo.toHex
+import org.fenrirs.relay.policy.NostrRelayConfig
 
 @Bean
 @Context
@@ -40,7 +43,7 @@ class Environment @Inject constructor(private val config: NostrRelayConfig) {
 
     // Limitation settings
     val MAX_FILTERS: Int = 10
-    val MAX_LIMIT: Int = 100
+    val MAX_LIMIT: Int = 150
     val PAYMENT_REQ: Boolean = false
     val AUTH_REQ: Boolean = false
 

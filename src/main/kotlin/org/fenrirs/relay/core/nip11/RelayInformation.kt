@@ -7,14 +7,14 @@ import io.micronaut.context.annotation.Bean
 
 import io.micronaut.core.io.ResourceResolver
 import io.micronaut.core.io.scan.ClassPathResourceLoader
+import jakarta.inject.Singleton
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.fenrirs.stored.Environment
-
 import java.io.FileNotFoundException
 
+
 @Bean
+@Singleton
 class RelayInformation @Inject constructor(private val env: Environment) {
 
 
@@ -23,9 +23,7 @@ class RelayInformation @Inject constructor(private val env: Environment) {
      * @param contentType: ประเภทของเนื้อหาที่ต้องการ (application/json หรือ text/html)
      * @return ข้อมูล relay information ที่ถูกดึงจาก Redis cache หรือไฟล์ระบบ
      */
-    suspend fun loadRelayInfo(contentType: String): String = withContext(Dispatchers.IO) {
-        loadContent(contentType)
-    }
+     fun loadRelayInfo(contentType: String): String = loadContent(contentType)
 
     /**
      * ฟังก์ชันสำหรับโหลดเนื้อหาจากไฟล์ตามประเภทของ contentType
@@ -50,6 +48,7 @@ class RelayInformation @Inject constructor(private val env: Environment) {
               "pubkey": "${env.RELAY_OWNER}",
               "contact": "${env.RELAY_CONTACT}",
               "supported_nips": [1,2,4,9,11,13,15,28,40,50],
+              "icon": "https://i.imgur.com/dwLPgio.png",
               "software": "https://github.com/rushmi0/Fenrir-s",
               "version": "1.0",
               "limitation": {

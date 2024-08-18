@@ -182,7 +182,7 @@ Content-Type: application/json
 
 ###
 
-WEBSOCKET wss://relay.damus.io
+WEBSOCKET wss://relay.rushmi0.win
 Content-Type: application/json
 
 ["REQ","hsZEOtaDsENYkP5H-JIWp",{"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],"kinds":[30002],"limit":50}]
@@ -216,6 +216,6 @@ Content-Type: application/json
   "REQ",
   "ID-01",
   {
-    "search" : "custom"
+    "search" : "ก็ต้องทำแบบเดียวกัน"
   }
 ]

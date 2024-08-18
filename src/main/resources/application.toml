@@ -3,13 +3,11 @@ micronaut.application.name = 'fenrir-s'
 [micronaut.server]
 cors.enabled = true
 cors.configurations.all.allowed-origins = "*"
-cors.configurations.all.allow-credentials = false
+cors.configurations.all.allow-credentials=false
 cors.localhost-pass-through = true
 maxRequestSize = "512KB"
 #host = "localhost"
-port = 8080
-
-micronaut.security.enabled=false
+port = 6724
 
 
 [micronaut.executors.scheduled]
@@ -23,7 +21,7 @@ core-pool-size = 16
 [nostr.relay.info]
 name = ""
 description = ""
-npub = "npub1ujevvncwfe22hv6d2cjv6pqwqhkvwlcvge7vgm3vcn2max9tu03sgze8ry"
+npub = ""
 contact = ""
 
 [nostr.relay.policy]

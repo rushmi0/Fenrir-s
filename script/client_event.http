@@ -16,7 +16,46 @@ Content-Type: application/json
   }
 ]
 
+
 ###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+[
+  "EVENT",
+  {
+  "id": "5a1849a0ddc87f247f0c93a71d9fbf0a2182aa728135f863c77beb1cd94dc594",
+  "pubkey": "80b59b3e307e0b8b054c0223ce63e172d8a6b1f9c117a993afb083d437bc48eb",
+  "created_at": 1723863259,
+  "kind": 5,
+  "tags": [[ "e", "0000005b0fc51e70b66db99ba1708b1a1b008c30db35d19d35146b3e09756029"]],
+  "content": "-",
+  "sig": "1267f8dc392e20c1aff7a8d7d8352da725b9d037188221b4fe60dbf7024ddeace281b91b21ac4838042a95bf83fe087f57c45c4da70dbb4f3ab491f5e8263657"
+  }
+]
+
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+[
+  "EVENT",
+  {
+    "content":"## ขอบคุณนะครับ ทุกคนที่ช่วยใช้งานทดสอบ Relay \n\nช่วงนี้เป็นการทดสอบการตั้งค่า ปรับจูน JVM ให้ใช้ทรัพยาการได้เหมาะสม และปรับแก้ไขโค้ดบางส่วน\n\nจากพฤติกรรมของ Client ในการเรียกข้อมูล สวนใหญ่ 99% มักไม่กำหนด limit ... พี่ๆที่รัน Relay บน cloud ผมแนะนำว่าให้ไปกำหนดค่า limit ค่าสูงที่ที่จะคายข้อมูลออกมา 100 ก็เกินพอแล้วครับ\n\n#siamstr\nhttps://image.nostr.build/41e835f242247fb1029b3e31d0d8310162056e5e2e42ab25d9e1291dda11e2c7.png",
+    "kind":1,
+    "tags":[["t","siamstr"]],
+    "created_at":1723893896,
+    "pubkey":"e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3",
+    "id":"a871f0484b803bb54b92642c1f9b40256ddb8effa88890982539de54959018f1",
+    "sig":"c5631874578c8dc51561acad5bf52a7cf5a754e89d0858c4d6c9b9e0beffa213413321072213679a49865731f26fd9dbdbbae16f32a26cf98edcffd0c0869da3"
+  }
+]
+
+###
+
 
 WEBSOCKET ws://localhost:6724
 Content-Type: application/json

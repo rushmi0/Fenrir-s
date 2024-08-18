@@ -45,7 +45,8 @@ object CommandFactory {
             "EVENT" -> parseEvent(jsonElement)
             "REQ" -> parseREQ(jsonElement)
             "CLOSE" -> parseClose(jsonElement)
-            //"AUTH" -> TODO("Not yet implemented")
+            // "COUNT" -> TODO("Not yet implemented")
+            // "AUTH" -> TODO("Not yet implemented")
             else -> throw IllegalArgumentException("Unknown command: $cmd")
         }
     }
@@ -83,7 +84,7 @@ object CommandFactory {
         //LOG.info("filters object ${filtersJson.size}: $filtersJson")
 
         if (filtersJson.size > env.MAX_FILTERS) {
-            throw IllegalArgumentException("rate-limited: max filters ${env.MAX_FILTERS} objects allowed")
+            throw IllegalArgumentException("rate-limited: max filters ${env.MAX_FILTERS} values in each sub ID allowed")
         }
 
         val data: Map<String, JsonElement> = filtersJson.flatMap { it.entries }.associate { it.key to it.value }

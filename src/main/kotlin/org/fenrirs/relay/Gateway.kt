@@ -15,19 +15,21 @@ import io.micronaut.websocket.annotation.ServerWebSocket
 import jakarta.inject.Inject
 import kotlinx.coroutines.runBlocking
 
-import org.fenrirs.relay.core.nip01.BasicProtocolFlow
 import org.fenrirs.relay.core.nip01.command.CLOSE
 import org.fenrirs.relay.core.nip01.command.EVENT
 import org.fenrirs.relay.core.nip01.command.REQ
 import org.fenrirs.relay.core.nip01.command.CommandFactory.parse
 import org.fenrirs.relay.core.nip01.response.RelayResponse
+import org.fenrirs.relay.core.nip01.BasicProtocolFlow
 import org.fenrirs.relay.core.nip11.RelayInformation
 
 import org.fenrirs.utils.Color.BLUE
 import org.fenrirs.utils.Color.GREEN
 import org.fenrirs.utils.Color.PURPLE
+import org.fenrirs.utils.Color.RED
 import org.fenrirs.utils.Color.RESET
 import org.fenrirs.utils.Color.YELLOW
+import org.fenrirs.utils.ExecTask.runWithVirtualThreads
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -41,12 +43,10 @@ class Gateway @Inject constructor(
 ) {
 
     @OnOpen
-    fun onOpen(request: HttpRequest<*>, session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): HttpResponse<String>? {
-        val clientIp = request.remoteAddress?.address?.hostAddress
-        LOG.info("Client IP: $clientIp")
+    fun onOpen(session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): HttpResponse<String>? = runWithVirtualThreads {
         session?.let {
             LOG.info("${GREEN}open$RESET $session")
-            return HttpResponse.ok("Session opened")
+            return@let HttpResponse.ok("Session opened")
                 .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         }
 
@@ -56,18 +56,16 @@ class Gateway @Inject constructor(
             else -> MediaType.TEXT_HTML
         }
 
-        val data = runBlocking {
-            nip11.loadRelayInfo(contentType)
-        }
+        val data = runBlocking { nip11.loadRelayInfo(contentType) }
 
-        return HttpResponse.ok(data)
+        return@runWithVirtualThreads HttpResponse.ok(data)
             .contentType(contentType)
             .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
     }
 
 
     @OnMessage(maxPayloadLength = 524288)
-    fun onMessage(message: String, session: WebSocketSession) {
+    suspend fun onMessage(message: String, session: WebSocketSession) {
         //LOG.info("message: \n$message")
         try {
 
@@ -86,7 +84,7 @@ class Gateway @Inject constructor(
             }
 
         } catch (e: IllegalArgumentException) {
-            LOG.error("Failed to handle command: ${e.message}")
+            LOG.error("${RED}Failed ${RESET}to handle command: ${e.message}")
             RelayResponse.NOTICE("ERROR: ${e.message}").toClient(session)
         }
     }

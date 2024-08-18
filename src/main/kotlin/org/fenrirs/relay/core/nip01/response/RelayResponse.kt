@@ -80,11 +80,7 @@ sealed class RelayResponse<out T> {
             try {
                 if (session.isOpen) {
                     val payload = this@RelayResponse.toJson()
-                    session.sendAsync(payload).whenComplete { _, exception ->
-                        if (exception != null) {
-                            LOG.error("Error sending WebSocket message: ${exception.message}")
-                        }
-                    }
+                    session.sendAsync(payload)
                     if (this@RelayResponse is CLOSED) {
                         session.close()
                     }

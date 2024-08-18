@@ -15,7 +15,7 @@ COPY --chown=builder:builder src ./src
 COPY --chown=builder:builder gradle ./gradle
 
 # สร้าง native binaries
-RUN ./gradlew clean nativeOptimizedCompile
+RUN ./gradlew nativeOptimizedCompile
 
 # ใช้ Alpine Linux สำหรับสภาพแวดล้อมการทำงานขั้นสุดท้าย
 FROM alpine:latest
