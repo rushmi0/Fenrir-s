@@ -6,8 +6,8 @@ import io.micronaut.websocket.WebSocketSession
 import jakarta.inject.Inject
 import org.slf4j.LoggerFactory
 
-import org.fenrirs.relay.modules.Event
-import org.fenrirs.relay.modules.FiltersX
+import org.fenrirs.relay.policy.Event
+import org.fenrirs.relay.policy.FiltersX
 
 import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip09.EventDeletion
@@ -16,7 +16,7 @@ import org.fenrirs.relay.core.nip13.ProofOfWork
 import org.fenrirs.stored.Environment
 import org.fenrirs.stored.statement.StoredServiceImpl
 
-import org.fenrirs.utils.Color.BLUE
+import org.fenrirs.utils.Color.YELLOW
 import org.fenrirs.utils.Color.CYAN
 import org.fenrirs.utils.Color.GREEN
 import org.fenrirs.utils.Color.PURPLE
@@ -240,7 +240,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param warning ข้อความแจ้งเตือน (ถ้ามี)
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    fun onRequest(
+     fun onRequest(
         subscriptionId: String,
         filtersX: List<FiltersX>,
         status: Boolean,
@@ -248,20 +248,20 @@ class BasicProtocolFlow @Inject constructor(
         session: WebSocketSession
     ) {
         if (status) {
-            LOG.info("${GREEN}filters ${RESET}subscription ID: ${CYAN}$subscriptionId \n${BLUE}${filtersX}")
+            LOG.info("${GREEN}filters ${YELLOW}[${filtersX.size}] ${RESET}req subscription ID: ${CYAN}$subscriptionId \n$filtersX")
             filtersX.forEach { filter ->
                 val events = sqlExec.filterList(filter) ?: run {
                     // คืน EOSE ถ้า filterList คืนค่า null
                     RelayResponse.EOSE(subscriptionId).toClient(session)
-                    return;
+                    return
                 }
                 events.forEachIndexed { _, event ->
                     //val eventIndex = "${i+1}/${events.size}"
-                    //LOG.info("Relay Response event $eventIndex")
+                    //LOG.info("Relay Response event $eventIndex"
                     RelayResponse.EVENT(subscriptionId, event).toClient(session)
                 }
             }
-            RelayResponse.EOSE(subscriptionId).toClient(session)
+            RelayResponse.EOSE(subscriptionId).toClient(session);
         } else {
             RelayResponse.NOTICE(warning).toClient(session)
         }
