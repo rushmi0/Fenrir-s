@@ -2,9 +2,9 @@ package org.fenrirs.relay.core.nip01
 
 import kotlinx.serialization.json.*
 
-import org.fenrirs.relay.modules.Event
-import org.fenrirs.relay.modules.FiltersX
-import org.fenrirs.relay.modules.TagElt
+import org.fenrirs.relay.policy.Event
+import org.fenrirs.relay.policy.FiltersX
+import org.fenrirs.relay.policy.TagElt
 
 
 object Transform : VerificationFactory() {

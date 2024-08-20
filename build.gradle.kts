@@ -51,14 +51,6 @@ dependencies {
     // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
 
-    // https://mvnrepository.com/artifact/fr.acinq.secp256k1/secp256k1-kmp-jni-jvm
-    implementation("fr.acinq.secp256k1:secp256k1-kmp-jni-jvm:0.15.0")
-
-    // https://mvnrepository.com/artifact/fr.acinq.secp256k1/secp256k1-kmp-jvm
-    implementation("fr.acinq.secp256k1:secp256k1-kmp-jvm:0.15.0")
-
-    // https://mvnrepository.com/artifact/fr.acinq.secp256k1/secp256k1-kmp
-    implementation("fr.acinq.secp256k1:secp256k1-kmp:0.15.0")
 
     // https://github.com/Kotlin/kotlinx.serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")

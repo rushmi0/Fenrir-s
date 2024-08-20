@@ -158,6 +158,15 @@ docker compose up relay-db relay-app-jvm
 - ws://localhost:6724 (ภายในเครื่อง)
 - wss://your-domain.com (ผ่าน Cloudflare Tunnel, หากตั้งค่าไว้)
 
+<br/>
+
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/37c76676-b627-4a9c-bd77-fa76f71d7142" width="850" height="440" controls></video>
+</div>
+
+
+
+
 ## 🔧 การแก้ไขปัญหาเบื้องต้น
 
 - **ปัญหา**: Docker ไม่สามารถรันได้\

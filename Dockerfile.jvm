@@ -1,38 +1,27 @@
 FROM eclipse-temurin:21-jdk-jammy AS build
-
-# สร้างผู้ใช้ที่ไม่ใช่ root สำหรับการ build และตั้งไดเรกทอรีทำงาน
 RUN useradd -ms /bin/bash builder
 USER builder
 WORKDIR /home/builder/app
 
-# คัดลอกไฟล์ที่จำเป็นและกำหนดสิทธิ์ให้กับผู้ใช้ builder
 COPY --chown=builder:builder gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
 COPY --chown=builder:builder src ./src
 COPY --chown=builder:builder gradle ./gradle
 
-# สร้างแอปพลิเคชันโดยไม่รันการทดสอบ
-RUN ./gradlew clean build -x test
+RUN ./gradlew build -x test
 
-# ใช้ eclipse-temurin 21-jre-alpine สำหรับ runtime environment
 FROM eclipse-temurin:21-jre-alpine
-
-# อัปเดตและติดตั้ง bash, จากนั้นทำความสะอาดเพื่อให้ image มีขนาดเล็กที่สุด
 RUN apk update && apk add --no-cache bash && rm -rf /var/cache/apk/*
 
-# สร้างกลุ่มและผู้ใช้ที่ไม่ใช่ root สำหรับการรันแอปพลิเคชัน
 RUN addgroup -S appgroup -g 1000 && \
     adduser -S appuser -G appgroup -u 1000 -h /app
 
-# เปลี่ยนเป็นผู้ใช้ appuser ที่สร้างขึ้น
 USER appuser
 WORKDIR /app
 
-# คัดลอกไฟล์ jar ที่สร้างและไฟล์ environment เข้ามาใน container
 COPY --from=build /home/builder/app/build/libs/fenrir-s-1.0-all-optimized.jar ./
 COPY --chown=appuser:appgroup .env /app/.env
 
-# เปิดพอร์ต 6724 สำหรับการเชื่อมต่อกับแอปพลิเคชัน
 EXPOSE 6724
 
 # กำหนด entry point เพื่อรันแอปพลิเคชัน
-ENTRYPOINT ["java", "-jar", "fenrir-s-1.0-all-optimized.jar"]
+ENTRYPOINT ["java", "-Xms256m", "-Xmx4g", "-XX:+UseG1GC", "-XX:MaxMetaspaceSize=128m", "-XX:+TieredCompilation", "-XX:+UseCompressedOops","-jar", "fenrir-s-1.0-all-optimized.jar"]

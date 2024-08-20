@@ -4,10 +4,10 @@ import io.micronaut.context.annotation.Bean
 import io.micronaut.websocket.WebSocketSession
 
 import jakarta.inject.Inject
-import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 
-import org.fenrirs.relay.modules.Event
-import org.fenrirs.relay.modules.FiltersX
+import org.fenrirs.relay.policy.Event
+import org.fenrirs.relay.policy.FiltersX
 
 import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip09.EventDeletion
@@ -16,11 +16,13 @@ import org.fenrirs.relay.core.nip13.ProofOfWork
 import org.fenrirs.stored.Environment
 import org.fenrirs.stored.statement.StoredServiceImpl
 
+import org.fenrirs.utils.Color.YELLOW
 import org.fenrirs.utils.Color.CYAN
 import org.fenrirs.utils.Color.GREEN
 import org.fenrirs.utils.Color.PURPLE
+import org.fenrirs.utils.Color.RED
 import org.fenrirs.utils.Color.RESET
-import org.slf4j.LoggerFactory
+
 
 @Bean
 class BasicProtocolFlow @Inject constructor(
@@ -38,13 +40,12 @@ class BasicProtocolFlow @Inject constructor(
      * @param warning ข้อความแจ้งเตือน (ถ้ามี)
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    fun onEvent(event: Event, status: Boolean, warning: String, session: WebSocketSession) = runBlocking {
+    suspend fun onEvent(event: Event, status: Boolean, warning: String, session: WebSocketSession) {
         //LOG.info("Received event: $event")
 
         if (!status) {
             // ส่งคำตอบกลับให้ไคลเอนต์ว่าไม่สามารถดำเนินการได้เพราะอะไร
             RelayResponse.OK(event.id!!, false, warning).toClient(session)
-            return@runBlocking
         }
 
         // ดึงข้อมูล public key ของ relay owner และรายการ passList จาก src/main/resources/application.toml
@@ -93,10 +94,10 @@ class BasicProtocolFlow @Inject constructor(
      * ฟังก์ชัน handleDuplicateEvent ใช้ในการจัดการเหตุการณ์ที่มี ID ซ้ำกันอยู่แล้วในฐานข้อมูล
      *
      * @param event เหตุการณ์ที่มี ID ซ้ำ
-     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับSF
      */
     private fun handleDuplicateEvent(event: Event, session: WebSocketSession) {
-        LOG.info("Event with ID ${event.id} already exists in the database")
+        LOG.info("Event kind: ${PURPLE}[${event.kind}] ${RESET}with ID ${event.id} already exists in the database")
         RelayResponse.OK(event.id!!, false, "duplicate: already have this event").toClient(session)
     }
 
@@ -109,8 +110,9 @@ class BasicProtocolFlow @Inject constructor(
      * @param enabled สถานะของนโยบาย Proof of Work ที่เปิดหรือปิด
      */
     private suspend fun handleEventWithPolicy(event: Event, session: WebSocketSession, enabled: Boolean) {
-        // ตรวจสอบว่ามีเหตุการณ์ที่มี ID เดียวกันอยู่แล้วหรือไม่
-        val eventId: Event? = sqlExec.selectById(event.id!!)
+        require(nip09.isEventDeleted(event.id!!)) { "blocked: this event has already been deleted" }
+
+        val eventId: Event? = sqlExec.selectById(event.id)
         when {
             eventId != null -> handleDuplicateEvent(event, session)
             nip09.isDeletable(event) -> handleDeletableEvent(event, session)
@@ -126,7 +128,9 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     private suspend fun handlePassListEvent(event: Event, session: WebSocketSession) {
-        val eventId: Event? = sqlExec.selectById(event.id!!)
+        require(nip09.isEventDeleted(event.id!!)) { "blocked: this event has already been deleted" }
+
+        val eventId: Event? = sqlExec.selectById(event.id)
         when {
             eventId != null -> handleDuplicateEvent(event, session)
             nip13.isProofOfWorkEvent(event) -> handleProofOfWorkEvent(event, session)
@@ -155,10 +159,10 @@ class BasicProtocolFlow @Inject constructor(
             val (success, message) = action.invoke()
 
             if (success) {
-                LOG.info("Event handled successfully")
+                LOG.info("Event kind: ${PURPLE}[${event.kind}] ${RESET}handled ${GREEN}successfully")
                 RelayResponse.OK(event.id!!, true, message).toClient(session)
             } else {
-                LOG.warn("Failed to handle event: ${event.id}")
+                LOG.warn("${RED}Failed ${RESET}to handle event: ${event.id}")
                 RelayResponse.OK(event.id!!, false, message).toClient(session)
             }
 
@@ -190,6 +194,8 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     private suspend fun handleDeletableEvent(event: Event, session: WebSocketSession) {
+        require(nip09.isOwnership(event)) { "blocked: no permission to delete this event" }
+
         handleEvent(event, session) {
             val (deletionSuccess, message) = nip09.deleteEvent(event)
             if (deletionSuccess) {
@@ -234,7 +240,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param warning ข้อความแจ้งเตือน (ถ้ามี)
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    fun onRequest(
+     fun onRequest(
         subscriptionId: String,
         filtersX: List<FiltersX>,
         status: Boolean,
@@ -242,25 +248,24 @@ class BasicProtocolFlow @Inject constructor(
         session: WebSocketSession
     ) {
         if (status) {
-            LOG.info("${GREEN}filters ${RESET}for subscription ID: ${CYAN}$subscriptionId \n$filtersX")
+            LOG.info("${GREEN}filters ${YELLOW}[${filtersX.size}] ${RESET}req subscription ID: ${CYAN}$subscriptionId ${RESET}")
             filtersX.forEach { filter ->
                 val events = sqlExec.filterList(filter) ?: run {
                     // คืน EOSE ถ้า filterList คืนค่า null
                     RelayResponse.EOSE(subscriptionId).toClient(session)
-                    return;
+                    return
                 }
                 events.forEachIndexed { _, event ->
                     //val eventIndex = "${i+1}/${events.size}"
-                    //LOG.info("Relay Response event $eventIndex")
+                    //LOG.info("Relay Response event $eventIndex"
                     RelayResponse.EVENT(subscriptionId, event).toClient(session)
                 }
             }
-            RelayResponse.EOSE(subscriptionId).toClient(session)
+            RelayResponse.EOSE(subscriptionId).toClient(session);
         } else {
             RelayResponse.NOTICE(warning).toClient(session)
         }
     }
-
 
 
     /**
@@ -281,7 +286,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     fun onUnknown(session: WebSocketSession) {
-        LOG.warn("Unknown command")
+        LOG.warn("${RED}Unknown command")
         RelayResponse.NOTICE("Unknown command").toClient(session); session.close()
     }
 

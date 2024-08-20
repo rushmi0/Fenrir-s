@@ -1,7 +1,6 @@
 package org.fenrirs.relay.core.nip01
 
-import org.fenrirs.relay.modules.FiltersX
-import org.fenrirs.relay.modules.TagElt
+import org.fenrirs.relay.policy.FiltersX
 
 object VerifyFilterX {
 

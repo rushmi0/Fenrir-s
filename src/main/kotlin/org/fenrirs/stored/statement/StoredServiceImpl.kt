@@ -6,8 +6,8 @@ import org.fenrirs.stored.service.StoredService
 
 import org.slf4j.LoggerFactory
 
-import org.fenrirs.relay.modules.Event
-import org.fenrirs.relay.modules.FiltersX
+import org.fenrirs.relay.policy.Event
+import org.fenrirs.relay.policy.FiltersX
 import org.fenrirs.stored.DatabaseFactory.queryTask
 import org.fenrirs.stored.Environment
 

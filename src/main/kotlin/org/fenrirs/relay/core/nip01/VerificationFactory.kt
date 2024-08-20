@@ -3,7 +3,7 @@ package org.fenrirs.relay.core.nip01
 import jakarta.inject.Singleton
 
 import kotlinx.serialization.json.*
-import org.fenrirs.relay.modules.TagElt
+import org.fenrirs.relay.policy.TagElt
 
 import org.fenrirs.relay.policy.EventValidateField
 import org.fenrirs.relay.policy.FiltersXValidateField
@@ -16,7 +16,7 @@ import org.fenrirs.relay.core.nip01.VerifyEvent.isValidEventId
 import org.fenrirs.relay.core.nip01.VerifyEvent.isValidSignature
 import org.fenrirs.relay.core.nip01.VerifyFilterX.validate
 
-import org.fenrirs.relay.modules.Event
+import org.fenrirs.relay.policy.Event
 
 import org.slf4j.LoggerFactory
 

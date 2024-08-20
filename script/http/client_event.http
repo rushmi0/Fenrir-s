@@ -1,0 +1,91 @@
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+[
+  "EVENT",
+  {
+    "id": "0000005b0fc51e70b66db99ba1708b1a1b008c30db35d19d35146b3e09756029",
+    "pubkey": "161498ed3277aa583c301288de5aafda4f317d2bf1ad0a880198a9dede37a6aa",
+    "created_at": 1716617176,
+    "kind": 1,
+    "tags": [
+      ["nonce","19735841","23"]
+    ],
+    "content": "My custom content",
+    "sig": "954c662c9ee29ccad8a1f30d22b9a5cefcea774f72428ec7344b65e4f31fff24fc4dd0b7874a4d10a1a4c012de013df19a7c33018dda5f1207280f9a28193498"
+  }
+]
+
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+[
+  "EVENT",
+  {
+  "id": "5a1849a0ddc87f247f0c93a71d9fbf0a2182aa728135f863c77beb1cd94dc594",
+  "pubkey": "80b59b3e307e0b8b054c0223ce63e172d8a6b1f9c117a993afb083d437bc48eb",
+  "created_at": 1723863259,
+  "kind": 5,
+  "tags": [[ "e", "0000005b0fc51e70b66db99ba1708b1a1b008c30db35d19d35146b3e09756029"]],
+  "content": "-",
+  "sig": "1267f8dc392e20c1aff7a8d7d8352da725b9d037188221b4fe60dbf7024ddeace281b91b21ac4838042a95bf83fe087f57c45c4da70dbb4f3ab491f5e8263657"
+  }
+]
+
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+[
+  "EVENT",
+  {
+    "content":"## ขอบคุณนะครับ ทุกคนที่ช่วยใช้งานทดสอบ Relay \n\nช่วงนี้เป็นการทดสอบการตั้งค่า ปรับจูน JVM ให้ใช้ทรัพยาการได้เหมาะสม และปรับแก้ไขโค้ดบางส่วน\n\nจากพฤติกรรมของ Client ในการเรียกข้อมูล สวนใหญ่ 99% มักไม่กำหนด limit ... พี่ๆที่รัน Relay บน cloud ผมแนะนำว่าให้ไปกำหนดค่า limit ค่าสูงที่ที่จะคายข้อมูลออกมา 100 ก็เกินพอแล้วครับ\n\n#siamstr\nhttps://image.nostr.build/41e835f242247fb1029b3e31d0d8310162056e5e2e42ab25d9e1291dda11e2c7.png",
+    "kind":1,
+    "tags":[["t","siamstr"]],
+    "created_at":1723893896,
+    "pubkey":"e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3",
+    "id":"a871f0484b803bb54b92642c1f9b40256ddb8effa88890982539de54959018f1",
+    "sig":"c5631874578c8dc51561acad5bf52a7cf5a754e89d0858c4d6c9b9e0beffa213413321072213679a49865731f26fd9dbdbbae16f32a26cf98edcffd0c0869da3"
+  }
+]
+
+###
+
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+[
+  "EVENT",
+  {
+    "content":"test 01",
+    "created_at":1719484899,
+    "id":"b80aa0a2e69e7ca5801a3848aa33e90a62fb30d27284639e1836c9ede8a9d298",
+    "kind":1,
+    "pubkey":"8a71a3266e3c1ed354cffc613e70e7b5cbfac539fbab40e054f141ae8051cf37",
+    "sig":"5bcb4f7345fa95ed68c73f09eeb68013b47e1f35e8d0d86d958504c5c5bd28290d2466f4fabb907b81f41eb4d05da1eacb7aa2271a6bdf4e8ece1ea3bedf29a3",
+    "tags":[]
+  }
+]
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+["EVENT",
+  {
+    "kind":5,
+    "tags":[["e","b80aa0a2e69e7ca5801a3848aa33e90a62fb30d27284639e1836c9ede8a9d298"]],
+    "content":"",
+    "created_at":1719485077,
+    "pubkey":"8a71a3266e3c1ed354cffc613e70e7b5cbfac539fbab40e054f141ae8051cf37",
+    "id":"d6470ed0c45c73f6ea36bb41011973166af4062a1f3a32f580b5d128f9a60b19",
+    "sig":"b417c5601b83b97df4fcd75f970efd586cb3d9f441d92f1009027f5c044e980a2c16383897e14cbb55d92ceda63d0f2ad9eb4c8754484cf808474138486dced0"
+  }
+]

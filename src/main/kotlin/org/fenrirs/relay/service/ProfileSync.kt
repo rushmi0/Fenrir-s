@@ -9,7 +9,7 @@ import org.fenrirs.utils.Bech32
 import org.fenrirs.utils.ShiftTo.toHex
 import org.fenrirs.utils.ShiftTo.toJsonEltArray
 
-import org.fenrirs.relay.modules.Event
+import org.fenrirs.relay.policy.Event
 import org.fenrirs.stored.statement.StoredServiceImpl
 
 import kotlinx.coroutines.runBlocking

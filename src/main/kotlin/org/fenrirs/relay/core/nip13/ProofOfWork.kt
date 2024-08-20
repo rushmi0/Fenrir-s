@@ -2,13 +2,14 @@ package org.fenrirs.relay.core.nip13
 
 import io.micronaut.context.annotation.Bean
 import jakarta.inject.Inject
-import org.fenrirs.relay.modules.Event
-import org.fenrirs.relay.policy.NostrRelayConfig
-import org.slf4j.LoggerFactory
+import jakarta.inject.Singleton
+import org.fenrirs.relay.policy.Event
+import org.fenrirs.stored.Environment
 import java.math.BigInteger
 
 @Bean
-class ProofOfWork @Inject constructor(private val config: NostrRelayConfig) {
+@Singleton
+class ProofOfWork @Inject constructor(private val env: Environment) {
 
 
     /**
@@ -27,7 +28,7 @@ class ProofOfWork @Inject constructor(private val config: NostrRelayConfig) {
      * @param difficultyTarget ระดับความยากของ Proof of Work ที่ต้องการตรวจสอบ
      * @return true หาก Proof of Work มีความยากตามที่กำหนด, false หากไม่มีความยาก
      */
-    fun checkProofOfWork(hex: String, difficultyTarget: Long): Boolean = difficulty(hex) >= difficultyTarget
+    //fun checkProofOfWork(hex: String, difficultyTarget: Long): Boolean = difficulty(hex) >= difficultyTarget
 
 
     /**
@@ -51,7 +52,7 @@ class ProofOfWork @Inject constructor(private val config: NostrRelayConfig) {
         val nonceTag = event.tags!!.find { it.isNotEmpty() && it[0] == "nonce" }!!
 
         val difficultyTarget = if (enabled) {
-            config.policy.proofOfWork.difficultyMinimum.toLong()
+            env.PROOF_OF_WORK_DIFFICULTY.toLong()
         } else {
             nonceTag[2].toLong()
         }
@@ -65,7 +66,7 @@ class ProofOfWork @Inject constructor(private val config: NostrRelayConfig) {
     }
 
     companion object {
-        private val LOG = LoggerFactory.getLogger(ProofOfWork::class.java)
+        //private val LOG = LoggerFactory.getLogger(ProofOfWork::class.java)
     }
 
 }

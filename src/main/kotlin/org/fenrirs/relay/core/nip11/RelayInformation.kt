@@ -4,15 +4,17 @@ import jakarta.inject.Inject
 
 import io.micronaut.http.MediaType
 import io.micronaut.context.annotation.Bean
+
 import io.micronaut.core.io.ResourceResolver
 import io.micronaut.core.io.scan.ClassPathResourceLoader
+import jakarta.inject.Singleton
 
-import kotlinx.coroutines.runBlocking
 import org.fenrirs.stored.Environment
-
 import java.io.FileNotFoundException
 
+
 @Bean
+@Singleton
 class RelayInformation @Inject constructor(private val env: Environment) {
 
 
@@ -21,9 +23,7 @@ class RelayInformation @Inject constructor(private val env: Environment) {
      * @param contentType: ประเภทของเนื้อหาที่ต้องการ (application/json หรือ text/html)
      * @return ข้อมูล relay information ที่ถูกดึงจาก Redis cache หรือไฟล์ระบบ
      */
-    fun loadRelayInfo(contentType: String): String = runBlocking {
-        loadContent(contentType)
-    }
+     fun loadRelayInfo(contentType: String): String = loadContent(contentType)
 
     /**
      * ฟังก์ชันสำหรับโหลดเนื้อหาจากไฟล์ตามประเภทของ contentType
@@ -47,16 +47,17 @@ class RelayInformation @Inject constructor(private val env: Environment) {
               "description": "${env.RELAY_DESCRIPTION}",
               "pubkey": "${env.RELAY_OWNER}",
               "contact": "${env.RELAY_CONTACT}",
-              "supported_nips": [1,2,4,9,11,13,15,28,50],
+              "supported_nips": [1,2,4,9,11,13,15,28,40,50],
+              "icon": "https://i.imgur.com/dwLPgio.png",
               "software": "https://github.com/rushmi0/Fenrir-s",
               "version": "1.0",
               "limitation": {
                  "max_filters": ${env.MAX_FILTERS},
-                 "min_pow_difficulty": ${if (env.PROOF_OF_WORK_ENABLED) env.PROOF_OF_WORK_DIFFICULTY else 0},
                  "max_limit": ${env.MAX_LIMIT},
+                 "min_pow_difficulty": ${if (env.PROOF_OF_WORK_ENABLED) env.PROOF_OF_WORK_DIFFICULTY else 0},
                  "max_message_length": 524288,
                  "payment_required": ${env.PAYMENT_REQ},
-                 "auth_required": ${env.AUTH_REQ},
+                 "auth_required": ${env.AUTH_REQ}
               }
             }
         """.trimIndent()
@@ -68,7 +69,8 @@ class RelayInformation @Inject constructor(private val env: Environment) {
      * @return ข้อมูลที่อ่านจากไฟล์
      */
     private fun loadFromClasspath(path: String): String {
-        val resourceLoader: ClassPathResourceLoader = ResourceResolver().getLoader(ClassPathResourceLoader::class.java).get()
+        val resourceLoader: ClassPathResourceLoader =
+            ResourceResolver().getLoader(ClassPathResourceLoader::class.java).get()
         val resource = resourceLoader.getResource("classpath:$path").orElseThrow {
             throw FileNotFoundException("File not found: $path")
         }

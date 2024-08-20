@@ -1,11 +1,8 @@
 package org.fenrirs.utils
 
-import fr.acinq.secp256k1.Hex
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.serialization.json.*
-import org.fenrirs.relay.modules.Event
-import org.fenrirs.utils.ShiftTo.fromHex
-import org.fenrirs.utils.ShiftTo.toHex
+import org.fenrirs.relay.policy.Event
 import org.slf4j.LoggerFactory
 import java.lang.management.ManagementFactory
 import java.lang.management.MemoryMXBean
