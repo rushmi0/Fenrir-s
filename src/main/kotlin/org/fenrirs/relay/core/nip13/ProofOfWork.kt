@@ -3,7 +3,7 @@ package org.fenrirs.relay.core.nip13
 import io.micronaut.context.annotation.Bean
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
-import org.fenrirs.relay.modules.Event
+import org.fenrirs.relay.policy.Event
 import org.fenrirs.stored.Environment
 import java.math.BigInteger
 

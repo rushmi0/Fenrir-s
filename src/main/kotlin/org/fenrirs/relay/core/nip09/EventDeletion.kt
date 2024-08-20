@@ -4,9 +4,9 @@ import io.micronaut.context.annotation.Bean
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
-import org.fenrirs.relay.modules.Event
-import org.fenrirs.relay.modules.FiltersX
-import org.fenrirs.relay.modules.TAG_E
+import org.fenrirs.relay.policy.Event
+import org.fenrirs.relay.policy.FiltersX
+import org.fenrirs.relay.policy.TAG_E
 
 import org.fenrirs.stored.statement.StoredServiceImpl
 import org.fenrirs.utils.Color.GREEN

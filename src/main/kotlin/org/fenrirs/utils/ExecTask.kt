@@ -43,7 +43,7 @@ object ExecTask {
      * ฟังก์ชันสำหรับการทำงานแบบขนานด้วย Virtual Threads
      * @param block โค้ดที่ต้องการให้ Virtual Threads ทำงาน
      */
-    inline fun <T> runWithVirtualThreads(crossinline block: () -> T): T {
+    inline fun <T : Any> runWithVirtualThreads(crossinline block: () -> T): T {
         val future = CompletableFuture<T>()
 
         // Thread.startVirtualThread
@@ -67,14 +67,14 @@ object ExecTask {
     }
 
     suspend fun <T> parallelIO(parallelism: Int = 32, block: suspend CoroutineScope.() -> T): T {
-        return withContext(Dispatchers.IO.limitedParallelism(parallelism) + SupervisorJob()) {
+        return withContext(Dispatchers.IO.limitedParallelism(parallelism)) {
             block.invoke(this)
         }
     }
 
 
     suspend fun <T> parallelDefault(parallelism: Int = 32, block: suspend CoroutineScope.() -> T): T {
-        return withContext(Dispatchers.Default.limitedParallelism(parallelism) + SupervisorJob()) {
+        return withContext(Dispatchers.Default.limitedParallelism(parallelism)) {
             block.invoke(this)
         }
     }

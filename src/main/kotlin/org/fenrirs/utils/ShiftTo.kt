@@ -2,7 +2,7 @@ package org.fenrirs.utils
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.serialization.json.*
-import org.fenrirs.relay.modules.Event
+import org.fenrirs.relay.policy.Event
 import org.slf4j.LoggerFactory
 import java.lang.management.ManagementFactory
 import java.lang.management.MemoryMXBean

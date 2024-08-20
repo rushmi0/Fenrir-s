@@ -1,6 +1,6 @@
 package org.fenrirs.utils
 
-import java.awt.Color
+//import java.awt.Color
 
 object Color {
 

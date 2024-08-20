@@ -1,4 +1,4 @@
-package org.fenrirs.relay.modules
+package org.fenrirs.relay.policy
 
 import kotlinx.serialization.Serializable
 

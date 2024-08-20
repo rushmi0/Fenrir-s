@@ -43,7 +43,7 @@ Content-Type: application/json
 
 ###
 
-WEBSOCKET wss://relay.damus.io
+WEBSOCKET wss://localhost:6724
 Content-Type: application/json
 
 ["REQ","hsZEOtaDsENYkP5H-JIWp",{"kinds": [10002],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]}]
@@ -61,7 +61,7 @@ Content-Type: application/json
 WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
-["REQ","hsZEOtaDsENYkP5H-JIWp",{"since":0,"until": 1719396884}]
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"sincex":0,"until": 1719396884}]
 
 ###
 
@@ -214,8 +214,8 @@ Content-Type: application/json
 
 [
   "REQ",
-  "ID-01",
+  "Rj5mPPvkyh9",
   {
-    "search" : "ก็ต้องทำแบบเดียวกัน"
+    "search" : "ดี"
   }
 ]

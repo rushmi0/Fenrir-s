@@ -1,6 +1,6 @@
 package org.fenrirs.relay.core.nip01
 
-import org.fenrirs.relay.modules.Event
+import org.fenrirs.relay.policy.Event
 import org.fenrirs.utils.Schnorr
 import org.fenrirs.utils.ShiftTo.generateId
 

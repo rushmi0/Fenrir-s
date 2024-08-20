@@ -1,14 +1,13 @@
 package org.fenrirs
 
 import jakarta.inject.Inject
-import org.fenrirs.relay.modules.FiltersX
-import org.fenrirs.relay.modules.TAG_E
+import org.fenrirs.relay.policy.FiltersX
+import org.fenrirs.relay.policy.TAG_E
 import org.fenrirs.relay.policy.NostrRelayConfig
 import org.fenrirs.stored.DatabaseFactory
 import org.fenrirs.stored.Environment
 import org.fenrirs.stored.statement.StoredServiceImpl
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
