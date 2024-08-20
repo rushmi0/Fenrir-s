@@ -13,7 +13,6 @@ import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
 
 import jakarta.inject.Inject
-import kotlinx.coroutines.runBlocking
 
 import org.fenrirs.relay.core.nip01.command.CLOSE
 import org.fenrirs.relay.core.nip01.command.EVENT
@@ -25,6 +24,7 @@ import org.fenrirs.relay.core.nip11.RelayInformation
 import org.fenrirs.relay.policy.FiltersX
 
 import org.fenrirs.utils.Color.BLUE
+import org.fenrirs.utils.Color.CYAN
 import org.fenrirs.utils.Color.GREEN
 import org.fenrirs.utils.Color.PURPLE
 import org.fenrirs.utils.Color.RED
@@ -50,22 +50,19 @@ class Gateway @Inject constructor(
     @OnOpen
     fun onOpen(session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): HttpResponse<String>? {
         session?.let {
-            //subscriptions[session] = ConcurrentHashMap.newKeySet()
             subscriptions[session] = mutableSetOf()
-            LOG.info("${GREEN}open$RESET $session")
+            LOG.info("${GREEN}open ${YELLOW}$session $RESET")
             return@let HttpResponse.ok("Session opened")
                 .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         }
 
-        LOG.info("${YELLOW}accept: $RESET$accept session: ${BLUE}$session $RESET")
+        LOG.info("${YELLOW}accept: $RESET$accept ${BLUE}$session $RESET")
         val contentType = when {
             accept == "application/nostr+json" -> MediaType.APPLICATION_JSON
             else -> MediaType.TEXT_HTML
         }
 
-        val data = runBlocking { nip11.loadRelayInfo(contentType) }
-
-        return HttpResponse.ok(data)
+        return HttpResponse.ok(nip11.loadRelayInfo(contentType))
             .contentType(contentType)
             .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
     }
@@ -84,9 +81,7 @@ class Gateway @Inject constructor(
             val (status, warning) = validationResult
 
             when (cmd) {
-                //is REQ -> nip01.onRequest(cmd.subscriptionId, cmd.filtersX, status, warning, session)
                 is EVENT -> nip01.onEvent(cmd.event, status, warning, session)
-                //is CLOSE -> nip01.onClose(cmd.subscriptionId, session)
                 is REQ -> handleRequest(cmd.subscriptionId, cmd.filtersX, status, warning, session)
                 is CLOSE -> handleClose(cmd.subscriptionId, session)
                 else -> nip01.onUnknown(session)
@@ -101,14 +96,21 @@ class Gateway @Inject constructor(
     @OnClose
     fun onClose(session: WebSocketSession) {
         subscriptions.remove(session)
-        LOG.info("${PURPLE}close: ${RED}$session")
+        LOG.info("${PURPLE}close: ${CYAN}$session")
     }
 
 
-    private fun handleRequest(subscriptionId: String, filtersX: List<FiltersX>, status: Boolean, warning: String, session: WebSocketSession) {
+    private fun handleRequest(
+        subscriptionId: String,
+        filtersX: List<FiltersX>,
+        status: Boolean,
+        warning: String,
+        session: WebSocketSession
+    ) {
         // Check if the subscriptionId already exists in another session
         if (subscriptions.values.any { it.contains(subscriptionId) }) {
-            RelayResponse.CLOSED(subscriptionId = subscriptionId, message = "duplicate: $subscriptionId already opened").toClient(session)
+            RelayResponse.CLOSED(subscriptionId = subscriptionId, message = "duplicate: $subscriptionId already opened")
+                .toClient(session)
         } else {
             subscriptions[session]?.add(subscriptionId)
             nip01.onRequest(subscriptionId, filtersX, status, warning, session)
@@ -122,7 +124,7 @@ class Gateway @Inject constructor(
         if (subscriptions[session]?.isEmpty() == true) {
             subscriptions.remove(session)
         }
-        LOG.info("Subscription ${PURPLE}closed: ${RESET}$subscriptionId from ${RED}$session ${RESET}")
+        LOG.info("Subscription ${PURPLE}closed: ${RESET}$subscriptionId from ${CYAN}$session ${RESET}")
     }
 
 

@@ -3,6 +3,7 @@ package org.fenrirs.relay.core.nip01.response
 import io.micronaut.websocket.WebSocketSession
 
 import org.fenrirs.relay.policy.Event
+import org.fenrirs.utils.Color.RED
 import org.fenrirs.utils.ExecTask.runWithVirtualThreads
 import org.fenrirs.utils.ShiftTo.toJsonString
 
@@ -85,7 +86,7 @@ sealed class RelayResponse<out T> {
                         session.close()
                     }
                 } else {
-                    LOG.warn("Message sent to closed $session")
+                    LOG.warn("Message sent to ${RED}closed $session")
                 }
             } catch (e: Exception) {
                 LOG.error("Error in Virtual Thread: ${e.message}")
