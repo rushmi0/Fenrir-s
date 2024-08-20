@@ -24,11 +24,4 @@ COPY --chown=appuser:appgroup .env /app/.env
 EXPOSE 6724
 
 # กำหนด entry point เพื่อรันแอปพลิเคชัน
-#ENTRYPOINT ["java", "-Xms512m", "-Xmx3g", "-XX:+UseG1GC", "-jar", "fenrir-s-1.0-all-optimized.jar"]
-#ENTRYPOINT ["java", "-Xms512m", "-Xmx3g", "-XX:+UseZGC", "-XX:ParallelGCThreads=2", "-XX:ConcGCThreads=2", "-XX:+HeapDumpOnOutOfMemoryError", "-jar", "fenrir-s-1.0-all-optimized.jar"]
-
-# กำหนด entry point เพื่อรันแอปพลิเคชัน พร้อมเปิดการตั้งค่า JVM สำหรับ debugging
-#ENTRYPOINT ["java", "-Xms512m", "-Xmx3g", "-XX:+UseG1GC", "-XX:+PrintGC", "-XX:+PrintClassHistogram", "-jar", "fenrir-s-1.0-all-optimized.jar"]
-
-# กำหนด entry point เพื่อรันแอปพลิเคชันพร้อมการตั้งค่า JVM
-ENTRYPOINT ["java", "-Xms512m", "-Xmx3g", "-XX:+UseG1GC", "-XX:+PrintGC", "-XX:ThreadStackSize=512k", "-XX:G1HeapRegionSize=16m", "-XX:MaxGCPauseMillis=200", "-XX:MaxNewSize=1g", "-jar", "fenrir-s-1.0-all-optimized.jar"]
+ENTRYPOINT ["java", "-Xms256m", "-Xmx4g", "-XX:+UseG1GC", "-XX:MaxMetaspaceSize=128m", "-XX:+TieredCompilation", "-XX:+UseCompressedOops","-jar", "fenrir-s-1.0-all-optimized.jar"]
