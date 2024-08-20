@@ -59,6 +59,7 @@ services:
 
   jupyter-notebook:
     container_name: jupyter-notebook
+    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile.jupyter
