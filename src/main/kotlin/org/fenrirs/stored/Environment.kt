@@ -42,7 +42,7 @@ class Environment @Inject constructor(private val config: NostrRelayConfig) {
     val ALL_PASS: Boolean by lazy { config.policy.allPass }
 
     // Limitation settings
-    val MAX_FILTERS: Int = 10
+    val MAX_FILTERS: Int = 15
     val MAX_LIMIT: Int = 150
     val PAYMENT_REQ: Boolean = false
     val AUTH_REQ: Boolean = false
