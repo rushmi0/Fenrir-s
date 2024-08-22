@@ -42,21 +42,15 @@ object ShiftTo {
      * ฟังก์ชัน toSha256 ใช้ในการคำนวณ Hash SHA-256 ของ ByteArray
      * @return อาร์เรย์ไบต์
      */
-    fun ByteArray.toSha256(): ByteArray {
-        return MessageDigest.getInstance("SHA-256").digest(this)
-    }
+    fun ByteArray.toSha256(): ByteArray = MessageDigest.getInstance("SHA-256").digest(this)
 
     /**
      * ฟังก์ชัน toSha256 ใช้ในการคำนวณ Hash SHA-256 ของสตริง
      * @return สตริงที่เป็นเลขฐาน 16
      */
-    fun String.toSha256(): String {
-        return toByteArray().toSha256().toHex()
-    }
+    fun String.toSha256(): String = toByteArray().toSha256().toHex()
 
-    fun String.toBSha256(): ByteArray {
-        return toByteArray().toSha256()
-    }
+    fun String.toBSha256(): ByteArray = toByteArray().toSha256()
 
     fun ByteArray.toBigInteger() = BigInteger(1, this)
 
@@ -123,9 +117,7 @@ object ShiftTo {
         }
     }
 
-    fun elapsedMillis(startNanos: Long): Long {
-        return TimeUnit.MILLISECONDS.convert(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS)
-    }
+    fun elapsedMillis(startNanos: Long): Long = TimeUnit.MILLISECONDS.convert(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS)
 
 
     /**
