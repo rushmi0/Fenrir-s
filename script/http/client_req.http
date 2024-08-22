@@ -123,7 +123,7 @@ Content-Type: application/json
 ["REQ","hsZEOtaDsENYkP5H-JIWp",{"ids":["d6470ed0c45c73f6ea36bb41011973166af4062a1f3a32f580b5d128f9a60b19"]}]
 
 
-###
+### ["CLOSE","hsZEOtaDsENYkP5H-JIWp"]
 
 WEBSOCKET ws://localhost:6724
 Content-Type: application/json
