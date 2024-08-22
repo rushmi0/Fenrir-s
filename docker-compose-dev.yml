@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+
+  jupyter-notebook:
+    container_name: jupyter-notebook
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile.jupyter
+    ports:
+      - "8888:8888"
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+      CHOWN_HOME: "yes"
+
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+    environment:
+      - JAVA_OPTS=-Djava.awt.headless=true
+    networks:
+      - jenkins_net
+
+
+volumes:
+  jenkins_home:
+    driver: local
+
+networks:
+  jenkins_net:
+    driver: bridge

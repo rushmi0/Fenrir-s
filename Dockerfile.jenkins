@@ -1,0 +1,14 @@
+# ใช้ Jenkins LTS (Long Term Support) อิมเมจจาก Docker Hub
+FROM jenkins/jenkins:lts
+
+# ตั้งค่าผู้ใช้
+USER root
+
+# ติดตั้งแพคเกจเพิ่มเติมถ้าต้องการ
+# RUN apt-get update && apt-get install -y <package>
+
+# ตั้งค่า Jenkins ผ่าน Environment Variables
+# ENV JAVA_OPTS="-Djava.awt.headless=true"
+
+# ตั้งค่าผู้ใช้ Jenkins
+USER jenkins

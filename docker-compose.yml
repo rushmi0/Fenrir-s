@@ -57,18 +57,6 @@ services:
       - dev_network
 
 
-  jupyter-notebook:
-    container_name: jupyter-notebook
-    restart: unless-stopped
-    build:
-      context: .
-      dockerfile: Dockerfile.jupyter
-    ports:
-      - "8888:8888"
-    environment:
-      JUPYTER_ENABLE_LAB: "yes"
-      CHOWN_HOME: "yes"
-
 
   cloudflared-tunnel:
     container_name: cloudflared-tunnel
