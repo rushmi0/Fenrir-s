@@ -24,4 +24,4 @@ COPY --chown=appuser:appgroup .env /app/.env
 EXPOSE 6724
 
 # กำหนด entry point เพื่อรันแอปพลิเคชัน
-ENTRYPOINT ["java", "-Xms256m", "-Xmx4g", "-XX:+UseG1GC", "-XX:MaxMetaspaceSize=128m", "-XX:+TieredCompilation", "-XX:+UseCompressedOops","-jar", "fenrir-s-1.0-all-optimized.jar"]
+ENTRYPOINT ["java", "-Xms256m", "-Xmx4g", "-XX:+UseG1GC", "-jar", "fenrir-s-1.0-all-optimized.jar"]
