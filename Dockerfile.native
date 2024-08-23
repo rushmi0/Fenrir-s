@@ -7,7 +7,10 @@ COPY --chown=builder:builder gradlew build.gradle.kts settings.gradle.kts gradle
 COPY --chown=builder:builder src ./src
 COPY --chown=builder:builder gradle ./gradle
 
+RUN sed -i 's/\r$//' gradlew
+
 RUN ./gradlew nativeOptimizedCompile
+
 
 FROM alpine:latest
 
