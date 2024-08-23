@@ -75,34 +75,18 @@ sealed class RelayResponse<out T> {
      * ฟังก์ชัน toClient ใช้ในการส่งการตอบกลับไปยังไคลเอนต์ผ่าน WebSocket
      * @param session ใช้ในการสื่อสารกับไคลเอนต์
      */
-//    fun toClient(session: WebSocketSession) {
-//        runWithVirtualThreads {
-//            try {
-//                if (session.isOpen) {
-//                    val payload = this@RelayResponse.toJson()
-//                    session.sendAsync(payload)
-//                    if (this@RelayResponse is CLOSED) {
-//                        session.close()
-//                    }
-//                } else {
-//                    LOG.warn("Message sent to closed $session")
-//                }
-//            } catch (e: Exception) {
-//                LOG.error("Error in Virtual Thread: ${e.message}")
-//            }
-//        }
-//    }
-
     fun toClient(session: WebSocketSession) {
         runWithVirtualThreads {
             when {
                 session.isOpen -> {
                     val payload = this@RelayResponse.toJson()
+                    LOG.info("payload: $payload")
                     session.sendAsync(payload)
                     if (this@RelayResponse is CLOSED) {
                         session.close()
                     }
                 }
+
                 else -> LOG.warn("$session is closed, cannot send message")
             }
         }
