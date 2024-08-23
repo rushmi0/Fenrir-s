@@ -32,7 +32,7 @@ Content-Type: application/json
 WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
-["REQ","hsZEOtaDsENYkP5H-JIWp",{"kinds": [1],"limit": 200}]
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"kinds": [1],"limit": 2}]
 
 ###
 
@@ -216,6 +216,6 @@ Content-Type: application/json
   "REQ",
   "Rj5mPPvkyh9",
   {
-    "search" : "ดี"
+    "search" : "test 1"
   }
 ]

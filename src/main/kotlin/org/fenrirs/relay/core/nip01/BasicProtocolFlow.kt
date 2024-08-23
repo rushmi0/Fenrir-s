@@ -4,6 +4,7 @@ import io.micronaut.context.annotation.Bean
 import io.micronaut.websocket.WebSocketSession
 
 import jakarta.inject.Inject
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 
 import org.fenrirs.relay.policy.Event
@@ -40,7 +41,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param warning ข้อความแจ้งเตือน (ถ้ามี)
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    suspend fun onEvent(event: Event, status: Boolean, warning: String, session: WebSocketSession) {
+    fun onEvent(event: Event, status: Boolean, warning: String, session: WebSocketSession) = runBlocking {
         //LOG.info("Received event: $event")
 
         if (!status) {
@@ -240,7 +241,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param warning ข้อความแจ้งเตือน (ถ้ามี)
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-     fun onRequest(
+    fun onRequest(
         subscriptionId: String,
         filtersX: List<FiltersX>,
         status: Boolean,

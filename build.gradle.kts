@@ -24,6 +24,10 @@ val exposedVersion: String by project
 
 dependencies {
 
+    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
+
+    implementation("io.github.reactivecircus.cache4k:cache4k:0.13.0")
+
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
     implementation("org.jetbrains.exposed:exposed-crypt:$exposedVersion")

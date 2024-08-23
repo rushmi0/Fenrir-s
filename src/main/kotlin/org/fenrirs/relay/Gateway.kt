@@ -21,10 +21,8 @@ import org.fenrirs.relay.core.nip01.command.CommandFactory.parse
 import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip01.BasicProtocolFlow
 import org.fenrirs.relay.core.nip11.RelayInformation
-import org.fenrirs.relay.policy.FiltersX
 
 import org.fenrirs.utils.Color.BLUE
-import org.fenrirs.utils.Color.CYAN
 import org.fenrirs.utils.Color.GREEN
 import org.fenrirs.utils.Color.PURPLE
 import org.fenrirs.utils.Color.RED
@@ -33,7 +31,6 @@ import org.fenrirs.utils.Color.YELLOW
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.concurrent.ConcurrentHashMap
 
 @Bean
 @Introspected
@@ -43,20 +40,15 @@ class Gateway @Inject constructor(
     private val nip11: RelayInformation
 ) {
 
-    // ใช้ ConcurrentHashMap เพื่อเก็บข้อมูล session และ subscriptionIds
-    private val subscriptions = ConcurrentHashMap<WebSocketSession, MutableSet<String>>()
-
-
     @OnOpen
     fun onOpen(session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): HttpResponse<String>? {
         session?.let {
-            subscriptions[session] = mutableSetOf()
-            LOG.info("${GREEN}open ${YELLOW}$session $RESET")
+            LOG.info("${GREEN}open$RESET $session")
             return@let HttpResponse.ok("Session opened")
                 .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         }
 
-        LOG.info("${YELLOW}accept: $RESET$accept ${BLUE}$session $RESET")
+        LOG.info("${YELLOW}accept: $RESET$accept ${BLUE}session: $RESET$session")
         val contentType = when {
             accept == "application/nostr+json" -> MediaType.APPLICATION_JSON
             else -> MediaType.TEXT_HTML
@@ -69,7 +61,7 @@ class Gateway @Inject constructor(
 
 
     @OnMessage(maxPayloadLength = 524288)
-    suspend fun onMessage(message: String, session: WebSocketSession) {
+    fun onMessage(message: String, session: WebSocketSession) {
         //LOG.info("message: \n$message")
         try {
 
@@ -82,8 +74,8 @@ class Gateway @Inject constructor(
 
             when (cmd) {
                 is EVENT -> nip01.onEvent(cmd.event, status, warning, session)
-                is REQ -> handleRequest(cmd.subscriptionId, cmd.filtersX, status, warning, session)
-                is CLOSE -> handleClose(cmd.subscriptionId, session)
+                is REQ -> nip01.onRequest(cmd.subscriptionId, cmd.filtersX, status, warning, session)
+                is CLOSE -> nip01.onClose(cmd.subscriptionId, session)
                 else -> nip01.onUnknown(session)
             }
 
@@ -95,41 +87,8 @@ class Gateway @Inject constructor(
 
     @OnClose
     fun onClose(session: WebSocketSession) {
-        subscriptions.remove(session)
-        LOG.info("${PURPLE}close: ${CYAN}$session")
+        LOG.info("${PURPLE}close: ${RESET}$session")
     }
-
-
-    private fun handleRequest(
-        subscriptionId: String,
-        filtersX: List<FiltersX>,
-        status: Boolean,
-        warning: String,
-        session: WebSocketSession
-    ) {
-        // Check if the subscriptionId already exists in another session
-        if (subscriptions.values.any { it.contains(subscriptionId) }) {
-            RelayResponse.CLOSED(subscriptionId = subscriptionId, message = "duplicate: $subscriptionId already opened")
-                .toClient(session)
-        } else {
-            subscriptions[session]?.add(subscriptionId)
-            nip01.onRequest(subscriptionId, filtersX, status, warning, session)
-            subscriptions[session]?.remove(subscriptionId)
-        }
-    }
-
-
-    private fun handleClose(subscriptionId: String, session: WebSocketSession) {
-        subscriptions[session]?.remove(subscriptionId)
-        if (subscriptions[session]?.isEmpty() == true) {
-            subscriptions.remove(session)
-        }
-        LOG.info("Subscription ${PURPLE}closed: ${RESET}$subscriptionId from ${CYAN}$session ${RESET}")
-    }
-
-
-    // private fun isDuplicateSubscription(subscriptionId: String): Boolean = subscriptions.values.flatten().contains(subscriptionId)
-
 
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(Gateway::class.java)
