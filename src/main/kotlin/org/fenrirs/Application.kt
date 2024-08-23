@@ -2,8 +2,8 @@ package org.fenrirs
 
 import io.micronaut.runtime.Micronaut
 import org.fenrirs.relay.service.ProfileSync
-import org.fenrirs.stored.DatabaseFactory
-import org.fenrirs.stored.Environment
+import org.fenrirs.storage.DatabaseFactory
+import org.fenrirs.storage.Environment
 import java.io.InputStreamReader
 
 fun main(args: Array<String>) {

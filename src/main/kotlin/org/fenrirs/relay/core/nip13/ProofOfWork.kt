@@ -4,7 +4,7 @@ import io.micronaut.context.annotation.Bean
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import org.fenrirs.relay.policy.Event
-import org.fenrirs.stored.Environment
+import org.fenrirs.storage.Environment
 import java.math.BigInteger
 
 @Bean

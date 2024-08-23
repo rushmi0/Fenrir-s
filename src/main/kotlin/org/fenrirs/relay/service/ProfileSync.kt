@@ -3,14 +3,14 @@ package org.fenrirs.relay.service
 import org.fenrirs.relay.core.nip01.Transform.toEvent
 import org.fenrirs.relay.core.nip01.Transform.validateElement
 import org.fenrirs.relay.policy.EventValidateField
-import org.fenrirs.stored.Environment
+import org.fenrirs.storage.Environment
 
 import org.fenrirs.utils.Bech32
 import org.fenrirs.utils.ShiftTo.toHex
 import org.fenrirs.utils.ShiftTo.toJsonEltArray
 
 import org.fenrirs.relay.policy.Event
-import org.fenrirs.stored.statement.StoredServiceImpl
+import org.fenrirs.storage.statement.StoredServiceImpl
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.*

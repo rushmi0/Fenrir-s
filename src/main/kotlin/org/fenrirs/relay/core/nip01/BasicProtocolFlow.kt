@@ -14,8 +14,8 @@ import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip09.EventDeletion
 import org.fenrirs.relay.core.nip13.ProofOfWork
 
-import org.fenrirs.stored.Environment
-import org.fenrirs.stored.statement.StoredServiceImpl
+import org.fenrirs.storage.Environment
+import org.fenrirs.storage.statement.StoredServiceImpl
 
 import org.fenrirs.utils.Color.YELLOW
 import org.fenrirs.utils.Color.CYAN
@@ -251,18 +251,13 @@ class BasicProtocolFlow @Inject constructor(
         if (status) {
             LOG.info("${GREEN}filters ${YELLOW}[${filtersX.size}] ${RESET}req subscription ID: ${CYAN}$subscriptionId ${RESET}")
             filtersX.forEach { filter ->
-                val events = sqlExec.filterList(filter) ?: run {
-                    // คืน EOSE ถ้า filterList คืนค่า null
-                    RelayResponse.EOSE(subscriptionId).toClient(session)
-                    return
-                }
-                events.forEachIndexed { _, event ->
+                sqlExec.filterList(filter)?.forEachIndexed { _, event ->
                     //val eventIndex = "${i+1}/${events.size}"
-                    //LOG.info("Relay Response event $eventIndex"
+                    //LOG.info("Relay Response event $eventIndex: $event")
                     RelayResponse.EVENT(subscriptionId, event).toClient(session)
                 }
             }
-            RelayResponse.EOSE(subscriptionId).toClient(session);
+            RelayResponse.EOSE(subscriptionId).toClient(session)
         } else {
             RelayResponse.NOTICE(warning).toClient(session)
         }

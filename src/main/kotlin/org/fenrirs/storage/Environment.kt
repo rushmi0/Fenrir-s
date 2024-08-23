@@ -1,4 +1,4 @@
-package org.fenrirs.stored
+package org.fenrirs.storage
 
 import io.github.cdimascio.dotenv.Dotenv
 import io.github.cdimascio.dotenv.dotenv

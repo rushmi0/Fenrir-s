@@ -9,7 +9,7 @@ import io.micronaut.core.io.ResourceResolver
 import io.micronaut.core.io.scan.ClassPathResourceLoader
 import jakarta.inject.Singleton
 
-import org.fenrirs.stored.Environment
+import org.fenrirs.storage.Environment
 import java.io.FileNotFoundException
 
 

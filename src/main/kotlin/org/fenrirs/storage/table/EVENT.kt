@@ -1,4 +1,4 @@
-package org.fenrirs.stored.table
+package org.fenrirs.storage.table
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json

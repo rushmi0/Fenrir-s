@@ -1,4 +1,4 @@
-package org.fenrirs.stored.service
+package org.fenrirs.storage.service
 
 import org.fenrirs.relay.policy.Event
 import org.fenrirs.relay.policy.FiltersX

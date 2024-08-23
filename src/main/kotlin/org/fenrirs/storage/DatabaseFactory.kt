@@ -1,11 +1,11 @@
-package org.fenrirs.stored
+package org.fenrirs.storage
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
-import org.fenrirs.stored.table.EVENT
+import org.fenrirs.storage.table.EVENT
 import org.fenrirs.utils.ExecTask.runWithVirtualThreadsPerTask
 
 import org.jetbrains.exposed.sql.Database

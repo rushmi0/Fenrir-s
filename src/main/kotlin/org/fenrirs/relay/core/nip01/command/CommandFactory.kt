@@ -12,7 +12,7 @@ import org.fenrirs.relay.core.nip01.Transform.toEvent
 import org.fenrirs.relay.core.nip01.Transform.toFiltersX
 import org.fenrirs.relay.core.nip01.Transform.validateElement
 import org.fenrirs.relay.policy.NostrRelayConfig
-import org.fenrirs.stored.Environment
+import org.fenrirs.storage.Environment
 
 import org.slf4j.LoggerFactory
 
