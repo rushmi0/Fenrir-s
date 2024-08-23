@@ -93,16 +93,18 @@ sealed class RelayResponse<out T> {
 //        }
 //    }
 
-    fun toClient(session: WebSocketSession) = runWithVirtualThreads {
-        when {
-            session.isOpen -> {
-                val payload = this@RelayResponse.toJson()
-                session.sendAsync(payload)
-                if (this@RelayResponse is CLOSED) {
-                    session.close()
+    fun toClient(session: WebSocketSession) {
+        runWithVirtualThreads {
+            when {
+                session.isOpen -> {
+                    val payload = this@RelayResponse.toJson()
+                    session.sendAsync(payload)
+                    if (this@RelayResponse is CLOSED) {
+                        session.close()
+                    }
                 }
+                else -> LOG.warn("$session is closed, cannot send message")
             }
-            else -> LOG.warn("$session is closed, cannot send message")
         }
     }
 
