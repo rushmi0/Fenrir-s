@@ -34,7 +34,7 @@ object DatabaseFactory {
     private fun hikariConfig(): HikariDataSource {
 
         val config = HikariConfig().apply {
-            // กำหนดชื่อไดรเวอร์ของฐานข้อมูล
+
             driverClassName = "org.postgresql.Driver"
 
             // กำหนด่าสำหรับการเชื่อมต่อกับฐานข้อมูล
@@ -45,7 +45,6 @@ object DatabaseFactory {
             minimumIdle = 2
             maximumPoolSize = 10
 
-            // กำหนดให้ไม่ทำ Auto Commit โดยอัตโนมัติ
             isAutoCommit = false
 
             idleTimeout = 60000
