@@ -1,27 +1,27 @@
-package org.fenrirs.stored.statement
+package org.fenrirs.storage.statement
 
 import io.micronaut.context.annotation.Bean
 import jakarta.inject.Inject
-import org.fenrirs.stored.service.StoredService
+import org.fenrirs.storage.service.StoredService
 
 import org.slf4j.LoggerFactory
 
 import org.fenrirs.relay.policy.Event
 import org.fenrirs.relay.policy.FiltersX
-import org.fenrirs.stored.DatabaseFactory.queryTask
-import org.fenrirs.stored.Environment
+import org.fenrirs.storage.DatabaseFactory.queryTask
+import org.fenrirs.storage.Environment
 
-import org.fenrirs.stored.table.EVENT
-import org.fenrirs.stored.table.EVENT.CONTENT
-import org.fenrirs.stored.table.EVENT.CREATED_AT
-import org.fenrirs.stored.table.EVENT.EVENT_ID
-import org.fenrirs.stored.table.EVENT.KIND
-import org.fenrirs.stored.table.EVENT.PUBKEY
-import org.fenrirs.stored.table.EVENT.SIG
-import org.fenrirs.stored.table.EVENT.TAGS
-import org.fenrirs.stored.table.plainToTsquery
-import org.fenrirs.stored.table.toTsvector
-import org.fenrirs.stored.table.match
+import org.fenrirs.storage.table.EVENT
+import org.fenrirs.storage.table.EVENT.CONTENT
+import org.fenrirs.storage.table.EVENT.CREATED_AT
+import org.fenrirs.storage.table.EVENT.EVENT_ID
+import org.fenrirs.storage.table.EVENT.KIND
+import org.fenrirs.storage.table.EVENT.PUBKEY
+import org.fenrirs.storage.table.EVENT.SIG
+import org.fenrirs.storage.table.EVENT.TAGS
+import org.fenrirs.storage.table.plainToTsquery
+import org.fenrirs.storage.table.toTsvector
+import org.fenrirs.storage.table.match
 
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -75,26 +75,44 @@ class StoredServiceImpl @Inject constructor(private val env: Environment) : Stor
                     query.andWhere { PUBKEY.inList(it) }
                 }
 
-                filters.kinds.takeIf { it.isNotEmpty() && filters.authors.isNotEmpty() }?.let { kinds ->
-
-                    /*
-                    * SELECT *
-                    * FROM event
-                    * WHERE pubkey = 'e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3'
-                    *   AND kind = 3
-                    * ORDER BY created_at DESC
-                    * LIMIT 1;
-                    * */
+                filters.kinds.takeIf { it.isNotEmpty() }?.let { kinds ->
 
                     when {
-                        kinds.contains(0) -> query.andWhere { KIND eq 0 }
-                        kinds.contains(3) -> query.andWhere { KIND eq 3 }
-                        kinds.contains(10002) -> query.andWhere { KIND eq 10002 }
+
+                        /**
+                         * SELECT *
+                         * FROM event
+                         * WHERE pubkey = 'e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3'
+                         *   AND kind = 3
+                         * ORDER BY created_at DESC
+                         * LIMIT 1;
+                         */
+
+                        // ถ้าค่า kinds เป็น 0 และมีการกำหนด authors สั่งให้ดึงข้อมูลที่มี CREATED_AT มากสุด
+                        kinds.contains(0) && filters.authors.isNotEmpty() -> {
+                            query.andWhere { KIND eq 0 }
+                                .orderBy(CREATED_AT to SortOrder.DESC)
+                                .limit(1)
+                        }
+
+                        // ถ้าค่า kinds เป็น 3 และมีการกำหนด authors สั่งให้ดึงข้อมูลที่มี KIND เท่ากับ 3 และ CREATED_AT มากสุด
+                        kinds.contains(3) && filters.authors.isNotEmpty() -> {
+                            query.andWhere { KIND eq 3 }
+                                .orderBy(CREATED_AT to SortOrder.DESC)
+                                .limit(1)
+                        }
+
+                        kinds.contains(10002) && filters.authors.isNotEmpty() -> {
+                            query.andWhere { KIND eq 10002 }
+                                .orderBy(CREATED_AT to SortOrder.DESC)
+                                .limit(10002)
+                        }
+
                         else -> query.andWhere { KIND.inList(kinds.map { it.toInt() }.toSet()) }
                     }
 
-                    query.orderBy(CREATED_AT to SortOrder.DESC).limit(1)
                 }
+
 
                 // ถ้ามีการระบุ tags ใน filters ให้เพิ่มเงื่อนไขการค้นหา TAGS ที่ตรงกับค่าที่กำหนด
                 filters.tags.forEach { (key, values) ->
@@ -133,7 +151,6 @@ class StoredServiceImpl @Inject constructor(private val env: Environment) : Stor
                     val limit = filters.limit?.toInt()?.coerceAtMost(env.MAX_LIMIT) ?: env.MAX_LIMIT
                     query.limit(limit)
                 }
-
 
                 // ดำเนินการ fetch ข้อมูลตามเงื่อนไขที่กำหนดแล้ว map ข้อมูลที่ได้มาเป็น Event objects
                 query.map { row ->

@@ -4,9 +4,9 @@ import jakarta.inject.Inject
 import org.fenrirs.relay.policy.FiltersX
 import org.fenrirs.relay.policy.TAG_E
 import org.fenrirs.relay.policy.NostrRelayConfig
-import org.fenrirs.stored.DatabaseFactory
-import org.fenrirs.stored.Environment
-import org.fenrirs.stored.statement.StoredServiceImpl
+import org.fenrirs.storage.DatabaseFactory
+import org.fenrirs.storage.Environment
+import org.fenrirs.storage.statement.StoredServiceImpl
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -25,6 +25,17 @@ class FilterSystemTest {
         DatabaseFactory.initialize()
 
         sqlExec = StoredServiceImpl(DatabaseFactory.ENV)
+    }
+
+    // ["REQ","hsZEOtaDsENYkP5H-JIWp",{"kinds": [1],"limit": 2}]
+    @Test
+    fun `test filterList`() {
+        val query = FiltersX(
+            kinds = setOf(1),
+            limit = 100
+        )
+        val data = sqlExec.filterList(query)
+        data!!.forEach(::println)
     }
 
     @Test
