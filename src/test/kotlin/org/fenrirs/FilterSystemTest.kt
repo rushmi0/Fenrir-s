@@ -1,13 +1,14 @@
 package org.fenrirs
 
 import jakarta.inject.Inject
+import org.fenrirs.relay.policy.Event
 import org.fenrirs.relay.policy.FiltersX
 import org.fenrirs.relay.policy.TAG_E
 import org.fenrirs.relay.policy.NostrRelayConfig
 import org.fenrirs.storage.DatabaseFactory
 import org.fenrirs.storage.Environment
 import org.fenrirs.storage.statement.StoredServiceImpl
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -27,15 +28,24 @@ class FilterSystemTest {
         sqlExec = StoredServiceImpl(DatabaseFactory.ENV)
     }
 
-    // ["REQ","hsZEOtaDsENYkP5H-JIWp",{"kinds": [1],"limit": 2}]
     @Test
     fun `test filterList`() {
+
         val query = FiltersX(
             kinds = setOf(1),
             limit = 100
         )
-        val data = sqlExec.filterList(query)
-        data!!.forEach(::println)
+
+        val data: List<Event>? = sqlExec.filterList(query)
+
+
+        assertTrue(data!!.isNotEmpty(), "Expected non-empty list of events")
+
+        // ตรวจสอบว่า kind ของทุก Event เป็น 1
+        data.forEach { event ->
+            assertEquals(1, event.kind, "Expected kind to be 1, but was ${event.kind}")
+        }
+
     }
 
     @Test
