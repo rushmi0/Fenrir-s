@@ -1,9 +1,5 @@
 FROM eclipse-temurin:21-jdk-jammy AS build
 RUN useradd -ms /bin/bash builder
-USER root
-
-RUN apt-get update && apt-get install -y dos2unix
-
 USER builder
 WORKDIR /home/builder/app
 
@@ -11,7 +7,7 @@ COPY --chown=builder:builder gradlew build.gradle.kts settings.gradle.kts gradle
 COPY --chown=builder:builder src ./src
 COPY --chown=builder:builder gradle ./gradle
 
-RUN dos2unix gradlew
+RUN sed -i 's/\r$//' gradlew
 
 RUN ./gradlew build -x test
 
