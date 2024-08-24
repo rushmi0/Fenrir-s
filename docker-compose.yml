@@ -29,7 +29,6 @@ services:
     ports:
       - "5432:5432"
 
-
   relay-app-jvm:
     container_name: relay-app-jvm
     restart: unless-stopped
@@ -41,6 +40,19 @@ services:
         condition: service_healthy
     ports:
       - "6724:6724"
+    networks:
+      - dev_network
+
+  relay-app-native:
+    container_name: relay-app-native
+    build:
+      context: .
+      dockerfile: Dockerfile.native
+    depends_on:
+      relay-db:
+        condition: service_healthy
+    ports:
+      - "6725:6724"
     networks:
       - dev_network
 
