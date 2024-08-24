@@ -1,7 +1,10 @@
 package org.fenrirs.utils
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
+import kotlinx.serialization.serializer
 import org.fenrirs.relay.policy.Event
 import org.slf4j.LoggerFactory
 import java.lang.management.ManagementFactory
@@ -72,9 +75,7 @@ object ShiftTo {
      * ฟังก์ชัน toJsonString ใช้ในการแปลงข้อมูลใดๆเป็นสตริง JSON
      * @return สตริง JSON ที่เป็นผลลัพธ์จากการแปลง Object
      */
-    fun Any.toJsonString(): String {
-        return jacksonObjectMapper().writeValueAsString(this)
-    }
+    fun Any.toJsonString(): String = jacksonObjectMapper().writeValueAsString(this)
 
     /**
      * ฟังก์ชัน toJsonElementMap ใช้ในการแปลงสตริง JSON เป็น Map ของ JsonElement

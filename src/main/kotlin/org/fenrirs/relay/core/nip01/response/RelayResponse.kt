@@ -1,10 +1,11 @@
 package org.fenrirs.relay.core.nip01.response
 
 import io.micronaut.websocket.WebSocketSession
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 import org.fenrirs.relay.policy.Event
 import org.fenrirs.utils.ExecTask.runWithVirtualThreads
-import org.fenrirs.utils.ShiftTo.toJsonString
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory
  * RelayResponse เป็นคลาสหลักที่ใช้ในการจัดการการตอบกลับของ Relay
  * สามารถมีหลายประเภทของการตอบกลับได้ โดยแต่ละประเภทจะถูกกำหนดเป็น subclass ของ RelayResponse
  */
+@Serializable(with = RelayResponseSerializer::class)
 sealed class RelayResponse<out T> {
 
     /**
@@ -61,15 +63,7 @@ sealed class RelayResponse<out T> {
      * ฟังก์ชัน toJson ใช้ในการแปลงข้อมูล ที่ใช้ในการตอบกลับจากรูปแบบ Kotlin Object ไปเป็น JSON string
      * @return JSON string ที่ใช้ในการตอบกลับ
      */
-    fun toJson(): String {
-        return when (this) {
-            is EVENT -> listOf("EVENT", subscriptionId, event).toJsonString()
-            is OK -> listOf("OK", eventId, isSuccess, message).toJsonString()
-            is EOSE -> listOf("EOSE", subscriptionId).toJsonString()
-            is CLOSED -> listOf("CLOSED", subscriptionId, message).toJsonString()
-            is NOTICE -> listOf("NOTICE", message).toJsonString()
-        }
-    }
+    fun toJson(): String = Json.encodeToString(RelayResponseSerializer, this)
 
     /**
      * ฟังก์ชัน toClient ใช้ในการส่งการตอบกลับไปยังไคลเอนต์ผ่าน WebSocket
