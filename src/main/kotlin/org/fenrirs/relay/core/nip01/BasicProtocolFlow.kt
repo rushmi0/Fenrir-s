@@ -1,6 +1,7 @@
 package org.fenrirs.relay.core.nip01
 
 import io.micronaut.context.annotation.Bean
+import io.micronaut.core.annotation.Introspected
 import io.micronaut.websocket.WebSocketSession
 
 import jakarta.inject.Inject
@@ -26,6 +27,7 @@ import org.fenrirs.utils.Color.RESET
 
 
 @Bean
+@Introspected
 class BasicProtocolFlow @Inject constructor(
     private val sqlExec: StoredServiceImpl,
     private val nip09: EventDeletion,

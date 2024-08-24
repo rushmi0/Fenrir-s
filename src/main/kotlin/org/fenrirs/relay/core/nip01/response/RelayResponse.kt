@@ -1,5 +1,6 @@
 package org.fenrirs.relay.core.nip01.response
 
+import io.micronaut.core.annotation.Introspected
 import io.micronaut.websocket.WebSocketSession
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory
  * RelayResponse เป็นคลาสหลักที่ใช้ในการจัดการการตอบกลับของ Relay
  * สามารถมีหลายประเภทของการตอบกลับได้ โดยแต่ละประเภทจะถูกกำหนดเป็น subclass ของ RelayResponse
  */
+@Introspected
 @Serializable(with = RelayResponseSerializer::class)
 sealed class RelayResponse<out T> {
 
