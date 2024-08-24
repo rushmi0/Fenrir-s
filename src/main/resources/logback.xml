@@ -4,18 +4,13 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>
-                [%boldMagenta(%d{dd-MM-yyyy})][%boldMagenta(%d{HH:mm:ss.SSS})] %green([%thread]) %highlight(%-5level) %boldYellow(%logger{36}) - %msg%n
+                [%boldMagenta(%d{yyyy-MM-dd HH:mm:ss.SSS,UTC})] %green([%thread]) %highlight(%-5level) %boldYellow(%logger{36}) - %msg%n
             </pattern>
         </encoder>
     </appender>
 
     <logger name="org.fenrirs.*" level="INFO"/>
     <logger name="io.micronaut.http.client" level="TRACE"/>
-    <!--    <Logger name="io.micronaut.context.condition" level="DEBUG"/>-->
-
-    <!--    <logger name="org.flywaydb.core" level="DEBUG"/>-->
-    <!--    <logger name="io.micronaut.flyway" level="INFO"/>-->
-    <!--    <logger name="com.zaxxer.hikari.pool" level="DEBUG"/>-->
 
     <logger name="io.micronaut.http.HttpStatus" level="DEBUG"/>
 
