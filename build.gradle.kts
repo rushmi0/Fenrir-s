@@ -26,8 +26,6 @@ dependencies {
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
-    implementation("io.github.reactivecircus.cache4k:cache4k:0.13.0")
-
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
     implementation("org.jetbrains.exposed:exposed-crypt:$exposedVersion")
@@ -124,8 +122,12 @@ graalvmNative {
     binaries {
         all {
             // * https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildOutput/?fbclid=IwAR007Rh7fYg-CJZywqhFM8PF5XDWPvgOfaV9txFDqpy6PWjtZp2bXpgncL0_aem_Af0UTqW_wKY5RFkebOwqrANSJn-d6fpSoJLMyra23KLgMNQuur3l75gjN29_Ymw1JYkeX7upxGBzGPFkJ4iRuojh
+            // * https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/MemoryManagement/
+
             buildArgs.add("-H:+AddAllCharsets")
             buildArgs.add("-R:MaxHeapSize=3G")
+            buildArgs.add("--gc=serial")
+            buildArgs.add("--verbose")
             buildArgs.add("--no-fallback")
             imageName.set("${project.name}-v$version")
             javaLauncher.set(javaToolchains.launcherFor {

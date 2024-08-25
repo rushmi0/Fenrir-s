@@ -8,9 +8,7 @@ COPY --chown=builder:builder src ./src
 COPY --chown=builder:builder gradle ./gradle
 
 RUN sed -i 's/\r$//' gradlew
-
 RUN ./gradlew build -x test
-
 
 FROM eclipse-temurin:21-jre-alpine
 RUN apk update && apk add --no-cache bash && rm -rf /var/cache/apk/*
@@ -26,4 +24,4 @@ COPY --chown=appuser:appgroup .env /app/.env
 
 EXPOSE 6724
 
-ENTRYPOINT ["java", "-Xms256m", "-Xmx4g", "-XX:+UseG1GC", "-jar", "fenrir-s-1.0-all-optimized.jar"]
+ENTRYPOINT ["java", "-Xms10m", "-Xmx4g", "-XX:+UseG1GC", "-jar", "fenrir-s-1.0-all-optimized.jar"]

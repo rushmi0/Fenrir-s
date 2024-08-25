@@ -8,6 +8,8 @@ import jakarta.inject.Singleton
 import org.fenrirs.storage.table.EVENT
 import org.fenrirs.utils.ExecTask.runWithVirtualThreadsPerTask
 
+import org.jetbrains.exposed.sql.StdOutSqlLogger
+import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -65,6 +67,7 @@ object DatabaseFactory {
 
     fun <T> queryTask(block: () -> T): T = runWithVirtualThreadsPerTask {
         transaction {
+            //addLogger(StdOutSqlLogger)
             block()
         }
     }

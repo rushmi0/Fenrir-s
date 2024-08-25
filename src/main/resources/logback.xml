@@ -1,5 +1,10 @@
 <configuration>
 
+    <!-- Enable SQL logging for Exposed -->
+<!--    <logger name="Exposed" level="DEBUG" />-->
+<!--    <logger name="org.jetbrains.exposed.sql.statements.Statement" level="TRACE" />-->
+
+
     <!-- Console Appender -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
