@@ -99,25 +99,37 @@ object ShiftTo {
      * @return ผลลัพธ์ของโค้ด
      */
     inline fun <T> measure(construct: String, crossinline block: () -> T): T {
-        // ขนาดหน่วยความจำที่ใช้งานก่อนการทำงาน
-        val memoryMXBean: MemoryMXBean = ManagementFactory.getMemoryMXBean()
-        val initialMemory = memoryMXBean.heapMemoryUsage.used
         val start = System.nanoTime()
+        System.gc()
         try {
             return block().also {
-                // ขนาดหน่วยความจำที่ใช้งานหลังจากการทำงาน
-                val finalMemory = memoryMXBean.heapMemoryUsage.used
-                val memoryUsed = finalMemory - initialMemory // คำนวณความแตกต่างของหน่วยความจำ
+                val memoryUsed = measureMemoryMultipleTimes()
                 val formattedMemoryUsed = formatMemorySize(memoryUsed)
-                LOG.info("Took: ${elapsedMillis(start)} ms for: $construct")
-                LOG.info("Memory used: $memoryUsed bytes ($formattedMemoryUsed)")
+                println("Took: ${elapsedMillis(start)} ms, Memory used: $formattedMemoryUsed | $construct")
             }
         } catch (ex: Throwable) {
-            LOG.error("Exception occurred. $construct. Exception: ${ex.message}")
+            println("Exception occurred. $construct. Exception: ${ex.message}")
             throw ex
         }
     }
 
+    /**
+     * ฟังก์ชันสำหรับวัดหน่วยความจำหลายครั้งและคำนวณค่าเฉลี่ย
+     * @return ค่าเฉลี่ยของหน่วยความจำที่ใช้งาน
+     */
+    fun measureMemoryMultipleTimes(): Long {
+        // อ่านค่าหน่วยความจำหลายครั้ง และคำนวณค่าเฉลี่ย
+        val measurements = List(100) {
+            ManagementFactory.getMemoryMXBean().heapMemoryUsage.used
+        }
+        return measurements.average().toLong()
+    }
+
+    /**
+     * ฟังก์ชันสำหรับคำนวณเวลาที่ใช้ในหน่วย milliseconds
+     * @param startNanos เวลาเริ่มต้นในหน่วย nanoseconds
+     * @return เวลาที่ใช้ในหน่วย milliseconds
+     */
     fun elapsedMillis(startNanos: Long): Long = TimeUnit.MILLISECONDS.convert(System.nanoTime() - startNanos, TimeUnit.NANOSECONDS)
 
 

@@ -1,13 +1,12 @@
 package org.fenrirs.relay.core.nip01
 
-import jakarta.inject.Singleton
-
 import kotlinx.serialization.json.*
 import org.fenrirs.relay.policy.TagElt
 
 import org.fenrirs.relay.policy.EventValidateField
 import org.fenrirs.relay.policy.FiltersXValidateField
 import org.fenrirs.relay.policy.NostrField
+import org.fenrirs.relay.policy.Event
 
 import org.fenrirs.relay.core.nip01.Transform.toEvent
 import org.fenrirs.relay.core.nip01.Transform.toFiltersX
@@ -15,22 +14,21 @@ import org.fenrirs.relay.core.nip01.VerifyEvent.isEventPublicKeyValid
 import org.fenrirs.relay.core.nip01.VerifyEvent.isValidEventId
 import org.fenrirs.relay.core.nip01.VerifyEvent.isValidSignature
 import org.fenrirs.relay.core.nip01.VerifyFilterX.validate
-
-import org.fenrirs.relay.policy.Event
+import org.fenrirs.utils.ExecTask.virtualCoroutine
 
 import org.slf4j.LoggerFactory
 
-@Singleton
+
 open class VerificationFactory {
 
-    fun validateElement(
+    suspend fun validateElement(
         receive: Map<String, JsonElement>,
         relayPolicy: Array<out NostrField>
-    ): Pair<Boolean, String> {
+    ): ValidationResult = virtualCoroutine withContext@{
         val (isFieldNamesValid, fieldNamesError) = checkFieldNames(receive, relayPolicy)
         val (isDataValid, dataError) = validateDataType(receive, relayPolicy)
 
-        return when {
+        return@withContext when {
             !isFieldNamesValid -> false to fieldNamesError
             !isDataValid -> false to dataError
             else -> true to ""
@@ -40,7 +38,7 @@ open class VerificationFactory {
     private fun checkFieldNames(
         receive: Map<String, JsonElement>,
         relayPolicy: Array<out NostrField>
-    ): Pair<Boolean, String> {
+    ): ValidationResult {
         val allowedFields = relayPolicy.map { it.fieldName }.toSet()
         val invalidFields: List<String> = receive.keys.filter { it !in allowedFields && !isValidTag(it) }
 
@@ -66,7 +64,7 @@ open class VerificationFactory {
     private fun validateDataType(
         receive: Map<String, JsonElement>,
         relayPolicy: Array<out NostrField>
-    ): Pair<Boolean, String> {
+    ): ValidationResult {
 
         receive.forEach { (fieldName, fieldValue) ->
             val expectedType = relayPolicy.find { policy -> policy.fieldName == fieldName }?.fieldType
@@ -101,35 +99,31 @@ open class VerificationFactory {
         }
     }
 
-    private fun determinePrimitiveType(receive: JsonPrimitive): Class<*> {
-        return when {
-            receive.isString -> String::class.java
-            receive.booleanOrNull != null -> Boolean::class.java
-            receive.longOrNull != null -> Long::class.java
-            receive.doubleOrNull != null -> Double::class.java
-            else -> Any::class.java
-        }
+    private fun determinePrimitiveType(receive: JsonPrimitive): Class<*> = when {
+        receive.isString -> String::class.java
+        receive.booleanOrNull != null -> Boolean::class.java
+        receive.longOrNull != null -> Long::class.java
+        receive.doubleOrNull != null -> Double::class.java
+        else -> Any::class.java
     }
 
     private fun inspectValue(
         receive: Map<String, JsonElement>,
         relayPolicy: Array<out NostrField>
-    ): Pair<Boolean, String> {
-        return when {
-            relayPolicy.isArrayOfPolicy<FiltersXValidateField>() -> validateFiltersX(receive)
-            relayPolicy.isArrayOfPolicy<EventValidateField>() -> validateEvent(receive)
-            else -> false to "unsupported: relay policy"
-        }
+    ): ValidationResult =  when {
+        relayPolicy.isArrayOfPolicy<FiltersXValidateField>() -> validateFiltersX(receive)
+        relayPolicy.isArrayOfPolicy<EventValidateField>() -> validateEvent(receive)
+        else -> false to "unsupported: relay policy"
     }
 
-    private fun validateFiltersX(receive: Map<String, JsonElement>): Pair<Boolean, String> {
+    private fun validateFiltersX(receive: Map<String, JsonElement>): ValidationResult {
         val filter = receive.toFiltersX()
 
         return filter.validate()
     }
 
 
-    private fun validateEvent(receive: Map<String, JsonElement>): Pair<Boolean, String> {
+    private fun validateEvent(receive: Map<String, JsonElement>): ValidationResult {
         val event: Event = receive.toEvent()
 
         val (isValidId, eventIdWarning) = event.isValidEventId()

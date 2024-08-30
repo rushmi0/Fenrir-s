@@ -40,7 +40,7 @@ object DatabaseFactory {
             driverClassName = "org.postgresql.Driver"
 
             // กำหนด่าสำหรับการเชื่อมต่อกับฐานข้อมูล
-            jdbcUrl = "${ENV.DATABASE_URL}/${ENV.DATABASE_NAME}"
+            jdbcUrl = "${ENV.DATABASE_URL}:${ENV.DATABASE_PORT}/${ENV.DATABASE_NAME}"
             username = ENV.DATABASE_USERNAME
             password = ENV.DATABASE_PASSWORD
 

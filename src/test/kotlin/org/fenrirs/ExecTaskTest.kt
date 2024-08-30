@@ -1,58 +1,71 @@
 package org.fenrirs
 
-import kotlinx.coroutines.*
-import org.fenrirs.utils.ExecTask
-import org.junit.jupiter.api.Assertions.assertDoesNotThrow
+import kotlinx.coroutines.runBlocking
+import org.fenrirs.utils.ExecTask.parallelIO
+import org.fenrirs.utils.ExecTask.runWithVirtualThreads
+import org.fenrirs.utils.ExecTask.runWithVirtualThreadsPerTask
+import org.fenrirs.utils.ExecTask.virtualCoroutine
+import org.fenrirs.utils.ShiftTo.measure
 import org.junit.jupiter.api.Test
-import java.util.concurrent.atomic.AtomicInteger
+import kotlin.random.Random
 
 class ExecTaskTest {
 
-    private val workload = 100_000
-
     @Test
-    fun `test Run With Virtual Threads Per Task`() {
-        val counter = AtomicInteger(0)
+    fun testPerformance() = runBlocking {
+        val tasks = listOf(1_000, 10_000, 100_000)
 
-        assertDoesNotThrow {
-           (1..workload).map { _ ->
-                ExecTask.runWithVirtualThreadsPerTask {
-                    counter.incrementAndGet()
+        tasks.forEach { taskCount ->
+            println("Running tests with $taskCount tasks")
+
+            // ทดสอบ runWithVirtualThreadsPerTask
+            measure("runWithVirtualThreadsPerTask") {
+                repeat(taskCount) {
+                    runWithVirtualThreadsPerTask {
+                        dummyTask()
+                    }
                 }
             }
-        }
 
-        println("Completed run Virtual Threads Per Task with $workload tasks")
-    }
-
-    @Test
-    fun `test Run With Virtual Threads`() {
-        val counter = AtomicInteger(0)
-
-        assertDoesNotThrow {
-            (1..workload).forEach { _ ->
-                ExecTask.runWithVirtualThreads {
-                    counter.incrementAndGet()
+            // ทดสอบ runWithVirtualThreads
+            measure("runWithVirtualThreads") {
+                repeat(taskCount) {
+                    runWithVirtualThreads {
+                        dummyTask()
+                    }
                 }
             }
-        }
 
-        println("Completed run Virtual Threads with $workload tasks")
-    }
-
-    @Test
-    fun `test Run With Coroutines`() = runBlocking {
-        val counter = AtomicInteger(0)
-
-        assertDoesNotThrow {
-            (1..workload).forEach { _ ->
-                launch {
-                    counter.incrementAndGet()
+            // ทดสอบ virtualCoroutine
+            measure("virtualCoroutine") {
+                runBlocking {
+                    repeat(taskCount) {
+                        virtualCoroutine {
+                            dummyTask()
+                        }
+                    }
                 }
             }
-        }
 
-        println("Completed run with Coroutines Dispatchers IO with $workload tasks")
+            // ทดสอบ parallelIO
+            measure("parallelIO") {
+                runBlocking {
+                    repeat(taskCount) {
+                        parallelIO {
+                            dummyTask()
+                        }
+                    }
+                }
+            }
+
+            println("Finished tests with $taskCount tasks\n")
+        }
     }
 
+    // ฟังก์ชันจำลองสำหรับทดสอบ
+    private fun dummyTask() {
+        // ทำงานบางอย่างที่ใช้เวลาและหน่วยความจำ
+        val data = List(1000) { Random.nextInt() }
+        data.sorted()
+    }
 }

@@ -13,6 +13,7 @@ import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
 
 import jakarta.inject.Inject
+import kotlinx.coroutines.runBlocking
 
 import org.fenrirs.relay.core.nip01.command.CLOSE
 import org.fenrirs.relay.core.nip01.command.EVENT
@@ -61,8 +62,7 @@ class Gateway @Inject constructor(
 
 
     @OnMessage(maxPayloadLength = 524288)
-    fun onMessage(message: String, session: WebSocketSession) {
-        //LOG.info("message: \n$message")
+    fun onMessage(message: String, session: WebSocketSession) = runBlocking {
         try {
 
             /*
@@ -80,7 +80,7 @@ class Gateway @Inject constructor(
             }
 
         } catch (e: IllegalArgumentException) {
-            LOG.error("${RED}Failed ${RESET}to handle command: ${e.message}")
+            LOG.error("handle command: ${RED}${e.message}")
             RelayResponse.NOTICE("ERROR: ${e.message}").toClient(session)
         }
     }
