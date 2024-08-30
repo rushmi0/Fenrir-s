@@ -2,6 +2,8 @@ package org.fenrirs.storage
 
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
+import io.micronaut.websocket.WebSocketSession
+import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.policy.FiltersX
 
 typealias SubscriptionData = Map<String, List<FiltersX>>
@@ -26,53 +28,62 @@ object Subscription {
 
     /**
      * เพิ่ม subscription ใหม่ให้กับ session ที่ระบุ
-     * @param sessionId session ID ที่ต้องการเพิ่ม subscription
+     * @param session session ID ที่ต้องการเพิ่ม subscription
      * @param subscriptionData ข้อมูล subscription ที่ต้องการเพิ่ม ซึ่งประกอบด้วย subscriptionId และ filters
      */
-    fun addSubscription(sessionId: String, subscriptionData: SubscriptionData) {
-        val existingSubscriptions = get<SubscriptionData>(sessionId)?.toMutableMap() ?: mutableMapOf()
+    fun addSubscription(session: WebSocketSession, subscriptionData: SubscriptionData) {
+        val existingSubscriptions = get<SubscriptionData>(session.id)?.toMutableMap() ?: mutableMapOf()
+
+        // ตรวจสอบ subscriptionId ซ้ำ
+        for (subscriptionId in subscriptionData.keys) {
+            if (existingSubscriptions.containsKey(subscriptionId)) {
+                RelayResponse.CLOSED("duplicate: $subscriptionId already opened").toClient(session)
+            }
+        }
+
+        // เพิ่มข้อมูลถ้าไม่มี subscriptionId ซ้ำ
         existingSubscriptions.putAll(subscriptionData)
-        set(sessionId, existingSubscriptions)
+        set(session.id, existingSubscriptions)
     }
 
     /**
-     * ดึงข้อมูลทั้งหมดของ session ที่ระบุ หรือข้อมูลเฉพาะของ subscription ที่ระบุ
-     * @param sessionId session ID ที่ต้องการดึงข้อมูล
-     * @param subscriptionId ID ของ subscription ที่ต้องการดึงข้อมูล (เป็น null หากต้องการข้อมูลทั้งหมด)
-     * @return ข้อมูล subscriptions ที่เก็บไว้ใน cache หรือ null หากไม่มีข้อมูล
+     * ดึงข้อมูลทั้งหมดของ session ที่ระบุ
+     * @param session session ID ที่ต้องการดึงข้อมูล
+     * @return ข้อมูลทั้งหมดของ session หรือ map ว่างหากไม่มีข้อมูล
      */
-    fun getSubscription(sessionId: String, subscriptionId: String? = null): Any? {
-        val subscriptions = get<SubscriptionData>(sessionId) ?: return null
+    fun getSession(session: WebSocketSession): SubscriptionData = get<SubscriptionData>(session.id) ?: mapOf()
 
-        return if (subscriptionId != null) {
-            subscriptions[subscriptionId]
-        } else {
-            subscriptions
-        }
+    /**
+     * ดึงข้อมูลเฉพาะของ subscriptionId ใน session ที่ระบุ
+     * @param session session ID ที่ต้องการดึงข้อมูล
+     * @param subscriptionId ID ของ subscription ที่ต้องการดึงข้อมูล
+     * @return ข้อมูลของ subscription ที่ระบุ หรือ list ว่างหากไม่พบข้อมูล
+     */
+    fun getSubscription(session: WebSocketSession, subscriptionId: String): List<FiltersX> {
+        return getSession(session)[subscriptionId] ?: emptyList()
     }
 
     /**
      * ลบ subscription จาก session ที่ระบุ
-     * @param sessionId session ID ที่ต้องการลบ subscription
+     * @param session session ID ที่ต้องการลบ subscription
      * @param subscriptionId ID ของ subscription ที่ต้องการลบ
      */
-    fun clearSubscription(sessionId: String, subscriptionId: String) {
-        val existingSubscriptions = get<SubscriptionData>(sessionId)?.toMutableMap()
+    fun clearSubscription(session: WebSocketSession, subscriptionId: String) {
+        val existingSubscriptions = get<SubscriptionData>(session.id)?.toMutableMap()
         existingSubscriptions?.remove(subscriptionId)
-        set(sessionId, existingSubscriptions ?: mapOf())
+        set(session.id, existingSubscriptions ?: mapOf())
     }
 
     /**
      * ลบข้อมูลทั้งหมดของ session ที่ระบุ
-     * @param sessionId session ID ที่ต้องการลบข้อมูลทั้งหมด
+     * @param session session ID ที่ต้องการลบข้อมูลทั้งหมด
      */
-    fun clearSession(sessionId: String) = remove(sessionId)
+    fun clearSession(session: WebSocketSession) = remove(session.id)
 
     /**
      * ดึงข้อมูลทั้งหมดจาก cache
      * @return ข้อมูลทั้งหมดที่เก็บไว้ใน cache
      */
-    fun getAllSessions(): Map<String, SubscriptionData> {
-        return config.asMap()
-    }
+    fun getAllSessions(): Map<String, SubscriptionData> = config.asMap()
+
 }

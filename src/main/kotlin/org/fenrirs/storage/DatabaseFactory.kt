@@ -49,9 +49,9 @@ object DatabaseFactory {
 
             isAutoCommit = false
 
-            idleTimeout = 60000
-            keepaliveTime = 60000
-            maxLifetime = 2000000
+            idleTimeout = 30000
+            keepaliveTime = 30000
+            maxLifetime = 1800000
             leakDetectionThreshold = 30000
             validationTimeout = 3000
 
