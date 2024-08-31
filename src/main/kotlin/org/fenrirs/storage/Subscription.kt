@@ -3,7 +3,6 @@ package org.fenrirs.storage
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.micronaut.websocket.WebSocketSession
-import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.policy.FiltersX
 
 typealias SubscriptionData = Map<String, List<FiltersX>>
