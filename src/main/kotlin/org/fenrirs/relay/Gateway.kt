@@ -13,7 +13,6 @@ import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
 
 import jakarta.inject.Inject
-import kotlinx.coroutines.runBlocking
 
 import org.fenrirs.relay.core.nip01.command.CLOSE
 import org.fenrirs.relay.core.nip01.command.EVENT
@@ -22,6 +21,7 @@ import org.fenrirs.relay.core.nip01.command.CommandFactory.parse
 import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip01.BasicProtocolFlow
 import org.fenrirs.relay.core.nip11.RelayInformation
+import org.fenrirs.storage.Subscription.clearSession
 
 import org.fenrirs.utils.Color.BLUE
 import org.fenrirs.utils.Color.GREEN
@@ -62,7 +62,7 @@ class Gateway @Inject constructor(
 
 
     @OnMessage(maxPayloadLength = 524288)
-    fun onMessage(message: String, session: WebSocketSession) = runBlocking {
+    fun onMessage(message: String, session: WebSocketSession) {
         try {
 
             /*
@@ -88,6 +88,8 @@ class Gateway @Inject constructor(
     @OnClose
     fun onClose(session: WebSocketSession) {
         LOG.info("${PURPLE}close: ${RESET}$session")
+        // ลบข้อมูลทั้งหมดของ session ที่ระบุ
+        clearSession(session)
     }
 
     companion object {

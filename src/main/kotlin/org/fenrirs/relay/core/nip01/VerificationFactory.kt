@@ -14,21 +14,20 @@ import org.fenrirs.relay.core.nip01.VerifyEvent.isEventPublicKeyValid
 import org.fenrirs.relay.core.nip01.VerifyEvent.isValidEventId
 import org.fenrirs.relay.core.nip01.VerifyEvent.isValidSignature
 import org.fenrirs.relay.core.nip01.VerifyFilterX.validate
-import org.fenrirs.utils.ExecTask.virtualCoroutine
 
 import org.slf4j.LoggerFactory
 
 
 open class VerificationFactory {
 
-    suspend fun validateElement(
+    fun validateElement(
         receive: Map<String, JsonElement>,
         relayPolicy: Array<out NostrField>
-    ): ValidationResult = virtualCoroutine withContext@{
+    ): ValidationResult {
         val (isFieldNamesValid, fieldNamesError) = checkFieldNames(receive, relayPolicy)
         val (isDataValid, dataError) = validateDataType(receive, relayPolicy)
 
-        return@withContext when {
+        return when {
             !isFieldNamesValid -> false to fieldNamesError
             !isDataValid -> false to dataError
             else -> true to ""

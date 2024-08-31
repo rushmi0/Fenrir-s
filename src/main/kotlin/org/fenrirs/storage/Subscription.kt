@@ -54,11 +54,11 @@ object Subscription {
     }
 
     /**
-     * บันทึก subscription ใหม่ หรืออัพเดต subscription ที่มีอยู่แล้วใน session ที่ระบุ
+     * บันทึก subscription ใหม่ใน session ที่ระบุ
      * @param session session ID ที่ต้องการบันทึก subscription
      * @param subscriptionId ID ของ subscription ที่ต้องการบันทึก
      * @param filtersX รายการของ filters ที่เกี่ยวข้องกับ subscription
-     * โดยฟังก์ชันนี้จะใช้ในการบันทึกข้อมูล subscription ที่ระบุลงใน cache
+     * โดยฟังก์ชันนี้จะใช้ในการบันทึกข้อมูล subscription ที่ระบุลงในระบบ
      * หาก subscriptionId มีอยู่แล้ว จะทำการอัพเดตข้อมูล filters ของ subscription นั้น
      */
     fun saveSubscription(session: WebSocketSession, subscriptionId: String, filtersX: List<FiltersX>) {
@@ -67,17 +67,17 @@ object Subscription {
     }
 
     /**
-     * ตรวจสอบว่า subscription ที่ระบุใน session นั้นยังคง active อยู่หรือไม่
+     * ตรวจสอบว่า subscription ที่ระบุใน session นั้นยังคงมีอยู่หรือไม่
      * @param session session ID ที่ต้องการตรวจสอบ subscription
      * @param subscriptionId ID ของ subscription ที่ต้องการตรวจสอบสถานะ
-     * @return true ถ้า subscription นั้นยังคง active อยู่ (มี filters ที่เกี่ยวข้อง)
-     *         false ถ้า subscription นั้นไม่ active หรือไม่มี filters ที่เกี่ยวข้อง
-     * ฟังก์ชันนี้จะทำการดึงข้อมูล filters ของ subscription จาก cache
+     * @return true ถ้า subscription นั้นยังคงอยู่ (มี filters ที่เกี่ยวข้อง)
+     *         false ถ้า subscription นั้นไม่มีอยู่ในระบบแล้ว
+     * ฟังก์ชันนี้จะทำการดึงข้อมูล filters ของ subscription จากระบบ
      * ถ้ามี filters ที่เกี่ยวข้องอยู่ในรายการแสดงว่ามี subscription ที่ยัง active
      */
     fun isSubscriptionActive(session: WebSocketSession, subscriptionId: String): Boolean {
         val filters: List<FiltersX> = getSubscription(session, subscriptionId)
-        return filters.isNotEmpty() // ถ้าพบ filters ที่ตรงกัน, subscription นั้นยัง active อยู่
+        return filters.isNotEmpty()
     }
 
     /**

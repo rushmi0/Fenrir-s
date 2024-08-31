@@ -77,11 +77,8 @@ sealed class RelayResponse<out T> {
         when {
             session.isOpen -> {
                 val payload = this@RelayResponse.toJson()
-                //LOG.info("payload: $payload")
+                LOG.info("payload: $payload")
                 session.sendAsync(payload)
-                if (this@RelayResponse is CLOSED) {
-                    session.close()
-                }
             }
 
             else -> LOG.warn("$session is closed, cannot send message")

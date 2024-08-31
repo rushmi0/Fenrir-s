@@ -5,6 +5,7 @@ import io.micronaut.core.annotation.Introspected
 import io.micronaut.websocket.WebSocketSession
 
 import jakarta.inject.Inject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 
@@ -16,6 +17,12 @@ import org.fenrirs.relay.core.nip09.EventDeletion
 import org.fenrirs.relay.core.nip13.ProofOfWork
 
 import org.fenrirs.storage.Environment
+import org.fenrirs.storage.Subscription
+import org.fenrirs.storage.Subscription.addSubscription
+import org.fenrirs.storage.Subscription.clearSubscription
+import org.fenrirs.storage.Subscription.getSubscription
+import org.fenrirs.storage.Subscription.isSubscriptionActive
+import org.fenrirs.storage.Subscription.saveSubscription
 import org.fenrirs.storage.statement.StoredServiceImpl
 
 import org.fenrirs.utils.Color.YELLOW
@@ -24,6 +31,7 @@ import org.fenrirs.utils.Color.GREEN
 import org.fenrirs.utils.Color.PURPLE
 import org.fenrirs.utils.Color.RED
 import org.fenrirs.utils.Color.RESET
+import java.util.concurrent.TimeUnit
 
 
 @Bean
@@ -251,11 +259,19 @@ class BasicProtocolFlow @Inject constructor(
         session: WebSocketSession
     ) {
         if (status) {
-            handleValidRequest(subscriptionId, filtersX, session)
+            if (isSubscriptionActive(session, subscriptionId)) {
+                // ถ้า subscriptionId ซ้ำกับในระบบที่มีอยู่
+                RelayResponse.CLOSED("duplicate: $subscriptionId already opened").toClient(session)
+            } else {
+                // ถ้า subscriptionId ไม่ซ้ำ
+                saveSubscription(session, subscriptionId, filtersX)
+                handleValidRequest(subscriptionId, filtersX, session)
+            }
         } else {
             RelayResponse.NOTICE(warning).toClient(session)
         }
     }
+
 
 
     /**
@@ -273,12 +289,26 @@ class BasicProtocolFlow @Inject constructor(
         LOG.info("${GREEN}filters ${YELLOW}[${filtersX.size}] ${RESET}req subscription ID: ${CYAN}$subscriptionId ${RESET}")
         filtersX.forEach { filter ->
             sqlExec.filterList(filter)?.forEach { event ->
+                LOG.info("${YELLOW}res event  $event")
                 RelayResponse.EVENT(subscriptionId, event).toClient(session)
             }
         }
         RelayResponse.EOSE(subscriptionId).toClient(session)
-    }
 
+        // ใช้ do-while loop เพื่อตรวจสอบ session และ subscriptionId อย่างต่อเนื่อง
+        do {
+            val currentTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
+
+            val updatedFiltersX = getSubscription(session, subscriptionId).map { it.copy(since = currentTime - 10, until = currentTime) }
+
+            updatedFiltersX.forEach { filter ->
+                sqlExec.filterList(filter)?.forEach { event ->
+                    LOG.info("${YELLOW}update req: $event $session")
+                    RelayResponse.EVENT(subscriptionId, event).toClient(session)
+                }
+            }
+        } while (isSubscriptionActive(session, subscriptionId))
+    }
 
     /**
      * ฟังก์ชัน onClose ใช้ในการจัดการคำขอปิดการเชื่อมต่อ WebSocket
@@ -288,6 +318,8 @@ class BasicProtocolFlow @Inject constructor(
      */
     fun onClose(subscriptionId: String, session: WebSocketSession) {
         LOG.info("${PURPLE}close ${RESET}subscription ID: $subscriptionId")
+        // ลบ subscription จาก session ที่ระบุ
+        clearSubscription(session, subscriptionId)
         RelayResponse.CLOSED(subscriptionId).toClient(session)
     }
 

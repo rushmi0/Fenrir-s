@@ -29,7 +29,7 @@ object CommandFactory {
      * ฟังก์ชันนี้จะทำการตรวจสอบรูปแบบของ JSON และระบุประเภทคำสั่ง (เช่น EVENT, REQ, CLOSE)
      * แล้วส่งต่อไปยังฟังก์ชันที่เหมาะสมเพื่อประมวลผลคำสั่งนั้น ๆ
      */
-    suspend fun parse(payload: String): CommandParseResult {
+    fun parse(payload: String): CommandParseResult {
         val jsonElement = try {
             Json.parseToJsonElement(payload)
         } catch (e: Exception) {
@@ -54,7 +54,7 @@ object CommandFactory {
      * @return ผลลัพธ์เป็นคู่ของคำสั่ง EVENT และผลการตรวจสอบความถูกต้อง
      * ฟังก์ชันนี้จะทำการแปลงข้อมูล JSON เป็นอ็อบเจ็กต์ Event และตรวจสอบความถูกต้องของข้อมูล
      */
-    private suspend fun parseEvent(jsonArray: JsonArray): EventCommandResult {
+    private fun parseEvent(jsonArray: JsonArray): EventCommandResult {
         if (jsonArray.size != 2 || jsonArray[1] !is JsonObject) {
             throw IllegalArgumentException("invalid: EVENT command format")
         }
@@ -73,7 +73,7 @@ object CommandFactory {
      * ฟังก์ชันนี้จะทำการตรวจสอบจำนวน filters ที่กำหนดใน env.MAX_FILTERS
      * และตรวจสอบความถูกต้องของข้อมูล filtersX
      */
-    private suspend fun parseREQ(jsonArray: JsonArray): EventCommandResult {
+    private fun parseREQ(jsonArray: JsonArray): EventCommandResult {
         if (jsonArray.size < 3 || jsonArray[1] !is JsonPrimitive || jsonArray.drop(2).any { it !is JsonObject }) {
             throw IllegalArgumentException("invalid: REQ command format")
         }
