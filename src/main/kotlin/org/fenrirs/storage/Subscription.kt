@@ -26,7 +26,6 @@ object Subscription {
 
     private fun remove(key: String) = config.invalidate(key)
 
-
     /**
      * เพิ่ม subscription ใหม่ให้กับ session ที่ระบุ
      * @param session session ID ที่ต้องการเพิ่ม subscription
@@ -38,14 +37,12 @@ object Subscription {
         set(session.id, existingSubscriptions)
     }
 
-
     /**
      * ดึงข้อมูลทั้งหมดของ session ที่ระบุ
      * @param session session ID ที่ต้องการดึงข้อมูล
      * @return ข้อมูลทั้งหมดของ session หรือ map ว่างหากไม่มีข้อมูล
      */
     fun getSession(session: WebSocketSession): SubscriptionData = get<SubscriptionData>(session.id) ?: mapOf()
-
 
     /**
      * ดึงข้อมูลเฉพาะของ subscriptionId ใน session ที่ระบุ
@@ -56,7 +53,6 @@ object Subscription {
     fun getSubscription(session: WebSocketSession, subscriptionId: String): List<FiltersX> {
         return getSession(session)[subscriptionId] ?: emptyList()
     }
-
 
     /**
      * บันทึก subscription ใหม่ หรืออัพเดต subscription ที่มีอยู่แล้วใน session ที่ระบุ
@@ -70,7 +66,6 @@ object Subscription {
         val subscriptionData = mapOf(subscriptionId to filtersX)
         addSubscription(session, subscriptionData)
     }
-
 
     /**
      * ตรวจสอบว่า subscription ที่ระบุใน session นั้นยังคง active อยู่หรือไม่
@@ -86,7 +81,6 @@ object Subscription {
         return filters.isNotEmpty() // ถ้าพบ filters ที่ตรงกัน, subscription นั้นยัง active อยู่
     }
 
-
     /**
      * ลบ subscription จาก session ที่ระบุ
      * @param session session ID ที่ต้องการลบ subscription
@@ -98,13 +92,11 @@ object Subscription {
         set(session.id, existingSubscriptions ?: mapOf())
     }
 
-
     /**
      * ลบข้อมูลทั้งหมดของ session ที่ระบุ
      * @param session session ID ที่ต้องการลบข้อมูลทั้งหมด
      */
     fun clearSession(session: WebSocketSession) = remove(session.id)
-
 
     /**
      * ดึงข้อมูลทั้งหมดจาก cache
