@@ -44,7 +44,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     fun onEvent(event: Event, status: Boolean, warning: String, session: WebSocketSession) = runBlocking {
-        //LOG.info("Received event: $event")
+        LOG.info("Received event: $event")
 
         if (!status) {
             // ส่งคำตอบกลับให้ไคลเอนต์ว่าไม่สามารถดำเนินการได้เพราะอะไร
@@ -251,18 +251,32 @@ class BasicProtocolFlow @Inject constructor(
         session: WebSocketSession
     ) {
         if (status) {
-            LOG.info("${GREEN}filters ${YELLOW}[${filtersX.size}] ${RESET}req subscription ID: ${CYAN}$subscriptionId ${RESET}")
-            filtersX.forEach { filter ->
-                sqlExec.filterList(filter)?.forEachIndexed { _, event ->
-                    //val eventIndex = "${i+1}/${sqlExec.filterList(filter)!!.size}"
-                    //LOG.info("Relay Response event $eventIndex: $event")
-                    RelayResponse.EVENT(subscriptionId, event).toClient(session)
-                }
-            }
-            RelayResponse.EOSE(subscriptionId).toClient(session)
+            handleValidRequest(subscriptionId, filtersX, session)
         } else {
             RelayResponse.NOTICE(warning).toClient(session)
         }
+    }
+
+
+    /**
+     * ฟังก์ชัน handleValidRequest ใช้ในการจัดการการร้องขอที่มีสถานะเป็น true
+     *
+     * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงการร้องขอนั้นๆ จากไคลเอนต์
+     * @param filtersX คำขอข้อมูลที่ไคลเอนต์ต้องการ
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     */
+    private fun handleValidRequest(
+        subscriptionId: String,
+        filtersX: List<FiltersX>,
+        session: WebSocketSession
+    ) {
+        LOG.info("${GREEN}filters ${YELLOW}[${filtersX.size}] ${RESET}req subscription ID: ${CYAN}$subscriptionId ${RESET}")
+        filtersX.forEach { filter ->
+            sqlExec.filterList(filter)?.forEach { event ->
+                RelayResponse.EVENT(subscriptionId, event).toClient(session)
+            }
+        }
+        RelayResponse.EOSE(subscriptionId).toClient(session)
     }
 
 
