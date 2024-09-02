@@ -74,12 +74,14 @@ sealed class RelayResponse<out T> {
      * ฟังก์ชัน toClient ใช้ในการส่งการตอบกลับไปยังไคลเอนต์ผ่าน WebSocket
      * @param session ใช้ในการสื่อสารกับไคลเอนต์
      */
-    fun toClient(session: WebSocketSession) = runWithVirtualThreads {
+    fun toClient(session: WebSocketSession) {
         when {
             session.isOpen -> {
                 val payload = this@RelayResponse.toJson()
                 LOG.info("$session payload: $payload")
-                session.sendAsync(payload)
+                val res = session.sendAsync(payload)
+                LOG.info("res: $res")
+                res
                 if (this@RelayResponse is CLOSED) {
                     // ลบ subscription จาก session ที่ระบุ
                     clearSubscription(session, subscriptionId)
