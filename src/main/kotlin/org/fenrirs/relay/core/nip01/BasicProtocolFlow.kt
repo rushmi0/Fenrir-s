@@ -5,7 +5,6 @@ import io.micronaut.core.annotation.Introspected
 import io.micronaut.websocket.WebSocketSession
 
 import jakarta.inject.Inject
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 
@@ -17,9 +16,6 @@ import org.fenrirs.relay.core.nip09.EventDeletion
 import org.fenrirs.relay.core.nip13.ProofOfWork
 
 import org.fenrirs.storage.Environment
-import org.fenrirs.storage.Subscription
-import org.fenrirs.storage.Subscription.addSubscription
-import org.fenrirs.storage.Subscription.clearSubscription
 import org.fenrirs.storage.Subscription.getSubscription
 import org.fenrirs.storage.Subscription.isSubscriptionActive
 import org.fenrirs.storage.Subscription.saveSubscription
@@ -289,7 +285,6 @@ class BasicProtocolFlow @Inject constructor(
         LOG.info("${GREEN}filters ${YELLOW}[${filtersX.size}] ${RESET}req subscription ID: ${CYAN}$subscriptionId ${RESET}")
         filtersX.forEach { filter ->
             sqlExec.filterList(filter)?.forEach { event ->
-                LOG.info("${YELLOW}res event  $event")
                 RelayResponse.EVENT(subscriptionId, event).toClient(session)
             }
         }
@@ -299,11 +294,10 @@ class BasicProtocolFlow @Inject constructor(
         do {
             val currentTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
 
-            val updatedFiltersX = getSubscription(session, subscriptionId).map { it.copy(since = currentTime - 10, until = currentTime) }
+            val updatedFiltersX = getSubscription(session, subscriptionId).map { it.copy(since = currentTime) }
 
             updatedFiltersX.forEach { filter ->
                 sqlExec.filterList(filter)?.forEach { event ->
-                    LOG.info("${YELLOW}update req: $event $session")
                     RelayResponse.EVENT(subscriptionId, event).toClient(session)
                 }
             }
@@ -318,8 +312,6 @@ class BasicProtocolFlow @Inject constructor(
      */
     fun onClose(subscriptionId: String, session: WebSocketSession) {
         LOG.info("${PURPLE}close ${RESET}subscription ID: $subscriptionId")
-        // ลบ subscription จาก session ที่ระบุ
-        clearSubscription(session, subscriptionId)
         RelayResponse.CLOSED(subscriptionId).toClient(session)
     }
 

@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 import org.fenrirs.relay.policy.Event
+import org.fenrirs.storage.Subscription.clearSubscription
 import org.fenrirs.utils.ExecTask.runWithVirtualThreads
 
 import org.slf4j.Logger
@@ -77,8 +78,12 @@ sealed class RelayResponse<out T> {
         when {
             session.isOpen -> {
                 val payload = this@RelayResponse.toJson()
-                LOG.info("payload: $payload")
+                LOG.info("$session payload: $payload")
                 session.sendAsync(payload)
+                if (this@RelayResponse is CLOSED) {
+                    // ลบ subscription จาก session ที่ระบุ
+                    clearSubscription(session, subscriptionId)
+                }
             }
 
             else -> LOG.warn("$session is closed, cannot send message")
