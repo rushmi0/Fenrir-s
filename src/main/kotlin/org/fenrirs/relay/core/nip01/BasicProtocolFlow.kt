@@ -76,7 +76,7 @@ class BasicProtocolFlow @Inject constructor(
             // บังคับทำ Proof of Work ถ้า pass เป็น false และ event.pubkey ไม่เท่ากับ relayOwner
             !followsPass && event.pubkey != relayOwner -> handleEventWithPolicy(event, session, work)
 
-            else -> RelayResponse.OK(event.id!!, false, "blocked: permission denied").toClient(session)
+            else -> RelayResponse.OK(event.id!!, false, "blocked: no permission").toClient(session)
         }
     }
 
