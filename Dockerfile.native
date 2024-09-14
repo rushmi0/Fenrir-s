@@ -8,6 +8,7 @@ COPY --chown=builder:builder src ./src
 COPY --chown=builder:builder gradle ./gradle
 
 RUN sed -i 's/\r$//' gradlew
+RUN chmod +x ./gradlew
 RUN ./gradlew nativeOptimizedCompile
 
 FROM alpine:latest
