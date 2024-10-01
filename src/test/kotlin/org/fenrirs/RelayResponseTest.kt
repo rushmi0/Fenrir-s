@@ -53,7 +53,7 @@ class RelayResponseTest {
 
     @Test
     fun `test CLOSED response to JSON String`() {
-        val response = RelayResponse.CLOSED("hsZEOtaDsENYkP5H", "Connection closed")
+        val response = RelayResponse.CANCEL("hsZEOtaDsENYkP5H", "Connection closed")
         val expectedJson = """["CLOSED","hsZEOtaDsENYkP5H","Connection closed"]"""
 
         val actualJson = response.toJson()

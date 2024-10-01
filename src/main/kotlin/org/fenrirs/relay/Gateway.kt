@@ -8,11 +8,13 @@ import io.micronaut.http.annotation.Header
 
 import io.micronaut.websocket.WebSocketSession
 import io.micronaut.websocket.annotation.OnClose
+import io.micronaut.websocket.annotation.OnError
 import io.micronaut.websocket.annotation.OnMessage
 import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
 
 import jakarta.inject.Inject
+import kotlinx.coroutines.runBlocking
 
 import org.fenrirs.relay.core.nip01.command.CLOSE
 import org.fenrirs.relay.core.nip01.command.EVENT
@@ -22,6 +24,7 @@ import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip01.BasicProtocolFlow
 import org.fenrirs.relay.core.nip11.RelayInformation
 import org.fenrirs.storage.Subscription.clearSession
+import org.fenrirs.storage.Subscription.getAllSessions
 
 import org.fenrirs.utils.Color.BLUE
 import org.fenrirs.utils.Color.GREEN
@@ -41,15 +44,17 @@ class Gateway @Inject constructor(
     private val nip11: RelayInformation
 ) {
 
+
     @OnOpen
     fun onOpen(session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): HttpResponse<String>? {
         session?.let {
-            LOG.info("${GREEN}open$RESET $session")
+            LOG.info("sec: ${getAllSessions().size}")
+            LOG.info("${GREEN}open$RESET ${session.id}")
             return@let HttpResponse.ok("Session opened")
                 .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         }
 
-        LOG.info("${YELLOW}accept: $RESET$accept ${BLUE}session: $RESET$session")
+        LOG.info("${YELLOW}accept: $RESET$accept ${BLUE}session: $RESET${session?.id}")
         val contentType = when {
             accept == "application/nostr+json" -> MediaType.APPLICATION_JSON
             else -> MediaType.TEXT_HTML
@@ -62,7 +67,7 @@ class Gateway @Inject constructor(
 
 
     @OnMessage(maxPayloadLength = 524288)
-    fun onMessage(message: String, session: WebSocketSession) {
+    fun onMessage(session: WebSocketSession, message: String) {
         try {
 
             /*
@@ -88,7 +93,6 @@ class Gateway @Inject constructor(
     @OnClose
     fun onClose(session: WebSocketSession) {
         LOG.info("${PURPLE}close: ${RESET}$session")
-        // ลบข้อมูลทั้งหมดของ session ที่ระบุ
         clearSession(session)
     }
 

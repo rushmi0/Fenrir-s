@@ -32,12 +32,12 @@ object VerifyFilterX {
     }
 
 
-    private fun FiltersX.isValidSinceUntil(): Pair<Boolean, String> {
-        if (since != null && until != null && since >= until) {
-            return false to "invalid: since '$since' should be less than until '$until'"
-        }
-        return true to ""
-    }
+//    private fun FiltersX.isValidSinceUntil(): Pair<Boolean, String> {
+//        if (since != null && until != null && since >= until) {
+//            return false to "invalid: since '$since' should be less than until '$until'"
+//        }
+//        return true to ""
+//    }
 
     private fun FiltersX.isValidLimit(): Pair<Boolean, String> {
         if (limit != null && limit < 0) {
@@ -51,7 +51,7 @@ object VerifyFilterX {
             !isValidIds().first -> isValidIds()
             !isValidAuthors().first -> isValidAuthors()
             !isValidKinds().first -> isValidKinds()
-            !isValidSinceUntil().first -> isValidSinceUntil()
+            //!isValidSinceUntil().first -> isValidSinceUntil()
             !isValidLimit().first -> isValidLimit()
             else -> true to ""
         }

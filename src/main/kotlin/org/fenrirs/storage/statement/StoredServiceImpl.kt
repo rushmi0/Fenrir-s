@@ -27,8 +27,6 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.json.contains
 
-
-
 @Bean
 class StoredServiceImpl @Inject constructor(private val env: Environment) : StoredService {
 

@@ -3,9 +3,11 @@ package org.fenrirs.storage
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.micronaut.websocket.WebSocketSession
+
+import org.fenrirs.relay.core.nip01.SubscriptionData
 import org.fenrirs.relay.policy.FiltersX
 
-typealias SubscriptionData = Map<String, List<FiltersX>>
+import org.slf4j.LoggerFactory
 
 object Subscription {
 
@@ -68,17 +70,28 @@ object Subscription {
 
     /**
      * ตรวจสอบว่า subscription ที่ระบุใน session นั้นยังคงมีอยู่หรือไม่
+     * และตรวจสอบว่า WebSocketSession นั้นยังเปิดอยู่หรือไม่
      * @param session session ID ที่ต้องการตรวจสอบ subscription
      * @param subscriptionId ID ของ subscription ที่ต้องการตรวจสอบสถานะ
-     * @return true ถ้า subscription นั้นยังคงอยู่ (มี filters ที่เกี่ยวข้อง)
-     *         false ถ้า subscription นั้นไม่มีอยู่ในระบบแล้ว
-     * ฟังก์ชันนี้จะทำการดึงข้อมูล filters ของ subscription จากระบบ
-     * ถ้ามี filters ที่เกี่ยวข้องอยู่ในรายการแสดงว่ามี subscription ที่ยัง active
+     * @return true ถ้า subscription นั้นยังคงอยู่ (มี filters ที่เกี่ยวข้องและ WebSocketSession ยังเปิดอยู่)
+     *         false ถ้า subscription นั้นไม่มีอยู่ในระบบแล้วหรือ WebSocketSession ถูกปิดไปแล้ว
      */
     fun isSubscriptionActive(session: WebSocketSession, subscriptionId: String): Boolean {
+        // ตรวจสอบว่า session ยังเปิดอยู่หรือไม่
+        if (!session.isOpen) {
+            // ถ้า session ถูกปิดไปแล้ว ให้ล้างข้อมูล session นั้นออก
+            clearSession(session)
+            LOG.info("Clear Session: $session")
+            return false
+        }
+        LOG.info("session: $session")
+
+        // ตรวจสอบว่ามี subscription ที่เกี่ยวข้องหรือไม่
         val filters: List<FiltersX> = getSubscription(session, subscriptionId)
+        LOG.info("Subscription ${filters.size}: $filters")
         return filters.isNotEmpty()
     }
+
 
     /**
      * ลบ subscription จาก session ที่ระบุ
@@ -102,5 +115,7 @@ object Subscription {
      * @return ข้อมูลทั้งหมดที่เก็บไว้ใน cache
      */
     fun getAllSessions(): Map<String, SubscriptionData> = config.asMap()
+
+    private val LOG = LoggerFactory.getLogger(Subscription::class.java)
 
 }

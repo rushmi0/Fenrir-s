@@ -5,6 +5,7 @@ import io.micronaut.core.annotation.Introspected
 import io.micronaut.websocket.WebSocketSession
 
 import jakarta.inject.Inject
+
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 
@@ -27,8 +28,8 @@ import org.fenrirs.utils.Color.GREEN
 import org.fenrirs.utils.Color.PURPLE
 import org.fenrirs.utils.Color.RED
 import org.fenrirs.utils.Color.RESET
+import java.lang.Thread.sleep
 import java.util.concurrent.TimeUnit
-
 
 @Bean
 @Introspected
@@ -257,7 +258,7 @@ class BasicProtocolFlow @Inject constructor(
         if (status) {
             if (isSubscriptionActive(session, subscriptionId)) {
                 // ถ้า subscriptionId ซ้ำกับในระบบที่มีอยู่
-                RelayResponse.CLOSED("duplicate: $subscriptionId already opened").toClient(session)
+                RelayResponse.CANCEL("duplicate: $subscriptionId already opened").toClient(session)
             } else {
                 // ถ้า subscriptionId ไม่ซ้ำ
                 saveSubscription(session, subscriptionId, filtersX)
@@ -267,7 +268,6 @@ class BasicProtocolFlow @Inject constructor(
             RelayResponse.NOTICE(warning).toClient(session)
         }
     }
-
 
 
     /**
@@ -285,24 +285,42 @@ class BasicProtocolFlow @Inject constructor(
         LOG.info("${GREEN}filters ${YELLOW}[${filtersX.size}] ${RESET}req subscription ID: ${CYAN}$subscriptionId ${RESET}")
         filtersX.forEach { filter ->
             sqlExec.filterList(filter)?.forEach { event ->
+
                 RelayResponse.EVENT(subscriptionId, event).toClient(session)
             }
         }
         RelayResponse.EOSE(subscriptionId).toClient(session)
+        startRealTimeUpdates(subscriptionId, session)
+    }
 
-        // ใช้ do-while loop เพื่อตรวจสอบ session และ subscriptionId อย่างต่อเนื่อง
+    private fun startRealTimeUpdates(
+        subscriptionId: String,
+        session: WebSocketSession,
+    ) {
+        var lastUpdateTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
+
         do {
             val currentTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
-
-            val updatedFiltersX = getSubscription(session, subscriptionId).map { it.copy(since = currentTime) }
+            val updatedFiltersX = getSubscription(session, subscriptionId).map {
+                it.copy(
+                    since = lastUpdateTime,  // ใช้เวลาของการอัปเดตครั้งก่อนหน้า
+                    until = currentTime      // ใช้เวลาปัจจุบัน
+                )
+            }
 
             updatedFiltersX.forEach { filter ->
                 sqlExec.filterList(filter)?.forEach { event ->
                     RelayResponse.EVENT(subscriptionId, event).toClient(session)
                 }
             }
+
+            // อัปเดต lastUpdateTime หลังจากค้นหาข้อมูลเสร็จ
+            lastUpdateTime = currentTime
+
+            sleep(1300)
         } while (isSubscriptionActive(session, subscriptionId))
     }
+
 
     /**
      * ฟังก์ชัน onClose ใช้ในการจัดการคำขอปิดการเชื่อมต่อ WebSocket
@@ -312,7 +330,7 @@ class BasicProtocolFlow @Inject constructor(
      */
     fun onClose(subscriptionId: String, session: WebSocketSession) {
         LOG.info("${PURPLE}close ${RESET}subscription ID: $subscriptionId")
-        RelayResponse.CLOSED(subscriptionId).toClient(session)
+        RelayResponse.CANCEL(subscriptionId).toClient(session)
     }
 
 

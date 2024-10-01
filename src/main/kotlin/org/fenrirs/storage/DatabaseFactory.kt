@@ -67,7 +67,7 @@ object DatabaseFactory {
 
     fun <T> queryTask(block: () -> T): T = runWithVirtualThreadsPerTask {
         transaction {
-            //addLogger(StdOutSqlLogger)
+            addLogger(StdOutSqlLogger)
             block()
         }
     }

@@ -51,6 +51,13 @@ object RelayResponseSerializer : KSerializer<RelayResponse<*>> {
                 )
             )
 
+            is RelayResponse.CANCEL -> JsonArray(
+                listOf(
+                    JsonPrimitive("CLOSED"),
+                    JsonPrimitive(value.subscriptionId),
+                )
+            )
+
             is RelayResponse.CLOSED -> JsonArray(
                 listOf(
                     JsonPrimitive("CLOSED"),
@@ -70,11 +77,11 @@ object RelayResponseSerializer : KSerializer<RelayResponse<*>> {
             else -> throw SerializationException("Unknown type")
         }
 
-        // แปลง jsonObject เป็น JSON
         jsonEncoder.encodeJsonElement(jsonObject)
     }
 
     override fun deserialize(decoder: Decoder): RelayResponse<*> {
         throw SerializationException("Deserialization not supported")
     }
+
 }

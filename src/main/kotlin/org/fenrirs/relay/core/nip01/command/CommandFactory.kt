@@ -44,9 +44,11 @@ object CommandFactory {
             "EVENT" -> parseEvent(jsonElement)
             "REQ" -> parseREQ(jsonElement)
             "CLOSE" -> parseClose(jsonElement)
+            //"AUTH" -> TODO("Not yet implemented.")
             else -> throw IllegalArgumentException("Unknown command: $cmd")
         }
     }
+
 
     /**
      * ฟังก์ชัน parseEvent ใช้ในการแยกและวิเคราะห์คำสั่งประเภท EVENT
@@ -65,6 +67,7 @@ object CommandFactory {
         val validationResult = validateElement(data, EventValidateField.entries.toTypedArray())
         return EVENT(event) to validationResult
     }
+
 
     /**
      * ฟังก์ชัน parseREQ ใช้ในการแยกและวิเคราะห์คำสั่งประเภท REQ
@@ -91,6 +94,7 @@ object CommandFactory {
         val validationResult = validateElement(data, FiltersXValidateField.entries.toTypedArray())
         return REQ(subscriptionId, filtersX) to validationResult
     }
+
 
     /**
      * ฟังก์ชัน parseClose ใช้ในการแยกและวิเคราะห์คำสั่งประเภท CLOSE
