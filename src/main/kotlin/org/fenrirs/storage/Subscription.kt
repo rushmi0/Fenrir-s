@@ -84,11 +84,11 @@ object Subscription {
             LOG.info("Clear Session: $session")
             return false
         }
-        LOG.info("session: $session")
+        //LOG.info("session: $session")
 
         // ตรวจสอบว่ามี subscription ที่เกี่ยวข้องหรือไม่
         val filters: List<FiltersX> = getSubscription(session, subscriptionId)
-        LOG.info("Subscription ${filters.size}: $filters")
+        //LOG.info("Subscription ${filters.size}: $filters")
         return filters.isNotEmpty()
     }
 

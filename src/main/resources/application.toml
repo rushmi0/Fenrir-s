@@ -5,7 +5,6 @@ cors.enabled = true
 cors.configurations.all.allowed-origins = "*"
 cors.configurations.all.allow-credentials=false
 cors.localhost-pass-through = true
-maxRequestSize = "512KB"
 #host = "localhost"
 port = 6724
 

@@ -48,7 +48,7 @@ class Gateway @Inject constructor(
     @OnOpen
     fun onOpen(session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): HttpResponse<String>? {
         session?.let {
-            LOG.info("sec: ${getAllSessions().size}")
+            LOG.info("Counting Sessions: ${getAllSessions().size}")
             LOG.info("${GREEN}open$RESET ${session.id}")
             return@let HttpResponse.ok("Session opened")
                 .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")

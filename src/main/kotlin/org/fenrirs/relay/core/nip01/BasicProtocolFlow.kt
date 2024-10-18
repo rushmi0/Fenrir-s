@@ -285,7 +285,6 @@ class BasicProtocolFlow @Inject constructor(
         LOG.info("${GREEN}filters ${YELLOW}[${filtersX.size}] ${RESET}req subscription ID: ${CYAN}$subscriptionId ${RESET}")
         filtersX.forEach { filter ->
             sqlExec.filterList(filter)?.forEach { event ->
-
                 RelayResponse.EVENT(subscriptionId, event).toClient(session)
             }
         }
@@ -309,10 +308,16 @@ class BasicProtocolFlow @Inject constructor(
             }
 
             updatedFiltersX.forEach { filter ->
-                sqlExec.filterList(filter)?.forEach { event ->
-                    RelayResponse.EVENT(subscriptionId, event).toClient(session)
+                val events = sqlExec.filterList(filter)
+
+                // ตรวจสอบว่า events ไม่เป็น null และไม่ใช่ list ว่าง
+                if (!events.isNullOrEmpty()) {
+                    events.forEach { event ->
+                        RelayResponse.EVENT(subscriptionId, event).toClient(session)
+                    }
                 }
             }
+
 
             // อัปเดต lastUpdateTime หลังจากค้นหาข้อมูลเสร็จ
             lastUpdateTime = currentTime
