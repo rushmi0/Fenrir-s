@@ -5,6 +5,7 @@ cors.enabled = true
 cors.configurations.all.allowed-origins = "*"
 cors.configurations.all.allow-credentials=false
 cors.localhost-pass-through = true
+idle-timeout="2m"
 #host = "localhost"
 port = 6724
 

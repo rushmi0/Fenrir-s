@@ -8,13 +8,11 @@ import io.micronaut.http.annotation.Header
 
 import io.micronaut.websocket.WebSocketSession
 import io.micronaut.websocket.annotation.OnClose
-import io.micronaut.websocket.annotation.OnError
 import io.micronaut.websocket.annotation.OnMessage
 import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
 
 import jakarta.inject.Inject
-import kotlinx.coroutines.runBlocking
 
 import org.fenrirs.relay.core.nip01.command.CLOSE
 import org.fenrirs.relay.core.nip01.command.EVENT
@@ -24,7 +22,6 @@ import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip01.BasicProtocolFlow
 import org.fenrirs.relay.core.nip11.RelayInformation
 import org.fenrirs.storage.Subscription.clearSession
-import org.fenrirs.storage.Subscription.getAllSessions
 
 import org.fenrirs.utils.Color.BLUE
 import org.fenrirs.utils.Color.GREEN
@@ -48,7 +45,6 @@ class Gateway @Inject constructor(
     @OnOpen
     fun onOpen(session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): HttpResponse<String>? {
         session?.let {
-            LOG.info("Counting Sessions: ${getAllSessions().size}")
             LOG.info("${GREEN}open$RESET ${session.id}")
             return@let HttpResponse.ok("Session opened")
                 .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")

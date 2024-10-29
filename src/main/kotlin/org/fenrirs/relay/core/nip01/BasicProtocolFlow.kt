@@ -318,7 +318,6 @@ class BasicProtocolFlow @Inject constructor(
                 }
             }
 
-
             // อัปเดต lastUpdateTime หลังจากค้นหาข้อมูลเสร็จ
             lastUpdateTime = currentTime
 

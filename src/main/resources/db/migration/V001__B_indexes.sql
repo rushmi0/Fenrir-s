@@ -13,5 +13,6 @@ CREATE INDEX idx_kind_5 ON event(kind) WHERE kind = 5;
 CREATE INDEX idx_kind_6 ON event(kind) WHERE kind = 6;
 CREATE INDEX idx_kind_7 ON event(kind) WHERE kind = 7;
 
+CREATE INDEX idx_kind_30023 ON event(kind) WHERE kind = 30023;
 CREATE INDEX idx_kind_9735 ON event(kind) WHERE kind = 9735;
 CREATE INDEX idx_kind_10002 ON event(kind) WHERE kind = 10002;
