@@ -1,8 +1,8 @@
 <div align="center">
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./doc/img/logo-px-white.svg" width="445">
-    <img alt="Fenrir-s logo" src="./doc/img/logo-px-black.svg" width="445">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/rushmi0/Fenrir-s/7451f0d4057c206d793368bbb373343a7fc990f8/doc/img/logo-px-white.svg" width="445">
+    <img alt="Fenrir-s logo" src="https://raw.githubusercontent.com/rushmi0/Fenrir-s/7451f0d4057c206d793368bbb373343a7fc990f8/doc/img/logo-px-black.svg" width="445">
   </picture>
 
 </div>
