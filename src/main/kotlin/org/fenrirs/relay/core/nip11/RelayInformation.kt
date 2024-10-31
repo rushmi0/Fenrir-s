@@ -10,6 +10,7 @@ import io.micronaut.core.io.scan.ClassPathResourceLoader
 import jakarta.inject.Singleton
 
 import org.fenrirs.storage.Environment
+import org.fenrirs.utils.ExecTask.asyncTask
 import java.io.FileNotFoundException
 
 
@@ -23,20 +24,22 @@ class RelayInformation @Inject constructor(private val env: Environment) {
      * @param contentType: ประเภทของเนื้อหาที่ต้องการ (application/json หรือ text/html)
      * @return ข้อมูล relay information ที่ถูกดึงจาก Redis cache หรือไฟล์ระบบ
      */
-     fun loadRelayInfo(contentType: String): String = loadContent(contentType)
+    suspend fun loadRelayInfo(contentType: String): String = loadContent(contentType)
 
     /**
      * ฟังก์ชันสำหรับโหลดเนื้อหาจากไฟล์ตามประเภทของ contentType
      * @param contentType: ประเภทของเนื้อหาที่ต้องการ
      * @return ข้อมูลที่โหลดจากไฟล์
      */
-    private fun loadContent(contentType: String): String {
-        return if (contentType == MediaType.APPLICATION_JSON) {
-            // ถ้า contentType เป็น application/json ให้โหลดไฟล์ JSON
-            relayInfo()
-        } else {
-            // ถ้า contentType เป็น text/html ให้โหลดไฟล์ HTML
-            loadFromClasspath("public/index.html")
+    private suspend fun loadContent(contentType: String): String {
+        return asyncTask {
+            if (contentType == MediaType.APPLICATION_JSON) {
+                // ถ้า contentType เป็น application/json ให้โหลดไฟล์ JSON
+                relayInfo()
+            } else {
+                // ถ้า contentType เป็น text/html ให้โหลดไฟล์ HTML
+                loadFromClasspath("public/index.html")
+            }
         }
     }
 

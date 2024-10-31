@@ -3,7 +3,6 @@ package org.fenrirs.relay.core.nip01.command
 import kotlinx.serialization.json.*
 import org.fenrirs.relay.core.nip01.CommandParseResult
 import org.fenrirs.relay.core.nip01.EventCommandResult
-import org.fenrirs.relay.core.nip01.FiltersData
 
 import org.fenrirs.relay.policy.Event
 import org.fenrirs.relay.policy.FiltersX
@@ -14,13 +13,13 @@ import org.fenrirs.relay.policy.FiltersXValidateField
 import org.fenrirs.relay.core.nip01.Transform.toEvent
 import org.fenrirs.relay.core.nip01.Transform.toFiltersX
 import org.fenrirs.relay.core.nip01.Transform.validateElement
-import org.fenrirs.relay.policy.NostrRelayConfig
 import org.fenrirs.storage.Environment
-
 
 object CommandFactory {
 
-    private val env: Environment by lazy { Environment(NostrRelayConfig()) }
+    private val env: Environment by lazy {
+        Environment()
+    }
 
     /**
      * ฟังก์ชัน parse ใช้ในการแยกและวิเคราะห์คำสั่งที่ส่งมาจากไคลเอนต์
@@ -44,7 +43,8 @@ object CommandFactory {
             "EVENT" -> parseEvent(jsonElement)
             "REQ" -> parseREQ(jsonElement)
             "CLOSE" -> parseClose(jsonElement)
-            //"AUTH" -> TODO("Not yet implemented.")
+            // "COUNT" -> TODO("Not yet implemented")
+            // "AUTH" -> TODO("Not yet implemented")
             else -> throw IllegalArgumentException("Unknown command: $cmd")
         }
     }
@@ -62,10 +62,10 @@ object CommandFactory {
         }
         val eventJson = jsonArray[1].jsonObject
         val event: Event = eventJson.toEvent()
-        val data: FiltersData = eventJson.toMap()
+        val data: Map<String, JsonElement> = eventJson.toMap()
 
-        val validationResult = validateElement(data, EventValidateField.entries.toTypedArray())
-        return EVENT(event) to validationResult
+        val (status, warning) = validateElement(data, EventValidateField.entries.toTypedArray())
+        return EVENT(event) to (status to warning)
     }
 
 
@@ -82,17 +82,18 @@ object CommandFactory {
         }
         val subscriptionId: String = jsonArray[1].jsonPrimitive.content
         val filtersJson: List<JsonObject> = jsonArray.drop(2).map { it.jsonObject }
+        //LOG.info("filters object ${filtersJson.size}: $filtersJson")
 
         if (filtersJson.size > env.MAX_FILTERS) {
             throw IllegalArgumentException("rate-limited: max filters ${env.MAX_FILTERS} values in each sub ID allowed")
         }
 
-        val data: FiltersData = filtersJson.flatMap { it.entries }.associate { it.key to it.value }
+        val data: Map<String, JsonElement> = filtersJson.flatMap { it.entries }.associate { it.key to it.value }
 
-        val filtersX: List<FiltersX> = filtersJson.map { it.toFiltersX() }
+        val filtersX: List<FiltersX> = filtersJson.map { it.jsonObject.toFiltersX() }
 
-        val validationResult = validateElement(data, FiltersXValidateField.entries.toTypedArray())
-        return REQ(subscriptionId, filtersX) to validationResult
+        val (status, warning) = validateElement(data, FiltersXValidateField.entries.toTypedArray())
+        return REQ(subscriptionId, filtersX) to (status to warning)
     }
 
 

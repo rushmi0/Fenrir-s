@@ -9,7 +9,7 @@ import org.fenrirs.relay.policy.TagElt
 
 object Transform : VerificationFactory() {
 
-    private fun FiltersData.toTagMap(): Map<TagElt, Set<String>> {
+    private fun Map<String, JsonElement>.toTagMap(): Map<TagElt, Set<String>> {
         return this.filterKeys { it.startsWith("#") }
             .mapKeys { (key, _) -> TagElt.valueOf(key.removePrefix("#")) }
             .mapValues { (_, value) ->
@@ -17,7 +17,7 @@ object Transform : VerificationFactory() {
             }
     }
 
-    private fun convertToFiltersXObject(field: FiltersData): FiltersX {
+    private fun convertToFiltersXObject(field: Map<String, JsonElement>): FiltersX {
         return FiltersX(
             ids = field["ids"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }?.toSet() ?: emptySet(),
             authors = field["authors"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }?.toSet() ?: emptySet(),
@@ -31,7 +31,7 @@ object Transform : VerificationFactory() {
     }
 
 
-    private fun convertToEventObject(field: FiltersData): Event {
+    private fun convertToEventObject(field: Map<String, JsonElement>): Event {
         return Event(
             id = field["id"]?.jsonPrimitive?.contentOrNull,
             pubkey = field["pubkey"]?.jsonPrimitive?.contentOrNull,
@@ -43,9 +43,9 @@ object Transform : VerificationFactory() {
         )
     }
 
-    fun FiltersData.toFiltersX(): FiltersX = convertToFiltersXObject(this)
+    fun Map<String, JsonElement>.toFiltersX(): FiltersX = convertToFiltersXObject(this)
 
-    fun FiltersData.toEvent(): Event = convertToEventObject(this)
+    fun Map<String, JsonElement>.toEvent(): Event = convertToEventObject(this)
 
     fun JsonObject.toFiltersX(): FiltersX = convertToFiltersXObject(this.toMap())
 

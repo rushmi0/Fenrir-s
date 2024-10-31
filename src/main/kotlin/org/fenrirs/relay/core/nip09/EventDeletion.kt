@@ -22,7 +22,7 @@ class EventDeletion @Inject constructor(private val sqlExec: StoredServiceImpl) 
      * @param event เหตุการณ์ที่ต้องการลบ
      * @return Pair(true, "") หากลบเรียบร้อย, Pair(false, "error: message") ถ้าไม่สามารถลบได้
      */
-    fun deleteEvent(event: Event): Pair<Boolean, String> {
+    suspend fun deleteEvent(event: Event): Pair<Boolean, String> {
         // ตรวจสอบว่าเหตุการณ์ตรงตามเงื่อนไขที่ต้องการลบหรือไม่
         return if (isDeletable(event)) {
 
@@ -64,7 +64,7 @@ class EventDeletion @Inject constructor(private val sqlExec: StoredServiceImpl) 
      * @param event เหตุการณ์ที่ต้องการตรวจสอบ
      * @return true หาก pubkey เป็นเจ้าของ event, false ถ้าไม่ใช่
      */
-    fun isOwnership(event: Event): Boolean {
+    suspend fun isOwnership(event: Event): Boolean {
         return event.tags?.any {
             event.kind?.toInt() == 5 &&
                 it.size > 1 && it[0] == "e" &&
@@ -78,7 +78,7 @@ class EventDeletion @Inject constructor(private val sqlExec: StoredServiceImpl) 
      * @param event เหตุการณ์ที่ต้องการตรวจสอบ
      * @return true ถ้าไม่เคยถูกลบ, false ถ้า event id นั้นเคยถูกลบแล้วจะแสดง id
      */
-    fun isEventDeleted(eventID: String): Boolean {
+    suspend fun isEventDeleted(eventID: String): Boolean {
 
         // คำสั่งค้นหาข้อมูล
         val query = FiltersX(

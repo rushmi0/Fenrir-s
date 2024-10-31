@@ -36,14 +36,14 @@ Content-Type: application/json
 
 ###
 
-WEBSOCKET wss://relay.damus.io
+WEBSOCKET ws://localhost:6725
 Content-Type: application/json
 
-["REQ","hsZEOtaDsENYkP5H-JIWp",{"kinds": [0],"authors":["565843b28205d6688cb3a522e09b763f6eaf159fdb8ca51d9324a4284fe37c09"]}]
+["REQ","hsZEOtaDsENYkP5H-JIWp",{"kinds": [0],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]}]
 
 ###
 
-WEBSOCKET wss://localhost:6724
+WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
 ["REQ","hsZEOtaDsENYkP5H-JIWp",{"kinds": [10002],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]}]
@@ -192,6 +192,13 @@ Content-Type: application/json
 WEBSOCKET ws://localhost:6724
 Content-Type: application/json
 
+["REQ","KbyQRhDj7o1KLXvZN5nBN",{"kinds":[30023]}]
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
 ["REQ","KbyQRhDj7o1KLXvZN5nBN",{"kinds":[1985],"#r":["ws://localhost:6724/"],"#l":["review/relay"],"limit":50}]
 
 ###
@@ -216,6 +223,6 @@ Content-Type: application/json
   "REQ",
   "Rj5mPPvkyh9",
   {
-    "search" : "test 1"
+    "search" : "after"
   }
 ]

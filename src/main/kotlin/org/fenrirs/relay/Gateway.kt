@@ -38,12 +38,11 @@ import org.slf4j.LoggerFactory
 @ServerWebSocket("/")
 class Gateway @Inject constructor(
     private val nip01: BasicProtocolFlow,
-    private val nip11: RelayInformation
+    private val nip11: RelayInformation,
 ) {
 
-
     @OnOpen
-    fun onOpen(session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): HttpResponse<String>? {
+    suspend fun onOpen(session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): MutableHttpResponse<String>? {
         session?.let {
             LOG.info("${GREEN}open$RESET ${session.id}")
             return@let HttpResponse.ok("Session opened")
@@ -63,13 +62,13 @@ class Gateway @Inject constructor(
 
 
     @OnMessage(maxPayloadLength = 524288)
-    fun onMessage(session: WebSocketSession, message: String) {
+    suspend fun onMessage(session: WebSocketSession, message: String) {
         try {
 
-            /*
-           * ทำการตรวจสอบความถูกต้องของข้อมูล ที่ได้รับจากไคลเอนต์และตอบกลับอย่างเหมาะสม
-           * ถ้าข้อมูลถูกต้องเป็นไปตามข้อกำหนดจะถูกแปลงข้อมูลให้อยู่ในรูปของ Kotlin Object เพื่อสามารถนำไปใช้งานต่อได้สะดวก
-           * */
+            /**
+             * ทำการตรวจสอบความถูกต้องของข้อมูล ที่ได้รับจากไคลเอนต์และตอบกลับอย่างเหมาะสม
+             * ถ้าข้อมูลถูกต้องเป็นไปตามข้อกำหนดจะถูกแปลงข้อมูลให้อยู่ในรูปของ Kotlin Object เพื่อสามารถนำไปใช้งานต่อได้สะดวก
+             */
             val (cmd, validationResult) = parse(message) // Pair<Command?, Pair<Boolean, String>>
             val (status, warning) = validationResult
 

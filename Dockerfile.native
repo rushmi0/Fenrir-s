@@ -11,6 +11,7 @@ RUN sed -i 's/\r$//' gradlew
 RUN chmod +x ./gradlew
 RUN ./gradlew nativeOptimizedCompile
 
+
 FROM alpine:latest
 
 RUN apk update && \
@@ -27,4 +28,4 @@ COPY --chown=appuser:appgroup .env /app/.env
 
 EXPOSE 6724
 
-ENTRYPOINT ["/app/fenrir-s-v1.0", "-Xms10m", "-Xmx4g"]
+ENTRYPOINT ["/app/fenrir-s-v1.0"]

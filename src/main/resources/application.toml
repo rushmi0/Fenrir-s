@@ -5,7 +5,7 @@ cors.enabled = true
 cors.configurations.all.allowed-origins = "*"
 cors.configurations.all.allow-credentials=false
 cors.localhost-pass-through = true
-idle-timeout="2m"
+idle-timeout="20s"
 #host = "localhost"
 port = 6724
 
@@ -15,37 +15,6 @@ type = "scheduled"
 virtual = true
 parallelism = 32
 core-pool-size = 16
-
-#################################################################################
-
-[nostr.relay.info]
-name = ""
-description = ""
-npub = ""
-contact = ""
-
-[nostr.relay.policy]
-all-pass = true
-follows-pass = false
-
-[nostr.relay.policy.proof-of-work]
-enabled = false
-difficulty-minimum = 32
-
-[nostr.relay.database.backup]
-enabled = false
-sync = [
-    "wss://relay.notoshi.win",
-    "wss://relay.siamstr.com",
-    "wss://relay.damus.io",
-    "wss://relay.nostr.band",
-    "wss://nostr-01.yakihonne.com",
-    "wss://nos.lol",
-    "wss://purplerelay.com"
-]
-
-
-#################################################################################
 
 
 [micronaut.router.static-resources.default]

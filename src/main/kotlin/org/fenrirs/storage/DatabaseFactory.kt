@@ -6,13 +6,13 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
 import org.fenrirs.storage.table.EVENT
-import org.fenrirs.utils.ExecTask.runWithVirtualThreadsPerTask
+import org.fenrirs.utils.ExecTask.asyncTask
 
-import org.jetbrains.exposed.sql.StdOutSqlLogger
-import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
+//import org.jetbrains.exposed.sql.StdOutSqlLogger
+//import org.jetbrains.exposed.sql.addLogger
 
 @Singleton
 object DatabaseFactory {
@@ -40,7 +40,7 @@ object DatabaseFactory {
             driverClassName = "org.postgresql.Driver"
 
             // กำหนด่าสำหรับการเชื่อมต่อกับฐานข้อมูล
-            jdbcUrl = "${ENV.DATABASE_URL}:${ENV.DATABASE_PORT}/${ENV.DATABASE_NAME}"
+            jdbcUrl = "${ENV.DATABASE_URL}/${ENV.DATABASE_NAME}"
             username = ENV.DATABASE_USERNAME
             password = ENV.DATABASE_PASSWORD
 
@@ -49,9 +49,9 @@ object DatabaseFactory {
 
             isAutoCommit = false
 
-            idleTimeout = 30000
-            keepaliveTime = 30000
-            maxLifetime = 1800000
+            idleTimeout = 60000
+            keepaliveTime = 60000
+            maxLifetime = 2000000
             leakDetectionThreshold = 30000
             validationTimeout = 3000
 
@@ -65,7 +65,7 @@ object DatabaseFactory {
     }
 
 
-    fun <T> queryTask(block: () -> T): T = runWithVirtualThreadsPerTask {
+    suspend fun <T> queryTask(block: () -> T): T = asyncTask {
         transaction {
             //addLogger(StdOutSqlLogger)
             block()

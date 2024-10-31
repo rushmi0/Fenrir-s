@@ -2,6 +2,7 @@ package org.fenrirs.storage.statement
 
 import io.micronaut.context.annotation.Bean
 import jakarta.inject.Inject
+import org.fenrirs.relay.core.nip50.SearchEngine
 import org.fenrirs.storage.service.StoredService
 
 import org.slf4j.LoggerFactory
@@ -19,18 +20,20 @@ import org.fenrirs.storage.table.EVENT.KIND
 import org.fenrirs.storage.table.EVENT.PUBKEY
 import org.fenrirs.storage.table.EVENT.SIG
 import org.fenrirs.storage.table.EVENT.TAGS
-import org.fenrirs.storage.table.plainToTsquery
-import org.fenrirs.storage.table.toTsvector
-import org.fenrirs.storage.table.match
 
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.json.contains
 
-@Bean
-class StoredServiceImpl @Inject constructor(private val env: Environment) : StoredService {
 
-    override fun filterList(filters: FiltersX): List<Event>? {
+
+@Bean
+class StoredServiceImpl @Inject constructor(
+    private val ts: SearchEngine,
+    private val env: Environment
+) : StoredService {
+
+    override suspend fun filterList(filters: FiltersX): List<Event>? {
         return queryTask {
             try {
 
@@ -130,12 +133,8 @@ class StoredServiceImpl @Inject constructor(private val env: Environment) : Stor
 
                 // ถ้ามีการระบุ search ใน filters ให้เพิ่มเงื่อนไขการค้นหา CONTENT ที่ตรงกับ search ที่กำหนดโดยใช้ full-text search
                 filters.search?.let {
-                    val simple: LiteralOp<String> = stringLiteral("simple")
-                    query.where {
-                        toTsvector(simple, CONTENT) match plainToTsquery(
-                            simple,
-                            stringLiteral(filters.search)
-                        )
+                    query.andWhere {
+                        ts.tsQuery(CONTENT, filters.search)
                     }
                 }
 
@@ -170,7 +169,7 @@ class StoredServiceImpl @Inject constructor(private val env: Environment) : Stor
     }
 
 
-    override fun saveEvent(event: Event): Boolean {
+    override suspend fun saveEvent(event: Event): Boolean {
         return queryTask {
             try {
 
@@ -199,7 +198,7 @@ class StoredServiceImpl @Inject constructor(private val env: Environment) : Stor
     }
 
 
-    override fun selectById(id: String): Event? {
+    override suspend fun selectById(id: String): Event? {
         return queryTask {
             try {
 
@@ -228,7 +227,7 @@ class StoredServiceImpl @Inject constructor(private val env: Environment) : Stor
         }
     }
 
-    override fun deleteEvent(eventId: String): Boolean {
+    override suspend fun deleteEvent(eventId: String): Boolean {
         return queryTask {
             try {
 

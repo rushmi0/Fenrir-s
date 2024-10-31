@@ -1,3 +1,4 @@
+import io.micronaut.gradle.docker.NativeImageDockerfile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -24,9 +25,7 @@ val exposedVersion: String by project
 
 dependencies {
 
-    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
-
-    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+    implementation("io.github.reactivecircus.cache4k:cache4k:0.13.0")
 
     implementation("org.jetbrains.exposed:exposed-crypt:$exposedVersion")
 
@@ -53,7 +52,6 @@ dependencies {
     // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
 
-
     // https://github.com/Kotlin/kotlinx.serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
@@ -63,14 +61,12 @@ dependencies {
     // https://mvnrepository.com/artifact/org.mockito/mockito-core
     testImplementation("org.mockito:mockito-core:5.11.0")
 
-    implementation("io.reactivex.rxjava3:rxkotlin:3.0.1")
+    // https://mvnrepository.com/artifact/io.micronaut/micronaut-websocket
+    implementation("io.micronaut:micronaut-websocket:4.7.1")
 
     ksp("io.micronaut:micronaut-http-validation")
     ksp("io.micronaut.serde:micronaut-serde-processor")
-    implementation("io.micronaut:micronaut-websocket")
     implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
-    implementation("io.micronaut.redis:micronaut-redis-lettuce")
-    implementation("io.micronaut.rxjava3:micronaut-rxjava3")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
     implementation("io.micronaut.sql:micronaut-jdbc-hikari")
     implementation("io.micronaut.toml:micronaut-toml")
@@ -78,7 +74,10 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
     compileOnly("io.micronaut:micronaut-http-client")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-    runtimeOnly("ch.qos.logback:logback-classic")
+
+    // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
+    runtimeOnly("ch.qos.logback:logback-classic:1.5.12")
+
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("io.micronaut:micronaut-http-client")
 }
@@ -94,6 +93,7 @@ java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
 }
+
 
 
 tasks {
@@ -117,16 +117,16 @@ tasks.withType<KotlinCompile> {
 }
 
 
-
+// * https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/BuildOutput.md
 graalvmNative {
     binaries {
         all {
             // * https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildOutput/?fbclid=IwAR007Rh7fYg-CJZywqhFM8PF5XDWPvgOfaV9txFDqpy6PWjtZp2bXpgncL0_aem_Af0UTqW_wKY5RFkebOwqrANSJn-d6fpSoJLMyra23KLgMNQuur3l75gjN29_Ymw1JYkeX7upxGBzGPFkJ4iRuojh
-            // * https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/MemoryManagement/
             buildArgs.add("-H:+AddAllCharsets")
             buildArgs.add("-R:MaxHeapSize=3G")
-            buildArgs.add("--gc=serial")
-            buildArgs.add("--verbose")
+            buildArgs.add("--no-fallback")
+            buildArgs.add("-march=native")
+            //buildArgs.add("--trace-class-initialization=kotlin.DeprecationLevel")
             imageName.set("${project.name}-v$version")
             javaLauncher.set(javaToolchains.launcherFor {
                 languageVersion.set(JavaLanguageVersion.of(21))
@@ -163,6 +163,6 @@ micronaut {
 }
 
 
-tasks.named<io.micronaut.gradle.docker.NativeImageDockerfile>("dockerfileNative") {
+tasks.named<NativeImageDockerfile>("dockerfileNative") {
     jdkVersion = "21"
 }

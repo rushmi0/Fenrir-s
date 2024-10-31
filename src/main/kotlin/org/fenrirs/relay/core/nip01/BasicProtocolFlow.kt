@@ -28,7 +28,6 @@ import org.fenrirs.utils.Color.GREEN
 import org.fenrirs.utils.Color.PURPLE
 import org.fenrirs.utils.Color.RED
 import org.fenrirs.utils.Color.RESET
-import java.lang.Thread.sleep
 import java.util.concurrent.TimeUnit
 
 @Bean
@@ -49,7 +48,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     fun onEvent(event: Event, status: Boolean, warning: String, session: WebSocketSession) = runBlocking {
-        LOG.info("Received event: $event")
+        //LOG.info("Received event: $event")
 
         if (!status) {
             // ส่งคำตอบกลับให้ไคลเอนต์ว่าไม่สามารถดำเนินการได้เพราะอะไร
@@ -88,7 +87,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param publicKey คีย์สาธารณะของเจ้าของ Relay
      * @return รายการของ public key ที่ติดตามโดยเจ้าของ Relay หากไม่พบข้อมูลจะคืนค่าเป็นรายการที่มี publicKey เพียงตัวเดียว
      */
-    private fun getPassList(publicKey: String): List<String> =
+    private suspend fun getPassList(publicKey: String): List<String> =
         sqlExec.filterList(FiltersX(authors = setOf(publicKey), kinds = setOf(3)))
             ?.firstOrNull()
             ?.tags
@@ -104,8 +103,8 @@ class BasicProtocolFlow @Inject constructor(
      * @param event เหตุการณ์ที่มี ID ซ้ำ
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับSF
      */
-    private fun handleDuplicateEvent(event: Event, session: WebSocketSession) {
-        LOG.info("Event kind: ${PURPLE}[${event.kind}] ${RESET}with ID ${event.id} already exists in the database")
+    private suspend fun handleDuplicateEvent(event: Event, session: WebSocketSession) {
+        LOG.info("Event kind: ${PURPLE}[${event.kind}] ${RESET}already exists in the database")
         RelayResponse.OK(event.id!!, false, "duplicate: already have this event").toClient(session)
     }
 
@@ -248,7 +247,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param warning ข้อความแจ้งเตือน (ถ้ามี)
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    fun onRequest(
+    suspend fun onRequest(
         subscriptionId: String,
         filtersX: List<FiltersX>,
         status: Boolean,
@@ -277,7 +276,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param filtersX คำขอข้อมูลที่ไคลเอนต์ต้องการ
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    private fun handleValidRequest(
+    private suspend fun handleValidRequest(
         subscriptionId: String,
         filtersX: List<FiltersX>,
         session: WebSocketSession
@@ -292,7 +291,7 @@ class BasicProtocolFlow @Inject constructor(
         startRealTimeUpdates(subscriptionId, session)
     }
 
-    private fun startRealTimeUpdates(
+    private suspend fun startRealTimeUpdates(
         subscriptionId: String,
         session: WebSocketSession,
     ) {
@@ -321,7 +320,6 @@ class BasicProtocolFlow @Inject constructor(
             // อัปเดต lastUpdateTime หลังจากค้นหาข้อมูลเสร็จ
             lastUpdateTime = currentTime
 
-            sleep(1300)
         } while (isSubscriptionActive(session, subscriptionId))
     }
 
@@ -343,7 +341,7 @@ class BasicProtocolFlow @Inject constructor(
      *
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    fun onUnknown(session: WebSocketSession) {
+    suspend fun onUnknown(session: WebSocketSession) {
         LOG.warn("${RED}Unknown command")
         RelayResponse.NOTICE("Unknown command").toClient(session); session.close()
     }

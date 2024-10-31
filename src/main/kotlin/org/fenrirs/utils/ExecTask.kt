@@ -75,7 +75,7 @@ object ExecTask {
      * @param block โค้ดที่ต้องการให้ Virtual Threads ทำงานในรูปแบบของ Coroutine
      * @return ผลลัพธ์จากการทำงานของโค้ดบล็อคในรูปแบบ Coroutine
      */
-    suspend inline fun <T> virtualCoroutine(parallelism: Int = 32, crossinline block: suspend () -> T): T {
+    suspend inline fun <T> asyncTask(parallelism: Int = 32, crossinline block: suspend () -> T): T {
         return withContext(execService.asCoroutineDispatcher().limitedParallelism(parallelism)) {
             block()
         }
