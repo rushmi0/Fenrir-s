@@ -53,4 +53,4 @@ jobs:
 
       # ขั้นตอนที่ 6: คอมไพล์โปรเจกต์โดยใช้ Gradle พร้อมตัวเลือก Native Image
       - name: Compile Project with GraalVM Native Image
-        run: ./gradlew nativeRun
+        run: ./gradlew nativeTestCompile
