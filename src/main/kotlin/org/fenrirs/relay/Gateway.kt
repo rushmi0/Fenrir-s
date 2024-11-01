@@ -49,7 +49,7 @@ class Gateway @Inject constructor(
                 .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         }
 
-        LOG.info("${YELLOW}accept: $RESET$accept ${BLUE}session: $RESET${session?.id}")
+        //LOG.info("${YELLOW}accept: $RESET$accept ${BLUE}session: $RESET${session?.id}")
         val contentType = when {
             accept == "application/nostr+json" -> MediaType.APPLICATION_JSON
             else -> MediaType.TEXT_HTML

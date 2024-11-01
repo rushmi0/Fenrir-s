@@ -103,7 +103,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param event เหตุการณ์ที่มี ID ซ้ำ
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับSF
      */
-    private suspend fun handleDuplicateEvent(event: Event, session: WebSocketSession) {
+    private fun handleDuplicateEvent(event: Event, session: WebSocketSession) {
         LOG.info("Event kind: ${PURPLE}[${event.kind}] ${RESET}already exists in the database")
         RelayResponse.OK(event.id!!, false, "duplicate: already have this event").toClient(session)
     }
@@ -166,7 +166,7 @@ class BasicProtocolFlow @Inject constructor(
             val (success, message) = action.invoke()
 
             if (success) {
-                LOG.info("Event kind: ${PURPLE}[${event.kind}] ${RESET}handled ${GREEN}successfully")
+                LOG.info("Event kind: ${PURPLE}[${event.kind}] ${RESET}handled ${GREEN}saved")
                 RelayResponse.OK(event.id!!, true, message).toClient(session)
             } else {
                 LOG.warn("${RED}Failed ${RESET}to handle event: ${event.id}")
@@ -341,7 +341,7 @@ class BasicProtocolFlow @Inject constructor(
      *
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    suspend fun onUnknown(session: WebSocketSession) {
+    fun onUnknown(session: WebSocketSession) {
         LOG.warn("${RED}Unknown command")
         RelayResponse.NOTICE("Unknown command").toClient(session); session.close()
     }

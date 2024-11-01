@@ -144,8 +144,8 @@ class StoredServiceImpl @Inject constructor(
                     !filters.kinds.contains(3) &&
                     !filters.kinds.contains(10002)
                 ) {
-                    // กำหนด limit ของการดึงข้อมูล: จำกัดสูงสุดที่ 100 รายการเสมอ
-                    val limit = filters.limit?.toInt()?.coerceAtMost(env.MAX_LIMIT) ?: env.MAX_LIMIT
+                    // กำหนด limit ของการดึงข้อมูล: จำกัดสูงสุดที่ 100 รายการเสมอ ถ้าไม่มีการกำหนดค่า
+                    val limit = filters.limit?.toInt()?.coerceAtMost(env.MAX_LIMIT) ?: 100
                     query.limit(limit)
                 }
 

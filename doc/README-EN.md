@@ -1,8 +1,8 @@
 <div align="center">
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./img/logo-px-white.svg" width="445">
-    <img alt="Fenrir-s logo" src="./img/logo-px-black.svg" width="445">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/rushmi0/Fenrir-s/7451f0d4057c206d793368bbb373343a7fc990f8/doc/img/logo-px-white.svg" width="445">
+    <img alt="Fenrir-s logo" src="https://raw.githubusercontent.com/rushmi0/Fenrir-s/7451f0d4057c206d793368bbb373343a7fc990f8/doc/img/logo-px-black.svg" width="445">
   </picture>
 
 </div>
@@ -65,43 +65,41 @@ and is easy to set up.
 
 ### 1. Basic Relay Details Configuration
 
-Configuration file is located at [`src/main/resources/application.toml`](src/main/resources/application.toml)
+Configuration file is located at [`.env`](.env)
 
-```toml
-[nostr.relay.info]
-name = "lnwza007"
-description = "นึกแล้ว มึงต้องอ่าน"
-npub = "npub1ujevvncwfe22hv6d2cjv6pqwqhkvwlcvge7vgm3vcn2max9tu03sgze8ry"
-contact = "lnwza007@rushmi0.win"
+```dotenv
+NAME=lnwza007
+DESCRIPTION=นึกแล้ว มึงต้องอ่าน
+NPUB=npub1ujevvncwfe22hv6d2cjv6pqwqhkvwlcvge7vgm3vcn2max9tu03sgze8ry
+CONTACT=lnwza007@rushmi0.win
 ```
 
-| Parameter	   | Description              |
-|--------------|--------------------------|
-| name	        | Name of the Relay        |
-| description	 | Description of the Relay |
-| npub	        | Relay owner's npub       |
-| contact	     | Contact email address    |
+| Parameter	     | Description              |
+|----------------|--------------------------|
+| `NAME`	        | Name of the Relay        |
+| `DESCRIPTION`	 | Description of the Relay |
+| `NPUB`	        | Relay owner's npub       |
+| `CONTACT`	     | Contact email address    |
 
 ### 2. Policy Configuration
 
 If no configuration is set, the default will be a Public Relay open for everyone.
 
-```toml
-[nostr.relay.policy]
-all-pass = true
-follows-pass = false
+```dotenv
+ALL_PASS=true
+FOLLOWS_PASS=false
 
-[nostr.relay.policy.proof-of-work]
-enabled = false
-difficulty-minimum = 32
+POW_ENABLED=false
+MIN_DIFFICULTY=32
 ```
 
-| Parameter                         | Description                                      | Default	 | Priority |
-|-----------------------------------|--------------------------------------------------|----------|----------|
-| all-pass	                         | Accept Events from everyone	                     | true	    | Low      |
-| follows-pass	                     | Accept Events only from followed users (NIP-02)	 | false	   | High     |
-| proof-of-work.enabled	            | Enable Proof of Work verification	               | false	   | High     |
-| proof-of-work.difficulty-minimum	 | Minimum difficulty level for Proof of Work	      | 32       | 	-       |
+
+| Parameter         | Description                                      | Default	 | Priority |
+|-------------------|--------------------------------------------------|----------|----------|
+| `ALL_PASS`	       | Accept Events from everyone	                     | true	    | Low      |
+| `FOLLOWS_PASS`	   | Accept Events only from followed users (NIP-02)	 | false	   | High     |
+| `POW_ENABLED`	    | Enable Proof of Work verification	               | false	   | High     |
+| `MIN_DIFFICULTY`	 | Minimum difficulty level for Proof of Work	      | 32       | 	-       |
 
 > [!WARNING]\
 > A difficulty level of 32 is quite high. If you want to lower the strictness, it is recommended to set a lower value or
@@ -109,16 +107,15 @@ difficulty-minimum = 32
 
 ### 3. Special Service Configuration Options
 
-```toml
-[nostr.relay.database.backup]
-enabled = false
-sync = ["wss://relay.damus.io", "wss://relay.snort.social", "wss://relay.siamstr.com", "wss://relay.notoshi.win"]
+```dotenv
+BACKUP_ENABLED=false
+SYNC=wss://relay.rushmi0.win, wss://relay.plebstr.com
 ```
 
-| Parameter	 | Description                                               | 	Default |
-|------------|-----------------------------------------------------------|----------|
-| enabled	   | Enable fetching follower data (NIP-02) from other Relays	 | false    |
-| sync	      | List of other Relays to fetch data from	                  | -        |
+| Parameter	        | Description                                               | 	Default |
+|-------------------|-----------------------------------------------------------|----------|
+| `BACKUP_ENABLED`	 | Enable fetching follower data (NIP-02) from other Relays	 | false    |
+| `SYNC`	           | List of other Relays to fetch data from	                  | -        |
 
 ## 🛠 Installation and Usage
 

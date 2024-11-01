@@ -8,7 +8,7 @@ accept: application/nostr+json
 
 ###
 
-GET http://localhost:6724
+GET http://localhost:6725
 accept: application/nostr+json
 
 

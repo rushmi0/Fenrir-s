@@ -3,6 +3,7 @@ package org.fenrirs.relay.core.nip01.response
 import io.micronaut.context.annotation.Bean
 import io.micronaut.core.annotation.Introspected
 import io.micronaut.websocket.WebSocketSession
+import io.micronaut.websocket.exceptions.WebSocketSessionException
 import jakarta.inject.Inject
 
 import kotlinx.serialization.Serializable
@@ -90,17 +91,20 @@ sealed class RelayResponse<out T> {
     fun toClient(session: WebSocketSession) {
         when {
             session.isOpen -> {
-                val payload = this@RelayResponse.toJson()
-                //LOG.info("$session payload: $payload")
-                session.sendAsync(payload)
+                try {
+                    val payload = this@RelayResponse.toJson()
+                    //LOG.info("$session payload: $payload")
+                    session.sendAsync(payload)
 
-                if (this@RelayResponse is CANCEL) {
-                    clearSubscription(session, subscriptionId)
+                    if (this@RelayResponse is CANCEL) {
+                        clearSubscription(session, subscriptionId)
+                    }
+                } catch (e: WebSocketSessionException) {
+                    LOG.warn("$session is closed, cannot send message")
                 }
-
             }
 
-            else -> LOG.warn("$session is closed, cannot send message")
+            else -> LOG.warn("$session is closed")
         }
     }
 

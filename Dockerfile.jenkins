@@ -1,9 +1,0 @@
-FROM jenkins/jenkins:lts
-
-# ตั้งค่าผู้ใช้
-USER root
-
-# RUN apt-get update && apt-get install -y
-# ENV JAVA_OPTS="-Djava.awt.headless=true"
-
-USER jenkins

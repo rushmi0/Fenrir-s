@@ -1,8 +1,8 @@
 <div align="center">
 
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./img/logo-px-white.svg" width="445">
-    <img alt="Fenrir-s logo" src="./img/logo-px-black.svg" width="445">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/rushmi0/Fenrir-s/7451f0d4057c206d793368bbb373343a7fc990f8/doc/img/logo-px-white.svg" width="445">
+    <img alt="Fenrir-s logo" src="https://raw.githubusercontent.com/rushmi0/Fenrir-s/7451f0d4057c206d793368bbb373343a7fc990f8/doc/img/logo-px-black.svg" width="445">
   </picture>
 
 </div>
@@ -62,59 +62,55 @@
 
 ### 1. Relayの具体的な詳細の設定
 
-設定ファイルは [`src/main/resources/application.toml`](src/main/resources/application.toml)
+設定ファイルは [`.env`](.env)
 
-```toml
-[nostr.relay.info]
-name = "lnwza007"
-description = "นึกแล้ว มึงต้องอ่าน"
-npub = "npub1ujevvncwfe22hv6d2cjv6pqwqhkvwlcvge7vgm3vcn2max9tu03sgze8ry"
-contact = "lnwza007@rushmi0.win"
+```dotenv
+NAME=lnwza007
+DESCRIPTION=นึกแล้ว มึงต้องอ่าน
+NPUB=npub1ujevvncwfe22hv6d2cjv6pqwqhkvwlcvge7vgm3vcn2max9tu03sgze8ry
+CONTACT=lnwza007@rushmi0.win
 ```
 
-| パラメータ       | 説明             |
-|-------------|----------------|
-| name        | Relayの名前       |
-| description | Relayについての説明   |
-| npub        | Relayの所有者のnpub |
-| contact     | 連絡先のメールアドレス    |
+| パラメータ         | 説明             |
+|---------------|----------------|
+| `NAME`        | Relayの名前       |
+| `DESCRIPTION` | Relayについての説明   |
+| `NPUB`        | Relayの所有者のnpub |
+| `CONTACT`     | 連絡先のメールアドレス    |
 
 ### 2. ポリシーの設定
 
 設定されていない場合はデフォルトで誰でも使用できるPublic Relayになります。
 
-```toml
-[nostr.relay.policy]
-all-pass = true
-follows-pass = false
+```dotenv
+ALL_PASS=true
+FOLLOWS_PASS=false
 
-[nostr.relay.policy.proof-of-work]
-enabled = false
-difficulty-minimum = 32
+POW_ENABLED=false
+MIN_DIFFICULTY=32
 ```
 
-| パラメータ                            | 説明                                     | デフォルト | 優先度 |
-|----------------------------------|----------------------------------------|-------|-----|
-| all-pass                         | 誰からでもEventを受信                          | true  | 中   |
-| follows-pass                     | Relayの所有者がフォローしている人だけのEventを受信(NIP-02) | false | 高い  |
-| proof-of-work.enabled            | Proof of Workの確認を有効にする                 | false | 高い  |
-| proof-of-work.difficulty-minimum | Proof of Workの難易度の最小限                  | 32    | -   |
+| パラメータ            | 説明                                     | デフォルト | 優先度 |
+|------------------|----------------------------------------|-------|-----|
+| `ALL_PASS`       | 誰からでもEventを受信                          | true  | 中   |
+| `FOLLOWS_PASS`   | Relayの所有者がフォローしている人だけのEventを受信(NIP-02) | false | 高い  |
+| `POW_ENABLED`    | Proof of Workの確認を有効にする                 | false | 高い  |
+| `MIN_DIFFICULTY` | Proof of Workの難易度の最小限                  | 32    | -   |
 
 > [!WARNING]\
 > 難易度レベル32はかなり高いので、厳しさを下げたい場合、より低く設定するか閉じることをおすすめです。
 
 ### 3. Relayの特別なサービスの選択肢
 
-```toml
-[nostr.relay.database.backup]
-enabled = false
-sync = ["wss://relay.damus.io", "wss://relay.snort.social", "wss://relay.siamstr.com", "wss://relay.notoshi.win"]
+```dotenv
+BACKUP_ENABLED=false
+SYNC=wss://relay.rushmi0.win, wss://relay.plebstr.com
 ```
 
-| พารามิเตอร์ | คำอธิบาย                                              | ค่าเริ่มต้น |
-|-------------|-------------------------------------------------------|-------------|
-| enabled     | Relay (NIP-02) の所有者をフォローしている人のデータを他のRelayから取る機能を有効にする | false       |
-| sync        | 他のRelayを取るリスト                                         | -           |
+| パラメータ            | 説明                                                    | デフォルト |
+|------------------|-------------------------------------------------------|-------|
+| `BACKUP_ENABLED` | Relay (NIP-02) の所有者をフォローしている人のデータを他のRelayから取る機能を有効にする | false |
+| `SYNC`           | 他のRelayを取るリスト                                         | -     |
 
 ## 🛠 インストールと使用の手順
 
