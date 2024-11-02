@@ -12,19 +12,19 @@ RUN chmod +x ./gradlew
 RUN ./gradlew nativeOptimizedCompile
 
 
-FROM alpine:latest
+FROM bellsoft/liberica-openjdk-alpine-musl
 
 RUN apk update && \
     apk add --no-cache libc6-compat
 
 RUN addgroup -S appgroup -g 1000 && \
-    adduser -S -G appgroup -u 1000 -h /app appuser
+    adduser -S -G appgroup -u 1000 -h /app runner
 
-USER appuser
+USER runner
 WORKDIR /app
 
 COPY --from=build /home/builder/app/build/native/nativeOptimizedCompile/fenrir-s-v1.0 ./
-COPY --chown=appuser:appgroup .env /app/.env
+COPY --chown=runner:appgroup .env /app/.env
 
 EXPOSE 6724
 

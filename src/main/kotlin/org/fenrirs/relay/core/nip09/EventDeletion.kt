@@ -2,19 +2,16 @@ package org.fenrirs.relay.core.nip09
 
 import io.micronaut.context.annotation.Bean
 import jakarta.inject.Inject
-import jakarta.inject.Singleton
 
 import org.fenrirs.relay.policy.Event
 import org.fenrirs.relay.policy.FiltersX
 import org.fenrirs.relay.policy.TAG_E
 
 import org.fenrirs.storage.statement.StoredServiceImpl
-import org.fenrirs.utils.Color.GREEN
 
 import org.slf4j.LoggerFactory
 
 @Bean
-@Singleton
 class EventDeletion @Inject constructor(private val sqlExec: StoredServiceImpl) {
 
     /**
@@ -36,7 +33,7 @@ class EventDeletion @Inject constructor(private val sqlExec: StoredServiceImpl) 
             }
 
             if (deletionResults.all { it }) {
-                LOG.info("Event deleted ${GREEN}successfully")
+                LOG.info("Event deleted")
                 true to ""
             } else {
                 false to "error: could not delete all events"

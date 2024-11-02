@@ -1,4 +1,4 @@
-name: Build GraalVM CE Native Image
+name: Build JVM 21
 
 on:
   push:
@@ -22,26 +22,21 @@ jobs:
       - name: Build Docker Image
         uses: adambirds/docker-compose-action@v1.5.0
         with:
-          up-flags: relay-db  # เรียกใช้ relay-db ซึ่งเป็น service ใน docker-compose.yml
+          up-flags: relay-db
 
-      # ขั้นตอนที่ 3: ติดตั้ง GraalVM
-      # * https://github.com/marketplace/actions/github-action-for-graalvm?version=v1.2.5
-      - name: Setup GraalVM Environment
-        uses: graalvm/setup-graalvm@v1
+      # ขั้นตอนที่ 3: ติดตั้ง JVM
+      # * https://github.com/marketplace/actions/setup-java-jdk?version=v4.5.0
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4.5.0
         with:
-          java-version: '21'
-          version: '21.0.2'
-          # เลือก GraalVM แบบ Community Edition
-          distribution: 'graalvm-community'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          java-version: 21
+          distribution: temurin
 
-      # ขั้นตอนที่ 4: ตรวจสอบเวอร์ชันของ GraalVM
-      - name: Verify GraalVM
+      # ขั้นตอนที่ 4: ตรวจสอบเวอร์ชันของ JVM
+      - name: Verify JVM
         run: |
-          echo "GRAALVM_HOME: $GRAALVM_HOME"
           echo "JAVA_HOME: $JAVA_HOME"
-          java --version
-          native-image --version
+          java --version          
 
       # ขั้นตอนที่ 5: แก้ไขค่าในไฟล์ .env สำหรับการใช้งาน
       - name: Update .env Configuration
@@ -50,15 +45,17 @@ jobs:
           sed -i 's/DATABASE_URL=jdbc:postgresql:\/\/relay-db:5432/#DATABASE_URL=jdbc:postgresql:\/\/relay-db:5432/' .env
 
       # ขั้นตอนที่ 6: Compile โค้ด
-      - name: Compile Project with GraalVM Native Image
-        run: ./gradlew nativeOptimizedCompile
+      - name: Build Project
+        run: ./gradlew build -x test
 
-      # ขั้นตอนที่ 7: ตรวจสอบว่าไฟล์ Native Binaries ถูกสร้างขึ้นแล้ว
+      # ขั้นตอนที่ 7: ตรวจสอบว่าไฟล์ jar ถูกสร้างขึ้นแล้ว
       - name: Check Build Output
         run: |
-          if [ -f build/native/nativeOptimizedCompile/fenrir-s-v1.0 ]; then
+          if [ -f build/libs/fenrir-s-1.0-all-optimized.jar ]; then
             echo "Build successful!"
           else
             echo "Build failed!"
             exit 1
           fi 
+          
+          

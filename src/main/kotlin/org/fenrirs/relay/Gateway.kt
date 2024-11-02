@@ -1,7 +1,5 @@
 package org.fenrirs.relay
 
-import io.micronaut.context.annotation.Bean
-import io.micronaut.core.annotation.Introspected
 
 import io.micronaut.http.*
 import io.micronaut.http.annotation.Header
@@ -19,7 +17,7 @@ import org.fenrirs.relay.core.nip01.command.EVENT
 import org.fenrirs.relay.core.nip01.command.REQ
 import org.fenrirs.relay.core.nip01.command.CommandFactory.parse
 import org.fenrirs.relay.core.nip01.response.RelayResponse
-import org.fenrirs.relay.core.nip01.BasicProtocolFlow
+import org.fenrirs.relay.core.nip01.ProtocolFlowFactory
 import org.fenrirs.relay.core.nip11.RelayInformation
 import org.fenrirs.storage.Subscription.clearSession
 
@@ -33,13 +31,14 @@ import org.fenrirs.utils.Color.YELLOW
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-@Bean
-@Introspected
+
 @ServerWebSocket("/")
 class Gateway @Inject constructor(
-    private val nip01: BasicProtocolFlow,
+    private val nip01: ProtocolFlowFactory,
     private val nip11: RelayInformation,
 ) {
+    
+    private val service = nip01.launchProtocol()
 
     @OnOpen
     suspend fun onOpen(session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): MutableHttpResponse<String>? {
@@ -73,16 +72,16 @@ class Gateway @Inject constructor(
             val (status, warning) = validationResult
 
             when (cmd) {
-                is EVENT -> nip01.onEvent(cmd.event, status, warning, session)
-                is REQ -> nip01.onRequest(cmd.subscriptionId, cmd.filtersX, status, warning, session)
-                is CLOSE -> nip01.onClose(cmd.subscriptionId, session)
-                else -> nip01.onUnknown(session)
+                is EVENT -> service.onEvent(cmd.event, status, warning, session)
+                is REQ -> service.onRequest(cmd.subscriptionId, cmd.filtersX, status, warning, session)
+                is CLOSE -> service.onClose(cmd.subscriptionId, session)
+                else -> service.onUnknown(session)
             }
 
         } catch (e: IllegalArgumentException) {
-            LOG.error("handle command: ${RED}${e.message}")
+            LOG.error("handle command: ${RED}${e.message}${RESET}")
             RelayResponse.NOTICE("ERROR: ${e.message}").toClient(session)
-        }
+        } catch (_: NullPointerException) { }
     }
 
     @OnClose

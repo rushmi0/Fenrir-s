@@ -15,18 +15,18 @@ RUN dos2unix gradlew
 RUN ./gradlew build -x test
 
 
-FROM eclipse-temurin:21-jre-alpine
+FROM bellsoft/liberica-openjdk-alpine:21
 RUN apk update && apk add --no-cache bash && rm -rf /var/cache/apk/*
 
 RUN addgroup -S appgroup -g 1000 && \
-    adduser -S appuser -G appgroup -u 1000 -h /app
+    adduser -S runner -G appgroup -u 1000 -h /app
 
-USER appuser
+USER runner
 WORKDIR /app
 
 COPY --from=build /home/builder/app/build/libs/fenrir-s-1.0-all-optimized.jar ./
-COPY --chown=appuser:appgroup .env /app/.env
+COPY --chown=runner:appgroup .env /app/.env
 
 EXPOSE 6724
 
-ENTRYPOINT ["java", "-Xms256m", "-Xmx4g", "-XX:+UseG1GC", "-jar", "fenrir-s-1.0-all-optimized.jar"]
+ENTRYPOINT ["java", "-Xms256m", "-Xmx3g", "-XX:+UseG1GC", "-jar", "fenrir-s-1.0-all-optimized.jar"]

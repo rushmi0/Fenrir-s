@@ -1,7 +1,6 @@
 package org.fenrirs.relay.core.nip01
 
 import io.micronaut.context.annotation.Bean
-import io.micronaut.core.annotation.Introspected
 import io.micronaut.websocket.WebSocketSession
 
 import jakarta.inject.Inject
@@ -31,7 +30,6 @@ import org.fenrirs.utils.Color.RESET
 import java.util.concurrent.TimeUnit
 
 @Bean
-@Introspected
 class BasicProtocolFlow @Inject constructor(
     private val sqlExec: StoredServiceImpl,
     private val nip09: EventDeletion,
@@ -282,6 +280,8 @@ class BasicProtocolFlow @Inject constructor(
         session: WebSocketSession
     ) {
         LOG.info("${GREEN}filters ${YELLOW}[${filtersX.size}] ${RESET}req subscription ID: ${CYAN}$subscriptionId ${RESET}")
+        LOG.info("FiltersX: $filtersX")
+
         filtersX.forEach { filter ->
             sqlExec.filterList(filter)?.forEach { event ->
                 RelayResponse.EVENT(subscriptionId, event).toClient(session)
@@ -290,6 +290,7 @@ class BasicProtocolFlow @Inject constructor(
         RelayResponse.EOSE(subscriptionId).toClient(session)
         startRealTimeUpdates(subscriptionId, session)
     }
+
 
     private suspend fun startRealTimeUpdates(
         subscriptionId: String,
@@ -331,7 +332,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     fun onClose(subscriptionId: String, session: WebSocketSession) {
-        LOG.info("${PURPLE}close ${RESET}subscription ID: $subscriptionId")
+        LOG.info("${YELLOW}cancel ${RESET}subscription ID: $subscriptionId")
         RelayResponse.CANCEL(subscriptionId).toClient(session)
     }
 

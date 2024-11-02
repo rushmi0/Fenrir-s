@@ -2,8 +2,9 @@ package org.fenrirs.storage
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.micronaut.context.annotation.Bean
+
 import jakarta.inject.Inject
-import jakarta.inject.Singleton
 
 import org.fenrirs.storage.table.EVENT
 import org.fenrirs.utils.ExecTask.asyncTask
@@ -14,7 +15,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 //import org.jetbrains.exposed.sql.StdOutSqlLogger
 //import org.jetbrains.exposed.sql.addLogger
 
-@Singleton
+@Bean
 object DatabaseFactory {
 
     @Inject
