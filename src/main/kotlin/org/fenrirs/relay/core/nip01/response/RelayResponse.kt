@@ -36,9 +36,12 @@ sealed class RelayResponse<out T> {
     data class EVENT(val subscriptionId: String, val event: Event) : RelayResponse<Unit>()
 
 
-
+    /**
+     * COUNT ใช้ในการตอบกลับประเภทจำนวน ซึ่งส่งคืนจำนวนเหตุการณ์ที่ตรงกับเงื่อนไขที่กำหนด
+     * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงไปถึงการร้องขอนั้นๆ
+     * @param countResponse จำนวนเหตุการณ์ที่ตรงตามเงื่อนไข
+     */
     data class COUNT(val subscriptionId: String, val countResponse: Any) : RelayResponse<Unit>()
-
 
 
     /**

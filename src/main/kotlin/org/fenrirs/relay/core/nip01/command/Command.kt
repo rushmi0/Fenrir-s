@@ -49,8 +49,19 @@ data class AUTH(val challenge: String) : Command()
 @Serializable
 data class COUNT(val subscriptionId: String, val filtersX: List<FiltersX>) : Command()
 
+/**
+ * CountREQ ใช้เพื่อส่งคำขอสำหรับการนับจำนวนเหตุการณ์ที่ตรงตามเงื่อนไขที่ระบุ
+ * ในคำขอนี้จะมีข้อมูลจำนวนเต็มที่บ่งบอกถึงจำนวนเหตุการณ์ที่ต้องการนับ
+ * @param count จำนวนเหตุการณ์ที่ต้องการ
+ */
 @Serializable
 data class CountREQ(val count: Int)
 
+/**
+ * ApproximateCountREQ ใช้สำหรับส่งคำขอที่มีการประมาณจำนวนเหตุการณ์
+ * นอกจากจำนวนเหตุการณ์ที่ต้องการนับแล้ว ยังมีการระบุว่าเป็นการประมาณหรือไม่
+ * @param count จำนวนเหตุการณ์ที่ต้องการ
+ * @param approximate ตัวแปร Boolean ที่บอกว่าการนับนั้นเป็นการประมาณหรือไม่
+ */
 @Serializable
 data class ApproximateCountREQ(val count: Int, val approximate: Boolean)

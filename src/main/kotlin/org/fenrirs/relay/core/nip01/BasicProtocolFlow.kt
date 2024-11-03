@@ -352,13 +352,13 @@ class BasicProtocolFlow @Inject constructor(
 
 
     /**
-     * ฟังก์ชัน sendResponse ใช้ในการส่งการตอบกลับไปยังไคลเอนต์ตามประเภทที่กำหนด
+     * ฟังก์ชัน handleResponse ใช้ในการส่งการตอบกลับไปยังไคลเอนต์ตามประเภทที่กำหนด
      *
      * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงการร้องขอนั้นๆ จากไคลเอนต์
      * @param data ข้อมูลที่ต้องการส่งกลับ
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    private inline fun <reified T> sendResponse(subscriptionId: String, data: Any, session: WebSocketSession) {
+    private inline fun <reified T> handleResponse(subscriptionId: String, data: Any, session: WebSocketSession) {
         when (T::class) {
             COUNT::class -> RelayResponse.COUNT(subscriptionId, data).toClient(session)
             REQ::class -> RelayResponse.EVENT(subscriptionId, data as Event).toClient(session)
@@ -376,7 +376,7 @@ class BasicProtocolFlow @Inject constructor(
         var lastUpdateTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
 
         // แสดงชื่อคลาสของ T
-        LOG.info("Option: ${T::class.simpleName}")
+        //LOG.info("Option: ${T::class.simpleName}")
         do {
             val currentTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
             val updatedFiltersX = getSubscription(session, subscriptionId).map {
@@ -386,16 +386,25 @@ class BasicProtocolFlow @Inject constructor(
                 )
             }
 
+
             updatedFiltersX.forEach { filter ->
-                val events = sqlExec.filterList(filter)
 
                 // ตรวจสอบว่า events ไม่เป็น null และไม่ใช่ list ว่าง
-                if (!events.isNullOrEmpty()) {
-                    events.forEach { event ->
-                        sendResponse<T>(subscriptionId, event, session)
+                sqlExec.filterList(filter).takeIf { !it.isNullOrEmpty() }?.let { events ->
+                    when (T::class) {
+                        COUNT::class -> {
+                            val count = events.size
+                            val response = if (count >= 93_412_452) ApproximateCountREQ(93_412_452, true) else CountREQ(count)
+                            handleResponse<T>(subscriptionId, response, session)
+                        }
+                        REQ::class -> events.forEach { event ->
+                            handleResponse<T>(subscriptionId, event, session)
+                        }
                     }
                 }
+
             }
+
 
             // อัปเดต lastUpdateTime หลังจากค้นหาข้อมูลเสร็จ
             lastUpdateTime = currentTime
