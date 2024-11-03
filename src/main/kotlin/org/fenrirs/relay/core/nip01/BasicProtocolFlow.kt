@@ -4,14 +4,19 @@ import io.micronaut.context.annotation.Bean
 import io.micronaut.websocket.WebSocketSession
 
 import jakarta.inject.Inject
+import java.util.concurrent.TimeUnit
 
 import kotlinx.coroutines.runBlocking
+import org.fenrirs.relay.core.nip01.command.COUNT
+import org.fenrirs.relay.core.nip01.command.REQ
 import org.slf4j.LoggerFactory
 
 import org.fenrirs.relay.policy.Event
 import org.fenrirs.relay.policy.FiltersX
 
 import org.fenrirs.relay.core.nip01.response.RelayResponse
+import org.fenrirs.relay.core.nip01.command.CountREQ
+import org.fenrirs.relay.core.nip01.command.ApproximateCountREQ
 import org.fenrirs.relay.core.nip09.EventDeletion
 import org.fenrirs.relay.core.nip13.ProofOfWork
 
@@ -22,12 +27,10 @@ import org.fenrirs.storage.Subscription.saveSubscription
 import org.fenrirs.storage.statement.StoredServiceImpl
 
 import org.fenrirs.utils.Color.YELLOW
-import org.fenrirs.utils.Color.CYAN
 import org.fenrirs.utils.Color.GREEN
 import org.fenrirs.utils.Color.PURPLE
 import org.fenrirs.utils.Color.RED
 import org.fenrirs.utils.Color.RESET
-import java.util.concurrent.TimeUnit
 
 @Bean
 class BasicProtocolFlow @Inject constructor(
@@ -279,31 +282,107 @@ class BasicProtocolFlow @Inject constructor(
         filtersX: List<FiltersX>,
         session: WebSocketSession
     ) {
-        LOG.info("${GREEN}filters ${YELLOW}[${filtersX.size}] ${RESET}req subscription ID: ${CYAN}$subscriptionId ${RESET}")
-        LOG.info("FiltersX: $filtersX")
-
         filtersX.forEach { filter ->
             sqlExec.filterList(filter)?.forEach { event ->
                 RelayResponse.EVENT(subscriptionId, event).toClient(session)
             }
         }
         RelayResponse.EOSE(subscriptionId).toClient(session)
-        startRealTimeUpdates(subscriptionId, session)
+        startRealTimeUpdates<REQ>(subscriptionId, session)
     }
 
 
-    private suspend fun startRealTimeUpdates(
+    /**
+     * ฟังก์ชัน onCount ใช้ในการจัดการนับจำนวนข้อมูลที่ไคลเอนต์ต้องการ
+     *
+     * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงการร้องขอนั้นๆ จากไคลเอนต์
+     * @param filtersX คำขอข้อมูลที่ไคลเอนต์ต้องการ
+     * @param status สถานะของการร้องขอ (true หรือ false)
+     * @param warning ข้อความแจ้งเตือน (ถ้ามี)
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     */
+    suspend fun onCount(
         subscriptionId: String,
-        session: WebSocketSession,
+        filtersX: List<FiltersX>,
+        status: Boolean,
+        warning: String,
+        session: WebSocketSession
     ) {
+        if (status) {
+            if (isSubscriptionActive(session, subscriptionId)) {
+                RelayResponse.CANCEL("duplicate: $subscriptionId already opened").toClient(session)
+            } else {
+                saveSubscription(session, subscriptionId, filtersX)
+                handleValidCount(subscriptionId, filtersX, session)
+            }
+        } else {
+            RelayResponse.NOTICE(warning).toClient(session)
+        }
+    }
+
+
+    /**
+     * ฟังก์ชัน handleValidCount ใช้ในการจัดการการร้องขอนับจำนวนที่มีสถานะเป็น true
+     *
+     * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงการร้องขอนั้นๆ จากไคลเอนต์
+     * @param filtersX คำขอข้อมูลที่ไคลเอนต์ต้องการ
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     */
+    private suspend fun handleValidCount(
+        subscriptionId: String,
+        filtersX: List<FiltersX>,
+        session: WebSocketSession
+    ) {
+        filtersX.forEach { filter ->
+            val count = sqlExec.filterList(filter)?.size ?: 0
+
+            val response = when {
+                count < 0 -> throw IllegalArgumentException("Count cannot be negative")
+                count >= 93_412_452 -> ApproximateCountREQ(93_412_452, true)
+                else -> CountREQ(count)
+            }
+
+            RelayResponse.COUNT(subscriptionId, response).toClient(session)
+        }
+
+        // แจ้งว่าเสร็จสิ้นการนับจำนวนเหตุการณ์
+        RelayResponse.EOSE(subscriptionId).toClient(session)
+        startRealTimeUpdates<COUNT>(subscriptionId, session)
+    }
+
+
+    /**
+     * ฟังก์ชัน sendResponse ใช้ในการส่งการตอบกลับไปยังไคลเอนต์ตามประเภทที่กำหนด
+     *
+     * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงการร้องขอนั้นๆ จากไคลเอนต์
+     * @param data ข้อมูลที่ต้องการส่งกลับ
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     */
+    private inline fun <reified T> sendResponse(subscriptionId: String, data: Any, session: WebSocketSession) {
+        when (T::class) {
+            COUNT::class -> RelayResponse.COUNT(subscriptionId, data).toClient(session)
+            REQ::class -> RelayResponse.EVENT(subscriptionId, data as Event).toClient(session)
+        }
+    }
+
+
+    /**
+     * ฟังก์ชัน startRealTimeUpdates ใช้ในการเริ่มต้นการอัปเดตข้อมูลแบบเรียลไทม์
+     *
+     * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงการร้องขอนั้นๆ จากไคลเอนต์
+     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
+     */
+    private suspend inline fun <reified T> startRealTimeUpdates(subscriptionId: String, session: WebSocketSession) {
         var lastUpdateTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
 
+        // แสดงชื่อคลาสของ T
+        LOG.info("Option: ${T::class.simpleName}")
         do {
             val currentTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
             val updatedFiltersX = getSubscription(session, subscriptionId).map {
                 it.copy(
-                    since = lastUpdateTime,  // ใช้เวลาของการอัปเดตครั้งก่อนหน้า
-                    until = currentTime      // ใช้เวลาปัจจุบัน
+                    since = lastUpdateTime,
+                    until = currentTime
                 )
             }
 
@@ -313,7 +392,7 @@ class BasicProtocolFlow @Inject constructor(
                 // ตรวจสอบว่า events ไม่เป็น null และไม่ใช่ list ว่าง
                 if (!events.isNullOrEmpty()) {
                     events.forEach { event ->
-                        RelayResponse.EVENT(subscriptionId, event).toClient(session)
+                        sendResponse<T>(subscriptionId, event, session)
                     }
                 }
             }

@@ -41,9 +41,9 @@ object CommandFactory {
 
         return when (val cmd = jsonElement[0].jsonPrimitive.content) {
             "EVENT" -> parseEvent(jsonElement)
-            "REQ" -> parseREQ(jsonElement)
+            "REQ" -> parseSubWithFilters<REQ>(jsonElement)
+            "COUNT" -> parseSubWithFilters<COUNT>(jsonElement)
             "CLOSE" -> parseClose(jsonElement)
-            // "COUNT" -> TODO("Not yet implemented")
             // "AUTH" -> TODO("Not yet implemented")
             else -> throw IllegalArgumentException("Unknown command: $cmd")
         }
@@ -69,31 +69,41 @@ object CommandFactory {
     }
 
 
+
     /**
-     * ฟังก์ชัน parseREQ ใช้ในการแยกและวิเคราะห์คำสั่งประเภท REQ
-     * @param jsonArray JsonArray ที่มีข้อมูลเป็นคำสั่งประเภท REQ
-     * @return ผลลัพธ์เป็นคู่ของคำสั่ง REQ และผลการตรวจสอบความถูกต้อง
-     * ฟังก์ชันนี้จะทำการตรวจสอบจำนวน filters ที่กำหนดใน env.MAX_FILTERS
-     * และตรวจสอบความถูกต้องของข้อมูล filtersX
+     * ฟังก์ชัน parseSubWithFilters ใช้ในการแยกและวิเคราะห์คำสั่งประเภท REQ และ COUNT
+     * @param jsonArray JsonArray ที่มีข้อมูลเป็นคำสั่งประเภท REQ หรือ COUNT
+     * @return ผลลัพธ์เป็นคู่ของคำสั่ง (REQ หรือ COUNT) และผลการตรวจสอบความถูกต้อง
+     * ฟังก์ชันนี้ทำการตรวจสอบฟิลด์ subscriptionId และ filters และทำการ validate ข้อมูล filter
      */
-    private fun parseREQ(jsonArray: JsonArray): EventCommandResult {
+    private inline fun <reified T : Command> parseSubWithFilters(
+        jsonArray: JsonArray
+    ): EventCommandResult {
         if (jsonArray.size < 3 || jsonArray[1] !is JsonPrimitive || jsonArray.drop(2).any { it !is JsonObject }) {
-            throw IllegalArgumentException("invalid: REQ command format")
+            throw IllegalArgumentException("invalid: ${T::class.simpleName} command format")
         }
+
         val subscriptionId: String = jsonArray[1].jsonPrimitive.content
         val filtersJson: List<JsonObject> = jsonArray.drop(2).map { it.jsonObject }
-        //LOG.info("filters object ${filtersJson.size}: $filtersJson")
 
+        // ตรวจสอบจำนวน filters ว่าไม่เกินค่าที่กำหนด
         if (filtersJson.size > env.MAX_FILTERS) {
             throw IllegalArgumentException("rate-limited: max filters ${env.MAX_FILTERS} values in each sub ID allowed")
         }
 
         val data: Map<String, JsonElement> = filtersJson.flatMap { it.entries }.associate { it.key to it.value }
-
         val filtersX: List<FiltersX> = filtersJson.map { it.jsonObject.toFiltersX() }
 
+        // ตรวจสอบความถูกต้องของฟิลด์ใน filters
         val (status, warning) = validateElement(data, FiltersXValidateField.entries.toTypedArray())
-        return REQ(subscriptionId, filtersX) to (status to warning)
+
+        val command = when (T::class) {
+            REQ::class -> REQ(subscriptionId, filtersX)
+            COUNT::class -> COUNT(subscriptionId, filtersX)
+            else -> throw IllegalArgumentException("Unsupported command type")
+        }
+
+        return command to (status to warning)
     }
 
 

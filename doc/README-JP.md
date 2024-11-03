@@ -13,8 +13,7 @@
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.23-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![GraalVM](https://img.shields.io/badge/GraalVM-21.0.2-blue.svg?logo=github)](https://github.com/graalvm/graalvm-ce-builds/releases/tag/jdk-21.0.2)
-[![Micronaut](https://img.shields.io/badge/Micronaut-4.5.0-blue.svg?logo=github)](https://github.com/micronaut-projects/micronaut-core)
-[![Docker](https://img.shields.io/badge/Docker-4.33.1-blue.svg?logo=docker)](https://docs.docker.com/desktop/release-notes/)
+[![Micronaut](https://img.shields.io/badge/Micronaut-4.6.3-blue.svg?logo=github)](https://github.com/micronaut-projects/micronaut-core)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg?logo=postgresql)](https://www.postgresql.org/about/news/postgresql-15-released-2526/)
 [![GitHub License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat)](https://github.com/rushmi0/Fenrir-s/blob/main/LICENSE)
 
@@ -54,8 +53,7 @@
 - ✅ NIP-13 Proof of Work
 - ✅ NIP-15 Marketplace
 - ✅ NIP-28 Public Chat
-- ⬜ NIP-40 Expiration Timestamp
-- ⬜ NIP-42 Authentication of clients to relays
+- ✅ NIP-45 Event Counts
 - ✅ NIP-50 Search Capability
 
 ## ⚙️ Relayの設定

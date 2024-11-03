@@ -1,13 +1,13 @@
 package org.fenrirs.relay.core.nip11
 
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 
 import io.micronaut.http.MediaType
 import io.micronaut.context.annotation.Bean
 
 import io.micronaut.core.io.ResourceResolver
 import io.micronaut.core.io.scan.ClassPathResourceLoader
-import jakarta.inject.Singleton
 
 import org.fenrirs.storage.Environment
 import org.fenrirs.utils.ExecTask.asyncTask
@@ -50,7 +50,7 @@ class RelayInformation @Inject constructor(private val env: Environment) {
               "description": "${env.RELAY_DESCRIPTION}",
               "pubkey": "${env.RELAY_OWNER}",
               "contact": "${env.RELAY_CONTACT}",
-              "supported_nips": [1,2,4,9,11,13,15,28,40,50],
+              "supported_nips": [1,2,4,9,11,13,15,28,45,50],
               "icon": "https://i.imgur.com/dwLPgio.png",
               "software": "https://github.com/rushmi0/Fenrir-s",
               "version": "1.0",

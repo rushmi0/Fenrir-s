@@ -8,6 +8,8 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
 import org.fenrirs.relay.policy.Event
 
+import org.fenrirs.relay.core.nip01.command.CountREQ
+import org.fenrirs.relay.core.nip01.command.ApproximateCountREQ
 
 object RelayResponseSerializer : KSerializer<RelayResponse<*>> {
 
@@ -34,6 +36,23 @@ object RelayResponseSerializer : KSerializer<RelayResponse<*>> {
                     jsonEncoder.json.encodeToJsonElement(Event.serializer(), value.event)
                 )
             )
+
+            is RelayResponse.COUNT -> {
+                val countJsonElement = when (val countResponse = value.countResponse) {
+                    is CountREQ -> jsonEncoder.json.encodeToJsonElement(CountREQ.serializer(), countResponse)
+                    is ApproximateCountREQ -> jsonEncoder.json.encodeToJsonElement(ApproximateCountREQ.serializer(), countResponse)
+                    else -> throw SerializationException("Unknown countResponse type")
+                }
+
+                JsonArray(
+                    listOf(
+                        JsonPrimitive("COUNT"),
+                        JsonPrimitive(value.subscriptionId),
+                        countJsonElement
+                    )
+                )
+            }
+
 
             is RelayResponse.OK -> JsonArray(
                 listOf(

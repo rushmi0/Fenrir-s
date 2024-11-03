@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 sealed class Command
 
 /**
- * EVENT ใช้สำหรับส่งเหตุการณ์ใหม่จากไคลเอนต์มาที่เซิร์ฟเวอร์
+ * EVENT ใช้สำหรับส่งเหตุการณ์ใหม่จากไคลเอนต์มาที่รีเลย์
  * @param event เหตุการณ์ที่ถูกส่งมาจากไคลเอนต์
  */
 @Serializable
@@ -40,3 +40,17 @@ data class CLOSE(val subscriptionId: String) : Command()
  */
 @Serializable
 data class AUTH(val challenge: String) : Command()
+
+/**
+ * COUNT ใช้สำหรับส่งคำขอจำนวนของเหตุการณ์ที่ตรงกับเงื่อนไขการร้องขอจากไคลเอนต์
+ * @param subscriptionId ไอดีสำหรับติดตามคำขอ
+ * @param filtersX เงื่อนไขในการกรองข้อมูล
+ */
+@Serializable
+data class COUNT(val subscriptionId: String, val filtersX: List<FiltersX>) : Command()
+
+@Serializable
+data class CountREQ(val count: Int)
+
+@Serializable
+data class ApproximateCountREQ(val count: Int, val approximate: Boolean)

@@ -18,15 +18,14 @@ import org.fenrirs.relay.core.nip01.command.REQ
 import org.fenrirs.relay.core.nip01.command.CommandFactory.parse
 import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip01.ProtocolFlowFactory
+import org.fenrirs.relay.core.nip01.command.COUNT
 import org.fenrirs.relay.core.nip11.RelayInformation
 import org.fenrirs.storage.Subscription.clearSession
 
-import org.fenrirs.utils.Color.BLUE
 import org.fenrirs.utils.Color.GREEN
 import org.fenrirs.utils.Color.PURPLE
 import org.fenrirs.utils.Color.RED
 import org.fenrirs.utils.Color.RESET
-import org.fenrirs.utils.Color.YELLOW
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -37,11 +36,23 @@ class Gateway @Inject constructor(
     private val nip01: ProtocolFlowFactory,
     private val nip11: RelayInformation,
 ) {
-    
+
     private val service = nip01.launchProtocol()
 
     @OnOpen
-    suspend fun onOpen(session: WebSocketSession?, @Header(HttpHeaders.ACCEPT) accept: String?): MutableHttpResponse<String>? {
+    suspend fun onOpen(
+        request: HttpRequest<*>,
+        session: WebSocketSession?,
+        @Header(HttpHeaders.ACCEPT) accept: String?
+    ): MutableHttpResponse<String>? {
+
+        // ดึงข้อมูลของไคลเอนต์
+        val clientIp = request.headers["X-Forwarded-For"] ?: request.remoteAddress.address.hostAddress
+        val userAgent = request.headers["User-Agent"]
+
+        // Log ข้อมูลไคลเอนต์ที่เชื่อมต่อ
+        LOG.info("Client IP: $clientIp, Agent: $userAgent")
+
         session?.let {
             LOG.info("${GREEN}open$RESET ${session.id}")
             return@let HttpResponse.ok("Session opened")
@@ -74,6 +85,7 @@ class Gateway @Inject constructor(
             when (cmd) {
                 is EVENT -> service.onEvent(cmd.event, status, warning, session)
                 is REQ -> service.onRequest(cmd.subscriptionId, cmd.filtersX, status, warning, session)
+                is COUNT -> service.onCount(cmd.subscriptionId, cmd.filtersX, status, warning, session)
                 is CLOSE -> service.onClose(cmd.subscriptionId, session)
                 else -> service.onUnknown(session)
             }

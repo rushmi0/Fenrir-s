@@ -36,6 +36,11 @@ sealed class RelayResponse<out T> {
     data class EVENT(val subscriptionId: String, val event: Event) : RelayResponse<Unit>()
 
 
+
+    data class COUNT(val subscriptionId: String, val countResponse: Any) : RelayResponse<Unit>()
+
+
+
     /**
      * OK เป็นการตอบกลับประเภทการยืนยันความสำเร็จของการดำเนินการ ใช้ในการบอกสถานะการยอมรับหรือปฏิเสธข้อความ EVENT จากไคลเอนต์
      * จะมีพารามิเตอร์ที่ 2 เป็น true เมื่อเหตุการณ์ได้รับการยอมรับจาก Relay และ false ในกรณีอื่นๆ เช่นการปฏิเสธ EVENT จากไคลเอนต์
