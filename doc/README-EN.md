@@ -129,7 +129,7 @@ git clone https://github.com/rushmi0/Fenrir-s.git
 cd Fenrir-s
 ```
 
-2. Customize the application.toml file as needed.
+2. Customize the `.env` file as needed.
 
 3. Run Docker Compose:
 

@@ -1,14 +1,10 @@
 package org.fenrirs.utils
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
-import kotlinx.serialization.serializer
 import org.fenrirs.relay.policy.Event
 import org.slf4j.LoggerFactory
 import java.lang.management.ManagementFactory
-import java.lang.management.MemoryMXBean
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
@@ -150,6 +146,27 @@ object ShiftTo {
             else -> "$bytes bytes"
         }
     }
+
+
+    /*
+    fun renderTable(data: List<Pair<String, String>>): String {
+        val colWidth1 = data.maxOf { it.first.length } + 2
+        val colWidth2 = data.maxOf { it.second.length } + 2
+
+        val separator = "${Color.GREEN}+${"─".repeat(colWidth1)}+${"─".repeat(colWidth2)}+${Color.RESET}"
+        val table = StringBuilder().apply {
+            appendLine(separator)
+            data.forEachIndexed { index, (label, value) ->
+                appendLine(
+                    "${Color.GREEN}│${Color.RESET} ${label.padEnd(colWidth1 - 2)} ${Color.GREEN}│${Color.RESET} ${value.padEnd(colWidth2 - 2)} ${Color.GREEN}│${Color.RESET}"
+                )
+                if (index < data.size - 1) appendLine(separator) else append(separator)
+            }
+        }
+        return table.toString()
+    }
+     */
+
 
     val LOG = LoggerFactory.getLogger(ShiftTo::class.java)
 

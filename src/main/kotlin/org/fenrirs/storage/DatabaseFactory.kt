@@ -45,8 +45,8 @@ object DatabaseFactory {
             username = ENV.DATABASE_USERNAME
             password = ENV.DATABASE_PASSWORD
 
-            minimumIdle = 2
-            maximumPoolSize = 10
+            minimumIdle = 10
+            maximumPoolSize = 64
 
             isAutoCommit = false
 

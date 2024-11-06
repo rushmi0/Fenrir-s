@@ -28,4 +28,7 @@ COPY --chown=runner:appgroup .env /app/.env
 
 EXPOSE 6724
 
-ENTRYPOINT ["/app/fenrir-s-v1.0"]
+ENTRYPOINT sh -c "/app/fenrir-s-v1.0; \
+    while [ ! -f logs/activity.log ]; do sleep 3; done; \
+    cd logs; tail -n 100 -f activity.log"
+

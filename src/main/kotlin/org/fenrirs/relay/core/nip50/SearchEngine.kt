@@ -1,10 +1,16 @@
 package org.fenrirs.relay.core.nip50
 
-import jakarta.inject.Singleton
+import io.micronaut.context.annotation.Bean
+import org.fenrirs.storage.table.EVENT.CONTENT
+import org.fenrirs.storage.table.EVENT.EVENT_ID
+import org.fenrirs.storage.table.EVENT.PUBKEY
+import org.fenrirs.utils.Bech32
+import org.fenrirs.utils.ShiftTo.toHex
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 
-@Singleton
+@Bean
 class SearchEngine {
 
 
@@ -46,6 +52,7 @@ class SearchEngine {
      */
     class MatchOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, expr2, "@@")
 
+
     /**
      * ฟังก์ชันสำหรับสร้างการเปรียบเทียบ `tsvector` กับ `tsquery`
      * - ใช้ตัวดำเนินการ `@@` สำหรับการค้นหาข้อความ
@@ -69,6 +76,30 @@ class SearchEngine {
             simple,
             stringLiteral(search)
         )
+    }
+
+
+    /**
+     * ฟังก์ชันสำหรับตรวจสอบประเภทของ search query และเลือกคอลัมน์ที่เหมาะสมสำหรับการค้นหา
+     *
+     * - หาก search เริ่มต้นด้วย "npub" จะทำการถอดรหัสเป็นค่า hex เพื่อค้นหาในคอลัมน์ PUBKEY
+     * - หาก search เป็น hex string ความยาว 64 ตัวอักษร จะค้นหาในคอลัมน์ EVENT_ID หรือ PUBKEY
+     * - กรณีอื่นๆ จะค้นหาในคอลัมน์ CONTENT โดยใช้ tsQuery
+     *
+     * @param search ข้อความที่ต้องการค้นหา
+     * @return Op<Boolean> เงื่อนไขการค้นหาสำหรับ query
+     */
+    fun searchQuery(search: String): Op<Boolean> {
+        return when {
+            search.startsWith("npub") -> {
+                val decodedHex = Bech32.decode(search).data.toHex()
+                PUBKEY eq decodedHex
+            }
+            search.length == 64 && search.all { it in '0'..'9' || it in 'a'..'f' } -> {
+                (EVENT_ID eq search) or (PUBKEY eq search)
+            }
+            else -> tsQuery(CONTENT, search)
+        }
     }
 
 

@@ -108,11 +108,11 @@ sealed class RelayResponse<out T> {
                         clearSubscription(session, subscriptionId)
                     }
                 } catch (e: WebSocketSessionException) {
-                    LOG.warn("$session is closed, cannot send message")
+                    LOG.info("$session is closed, cannot send message")
                 }
             }
 
-            else -> LOG.warn("$session is closed")
+            else -> LOG.info("$session is closed")
         }
     }
 

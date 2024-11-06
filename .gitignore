@@ -14,3 +14,4 @@ out/
 .classpath
 .factorypath
 /test-results-native/test/TEST-junit-jupiter.xml
+/logs/

@@ -12,13 +12,13 @@ import io.micronaut.websocket.annotation.ServerWebSocket
 
 import jakarta.inject.Inject
 
-import org.fenrirs.relay.core.nip01.command.CLOSE
 import org.fenrirs.relay.core.nip01.command.EVENT
+import org.fenrirs.relay.core.nip01.command.CLOSE
+import org.fenrirs.relay.core.nip01.command.COUNT
 import org.fenrirs.relay.core.nip01.command.REQ
 import org.fenrirs.relay.core.nip01.command.CommandFactory.parse
 import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip01.ProtocolFlowFactory
-import org.fenrirs.relay.core.nip01.command.COUNT
 import org.fenrirs.relay.core.nip11.RelayInformation
 import org.fenrirs.storage.Subscription.clearSession
 
@@ -26,6 +26,7 @@ import org.fenrirs.utils.Color.GREEN
 import org.fenrirs.utils.Color.PURPLE
 import org.fenrirs.utils.Color.RED
 import org.fenrirs.utils.Color.RESET
+import org.fenrirs.utils.Color.YELLOW
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -48,22 +49,20 @@ class Gateway @Inject constructor(
 
         // ดึงข้อมูลของไคลเอนต์
         val clientIp = request.headers["X-Forwarded-For"] ?: request.remoteAddress.address.hostAddress
-        val userAgent = request.headers["User-Agent"]
+        val userAgent = request.headers["User-Agent"] ?: "N/A"
+        val sessionId = session?.id ?: "N/A"
 
-        // Log ข้อมูลไคลเอนต์ที่เชื่อมต่อ
-        LOG.info("Client IP: $clientIp, Agent: $userAgent")
+        LOG.info("${YELLOW}Client IP: $clientIp, Session ID: $sessionId$RESET")
+        LOG.info("User Agent: $userAgent")
 
         session?.let {
-            LOG.info("${GREEN}open$RESET ${session.id}")
+            LOG.info("${GREEN}* open$RESET ${session.id}")
             return@let HttpResponse.ok("Session opened")
                 .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         }
 
         //LOG.info("${YELLOW}accept: $RESET$accept ${BLUE}session: $RESET${session?.id}")
-        val contentType = when {
-            accept == "application/nostr+json" -> MediaType.APPLICATION_JSON
-            else -> MediaType.TEXT_HTML
-        }
+        val contentType = if (accept == "application/nostr+json") MediaType.APPLICATION_JSON else MediaType.TEXT_HTML
 
         return HttpResponse.ok(nip11.loadRelayInfo(contentType))
             .contentType(contentType)
@@ -98,7 +97,7 @@ class Gateway @Inject constructor(
 
     @OnClose
     fun onClose(session: WebSocketSession) {
-        LOG.info("${PURPLE}close: ${RESET}$session")
+        LOG.info("${PURPLE}# close: ${RESET}$session")
         clearSession(session)
     }
 

@@ -134,7 +134,7 @@ class StoredServiceImpl @Inject constructor(
                 // ถ้ามีการระบุ search ใน filters ให้เพิ่มเงื่อนไขการค้นหา CONTENT ที่ตรงกับ search ที่กำหนดโดยใช้ full-text search
                 filters.search?.let {
                     query.andWhere {
-                        ts.tsQuery(CONTENT, filters.search)
+                        ts.searchQuery(filters.search)
                     }
                 }
 

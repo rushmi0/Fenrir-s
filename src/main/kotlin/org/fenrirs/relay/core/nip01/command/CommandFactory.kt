@@ -88,7 +88,7 @@ object CommandFactory {
 
         // ตรวจสอบจำนวน filters ว่าไม่เกินค่าที่กำหนด
         if (filtersJson.size > env.MAX_FILTERS) {
-            throw IllegalArgumentException("rate-limited: max filters ${env.MAX_FILTERS} values in each sub ID allowed")
+            throw IllegalArgumentException("rate-limited: max filter ${env.MAX_FILTERS} values each sub ID allowed")
         }
 
         val data: Map<String, JsonElement> = filtersJson.flatMap { it.entries }.associate { it.key to it.value }

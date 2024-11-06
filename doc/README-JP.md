@@ -124,7 +124,7 @@ git clone https://github.com/rushmi0/Fenrir-s.git
 cd Fenrir-s
 ```
 
-2. 適当に`application.toml`ファイルをカスタマイズする。
+2. 適当に`.env`ファイルをカスタマイズする。
 
 3. Docker Composeを実行する:
 

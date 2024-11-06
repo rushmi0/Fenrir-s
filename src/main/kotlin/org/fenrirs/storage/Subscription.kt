@@ -2,14 +2,14 @@ package org.fenrirs.storage
 
 import io.github.reactivecircus.cache4k.Cache
 import io.micronaut.context.annotation.Bean
-import io.micronaut.context.annotation.Factory
 import io.micronaut.websocket.WebSocketSession
+
 import org.fenrirs.relay.core.nip01.SubscriptionData
 import org.fenrirs.relay.policy.FiltersX
-import org.slf4j.LoggerFactory
+
+//import org.slf4j.LoggerFactory
 
 @Bean
-@Factory
 object Subscription {
 
     private val config: Cache<String, SubscriptionData> = Cache.Builder<String, SubscriptionData>()
@@ -84,7 +84,7 @@ object Subscription {
         if (!session.isOpen) {
             // ถ้า session ถูกปิดไปแล้ว ให้ล้างข้อมูล session นั้นออก
             clearSession(session)
-            LOG.info("Clear Session: $session")
+            //LOG.info("${PURPLE}clear: $RESET$session")
             return false
         }
         //LOG.info("session: $session")
@@ -114,6 +114,6 @@ object Subscription {
     fun clearSession(session: WebSocketSession) = remove(session.id)
 
 
-    private val LOG = LoggerFactory.getLogger(Subscription::class.java)
+    //private val LOG = LoggerFactory.getLogger(Subscription::class.java)
 
 }

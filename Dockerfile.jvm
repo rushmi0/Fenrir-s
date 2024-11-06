@@ -29,4 +29,7 @@ COPY --chown=runner:appgroup .env /app/.env
 
 EXPOSE 6724
 
-ENTRYPOINT ["java", "-Xms256m", "-Xmx3g", "-XX:+UseG1GC", "-jar", "fenrir-s-1.0-all-optimized.jar"]
+ENTRYPOINT sh -c "java -Xms256m -Xmx4g -XX:+UseG1GC -jar fenrir-s-1.0-all-optimized.jar; \
+    while [ ! -f logs/activity.log ]; do sleep 3; done; \
+    cd logs; tail -n 100 -f activity.log"
+

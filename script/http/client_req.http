@@ -3,12 +3,12 @@ accept: application/nostr+json
 
 ###
 
-GET https://relay.nostr.band
+GET https://relay.rushmi0.win/
 accept: application/nostr+json
 
 ###
 
-GET http://localhost:6725
+GET http://localhost:6724
 accept: application/nostr+json
 
 
@@ -29,7 +29,7 @@ Content-Type: application/json
 
 ###
 
-WEBSOCKET ws://localhost:6724
+WEBSOCKET ws://localhost:6725
 Content-Type: application/json
 
 ["COUNT","hsZEOtaDsENYkP5H-JIWp",{"kinds": [1],"limit": 2}, {"kinds": [4],"limit": 150}]
@@ -43,7 +43,7 @@ Content-Type: application/json
 
 ###
 
-WEBSOCKET ws://localhost:6724
+WEBSOCKET ws://localhost:6725
 Content-Type: application/json
 
 ["COUNT","hsZEOtaDsENYkP5H-JIWp",{"kinds": [0],"authors":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"]}]
@@ -230,13 +230,26 @@ Content-Type: application/json
 ["REQ","6Y92Rj5mPPvkyh9_pYBXD",{"#p":["e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3"],"kinds":[1,6,16,7,9735,2004,30023],"limit":150}]
 
 ###
-WEBSOCKET ws://localhost:6724
+WEBSOCKET ws://localhost:6725
 Content-Type: application/json
 
 [
   "REQ",
   "Rj5mPPvkyh9",
   {
-    "search" : "after"
+    "search" : "d8914525efb7030f8d1c86283b8a6313e4e6dfe573f2c1b5b130eaa5767d530e"
+  }
+]
+
+###
+
+WEBSOCKET ws://localhost:6724
+Content-Type: application/json
+
+[
+  "COUNT",
+  "Rj5mPPvkyh9",
+  {
+    "search" : "dd653b86c26bdc8991cc9401b7ff8c7914c04b24348272a85871bebfd503491a"
   }
 ]

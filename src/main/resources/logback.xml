@@ -14,12 +14,28 @@
         </encoder>
     </appender>
 
-    <logger name="org.fenrirs.*" level="INFO"/>
-    <logger name="io.micronaut.http.client" level="TRACE"/>
 
+    <!-- File Appender -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/activity.log</file>
+        <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/activity.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>90</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>
+                [%boldMagenta(%d{yyyy-MM-dd HH:mm:ss.SSS,UTC})] %green([%thread]) %highlight(%-5level) %boldYellow(%logger{36}) - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <logger name="io.micronaut.http.client" level="TRACE"/>
     <logger name="io.micronaut.http.HttpStatus" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
     </root>
+
 </configuration>

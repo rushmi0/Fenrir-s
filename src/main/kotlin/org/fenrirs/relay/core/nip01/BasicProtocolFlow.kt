@@ -26,7 +26,6 @@ import org.fenrirs.storage.Subscription.isSubscriptionActive
 import org.fenrirs.storage.Subscription.saveSubscription
 import org.fenrirs.storage.statement.StoredServiceImpl
 
-import org.fenrirs.utils.Color.YELLOW
 import org.fenrirs.utils.Color.GREEN
 import org.fenrirs.utils.Color.PURPLE
 import org.fenrirs.utils.Color.RED
@@ -56,7 +55,7 @@ class BasicProtocolFlow @Inject constructor(
             RelayResponse.OK(event.id!!, false, warning).toClient(session)
         }
 
-        // ดึงข้อมูล public key ของ relay owner และรายการ passList จาก src/main/resources/application.toml
+        // ดึงข้อมูล public key ของ relay owner และรายการ passList จาก .env
         val relayOwner = env.RELAY_OWNER
         val passList: List<String> = getPassList(relayOwner)
         val followsPass: Boolean = env.FOLLOWS_PASS
@@ -167,7 +166,7 @@ class BasicProtocolFlow @Inject constructor(
             val (success, message) = action.invoke()
 
             if (success) {
-                LOG.info("Event kind: ${PURPLE}[${event.kind}] ${RESET}handled ${GREEN}saved")
+                LOG.info("Session ${session.id} handled ${GREEN}saved, ${RESET}Event ID: ${PURPLE}[${event.id}]${RESET}")
                 RelayResponse.OK(event.id!!, true, message).toClient(session)
             } else {
                 LOG.warn("${RED}Failed ${RESET}to handle event: ${event.id}")
@@ -282,6 +281,9 @@ class BasicProtocolFlow @Inject constructor(
         filtersX: List<FiltersX>,
         session: WebSocketSession
     ) {
+        //LOG.info("${GREEN}filters ${YELLOW}[${filtersX.size}] ${RESET}req subscription ID: ${CYAN}$subscriptionId ${RESET}")
+        //LOG.info("FiltersX: $filtersX")
+
         filtersX.forEach { filter ->
             sqlExec.filterList(filter)?.forEach { event ->
                 RelayResponse.EVENT(subscriptionId, event).toClient(session)
@@ -351,20 +353,6 @@ class BasicProtocolFlow @Inject constructor(
     }
 
 
-    /**
-     * ฟังก์ชัน handleResponse ใช้ในการส่งการตอบกลับไปยังไคลเอนต์ตามประเภทที่กำหนด
-     *
-     * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงการร้องขอนั้นๆ จากไคลเอนต์
-     * @param data ข้อมูลที่ต้องการส่งกลับ
-     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
-     */
-    private inline fun <reified T> handleResponse(subscriptionId: String, data: Any, session: WebSocketSession) {
-        when (T::class) {
-            COUNT::class -> RelayResponse.COUNT(subscriptionId, data).toClient(session)
-            REQ::class -> RelayResponse.EVENT(subscriptionId, data as Event).toClient(session)
-        }
-    }
-
 
     /**
      * ฟังก์ชัน startRealTimeUpdates ใช้ในการเริ่มต้นการอัปเดตข้อมูลแบบเรียลไทม์
@@ -394,11 +382,11 @@ class BasicProtocolFlow @Inject constructor(
                     when (T::class) {
                         COUNT::class -> {
                             val count = events.size
-                            val response = if (count >= 93_412_452) ApproximateCountREQ(93_412_452, true) else CountREQ(count)
-                            handleResponse<T>(subscriptionId, response, session)
+                            val data = if (count >= 93_412_452) ApproximateCountREQ(93_412_452, true) else CountREQ(count)
+                            RelayResponse.COUNT(subscriptionId, data).toClient(session)
                         }
                         REQ::class -> events.forEach { event ->
-                            handleResponse<T>(subscriptionId, event, session)
+                            RelayResponse.EVENT(subscriptionId, event).toClient(session)
                         }
                     }
                 }
@@ -420,7 +408,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     fun onClose(subscriptionId: String, session: WebSocketSession) {
-        LOG.info("${YELLOW}cancel ${RESET}subscription ID: $subscriptionId")
+        //LOG.info("${YELLOW}cancel ${RESET}subscription ID: $subscriptionId")
         RelayResponse.CANCEL(subscriptionId).toClient(session)
     }
 
