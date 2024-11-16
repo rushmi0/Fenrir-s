@@ -11,6 +11,11 @@ accept: application/nostr+json
 GET http://localhost:6724
 accept: application/nostr+json
 
+###
+
+GET http://localhost:6724
+accept: application/nostr+json
+
 
 ### 1719307113, 1719306274
 
@@ -237,7 +242,7 @@ Content-Type: application/json
   "REQ",
   "Rj5mPPvkyh9",
   {
-    "search" : "d8914525efb7030f8d1c86283b8a6313e4e6dfe573f2c1b5b130eaa5767d530e"
+    "search" : "74a6fd1c2215767d1d0545764795372f60546862920e389a52467e5ce12aeb39"
   }
 ]
 
@@ -250,6 +255,6 @@ Content-Type: application/json
   "COUNT",
   "Rj5mPPvkyh9",
   {
-    "search" : "dd653b86c26bdc8991cc9401b7ff8c7914c04b24348272a85871bebfd503491a"
+    "search" : "npub15l8sfm30uwns8qrcajs99narc4ex65ujt5sky4zx3dpjhnnk2szsqu40n5"
   }
 ]

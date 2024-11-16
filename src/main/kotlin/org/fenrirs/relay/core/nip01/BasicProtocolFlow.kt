@@ -20,7 +20,7 @@ import org.fenrirs.relay.core.nip01.command.ApproximateCountREQ
 import org.fenrirs.relay.core.nip09.EventDeletion
 import org.fenrirs.relay.core.nip13.ProofOfWork
 
-import org.fenrirs.storage.Environment
+import org.fenrirs.storage.NostrRelayConfig
 import org.fenrirs.storage.Subscription.getSubscription
 import org.fenrirs.storage.Subscription.isSubscriptionActive
 import org.fenrirs.storage.Subscription.saveSubscription
@@ -30,13 +30,14 @@ import org.fenrirs.utils.Color.GREEN
 import org.fenrirs.utils.Color.PURPLE
 import org.fenrirs.utils.Color.RED
 import org.fenrirs.utils.Color.RESET
+import org.fenrirs.utils.Color.YELLOW
 
 @Bean
 class BasicProtocolFlow @Inject constructor(
     private val sqlExec: StoredServiceImpl,
     private val nip09: EventDeletion,
     private val nip13: ProofOfWork,
-    private val env: Environment
+    private val env: NostrRelayConfig
 ) {
 
     /**
@@ -117,9 +118,11 @@ class BasicProtocolFlow @Inject constructor(
      * @param enabled สถานะของนโยบาย Proof of Work ที่เปิดหรือปิด
      */
     private suspend fun handleEventWithPolicy(event: Event, session: WebSocketSession, enabled: Boolean) {
-        require(nip09.isEventDeleted(event.id!!)) { "blocked: this event has already been deleted" }
+        if (nip09.validDeletion(event)) {
+            throw IllegalArgumentException("blocked: event rejected")
+        }
 
-        val eventId: Event? = sqlExec.selectById(event.id)
+        val eventId: Event? = sqlExec.selectById(event.id!!)
         when {
             eventId != null -> handleDuplicateEvent(event, session)
             nip09.isDeletable(event) -> handleDeletableEvent(event, session)
@@ -135,11 +138,14 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     private suspend fun handlePassListEvent(event: Event, session: WebSocketSession) {
-        require(nip09.isEventDeleted(event.id!!)) { "blocked: this event has already been deleted" }
+        if (nip09.validDeletion(event)) {
+            throw IllegalArgumentException("blocked: event rejected")
+        }
 
-        val eventId: Event? = sqlExec.selectById(event.id)
+        val eventId: Event? = sqlExec.selectById(event.id!!)
         when {
             eventId != null -> handleDuplicateEvent(event, session)
+
             nip13.isProofOfWorkEvent(event) -> handleProofOfWorkEvent(event, session)
             nip09.isDeletable(event) -> handleDeletableEvent(event, session)
             else -> handleNormalEvent(event, session)
@@ -166,7 +172,7 @@ class BasicProtocolFlow @Inject constructor(
             val (success, message) = action.invoke()
 
             if (success) {
-                LOG.info("Session ${session.id} handled ${GREEN}saved, ${RESET}Event ID: ${PURPLE}[${event.id}]${RESET}")
+                LOG.info("${session.id} handled ${GREEN}saved, ${RESET}Event${YELLOW}<${event.kind}>${RESET}ID: ${PURPLE}[${event.id}]${RESET}")
                 RelayResponse.OK(event.id!!, true, message).toClient(session)
             } else {
                 LOG.warn("${RED}Failed ${RESET}to handle event: ${event.id}")
@@ -201,7 +207,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     private suspend fun handleDeletableEvent(event: Event, session: WebSocketSession) {
-        require(nip09.isOwnership(event)) { "blocked: no permission to delete this event" }
+        require(nip09.isOwnership(event)) { "blocked: no permission to delete" }
 
         handleEvent(event, session) {
             val (deletionSuccess, message) = nip09.deleteEvent(event)

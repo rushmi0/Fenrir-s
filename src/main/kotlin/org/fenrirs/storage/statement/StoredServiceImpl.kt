@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import org.fenrirs.relay.policy.Event
 import org.fenrirs.relay.policy.FiltersX
 import org.fenrirs.storage.DatabaseFactory.queryTask
-import org.fenrirs.storage.Environment
+import org.fenrirs.storage.NostrRelayConfig
 
 import org.fenrirs.storage.table.EVENT
 import org.fenrirs.storage.table.EVENT.CONTENT
@@ -30,7 +30,7 @@ import org.jetbrains.exposed.sql.json.contains
 @Bean
 class StoredServiceImpl @Inject constructor(
     private val ts: SearchEngine,
-    private val env: Environment
+    private val env: NostrRelayConfig
 ) : StoredService {
 
     override suspend fun filterList(filters: FiltersX): List<Event>? {
@@ -138,16 +138,9 @@ class StoredServiceImpl @Inject constructor(
                     }
                 }
 
-                // กำหนด limit ของการดึงข้อมูล ถ้า filters.limit ไม่มีการกำหนดหรือเป็น null ให้ใช้ค่าเริ่มต้นเป็น 150 record
-                if (
-                    !filters.kinds.contains(0) &&
-                    !filters.kinds.contains(3) &&
-                    !filters.kinds.contains(10002)
-                ) {
-                    // กำหนด limit ของการดึงข้อมูล: จำกัดสูงสุดที่ 100 รายการเสมอ ถ้าไม่มีการกำหนดค่า
-                    val limit = filters.limit?.toInt()?.coerceAtMost(env.MAX_LIMIT) ?: 100
-                    query.limit(limit)
-                }
+                // กำหนด limit ของการดึงข้อมูล และเรียงลำดับจากมากไปน้อย
+                val limit = filters.limit?.toInt()?.coerceAtMost(env.MAX_LIMIT) ?: 500
+                query.limit(limit).orderBy(CREATED_AT to SortOrder.DESC)
 
                 // ดำเนินการ fetch ข้อมูลตามเงื่อนไขที่กำหนดแล้ว map ข้อมูลที่ได้มาเป็น Event objects
                 query.map { row ->

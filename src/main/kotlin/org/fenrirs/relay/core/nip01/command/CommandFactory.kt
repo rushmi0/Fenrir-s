@@ -13,12 +13,12 @@ import org.fenrirs.relay.policy.FiltersXValidateField
 import org.fenrirs.relay.core.nip01.Transform.toEvent
 import org.fenrirs.relay.core.nip01.Transform.toFiltersX
 import org.fenrirs.relay.core.nip01.Transform.validateElement
-import org.fenrirs.storage.Environment
+import org.fenrirs.storage.NostrRelayConfig
 
 object CommandFactory {
 
-    private val env: Environment by lazy {
-        Environment()
+    private val env: NostrRelayConfig by lazy {
+        NostrRelayConfig()
     }
 
     /**

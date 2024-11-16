@@ -4,12 +4,12 @@ import io.micronaut.context.annotation.Bean
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import org.fenrirs.relay.policy.Event
-import org.fenrirs.storage.Environment
+import org.fenrirs.storage.NostrRelayConfig
 import java.math.BigInteger
 
 @Bean
 @Singleton
-class ProofOfWork @Inject constructor(private val env: Environment) {
+class ProofOfWork @Inject constructor(private val env: NostrRelayConfig) {
 
 
     /**

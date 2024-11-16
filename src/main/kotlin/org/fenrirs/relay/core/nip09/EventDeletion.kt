@@ -4,8 +4,6 @@ import io.micronaut.context.annotation.Bean
 import jakarta.inject.Inject
 
 import org.fenrirs.relay.policy.Event
-import org.fenrirs.relay.policy.FiltersX
-import org.fenrirs.relay.policy.TAG_E
 
 import org.fenrirs.storage.statement.StoredServiceImpl
 
@@ -44,6 +42,7 @@ class EventDeletion @Inject constructor(private val sqlExec: StoredServiceImpl) 
         }
     }
 
+
     /**
      * ฟังก์ชันสำหรับตรวจสอบว่าเหตุการณ์สามารถลบได้ตามเงื่อนไขที่กำหนดหรือไม่
      * @param event เหตุการณ์ที่ต้องการตรวจสอบ
@@ -53,6 +52,35 @@ class EventDeletion @Inject constructor(private val sqlExec: StoredServiceImpl) 
         return event.kind?.toInt() == 5 && event.tags?.any {
             it.size > 1 && it[0] == "e"
         } ?: false
+    }
+
+
+
+    /**
+     * ฟังก์ชันสำหรับตรวจสอบว่ารูปแบบเหตุการณ์ที่ระบุตรงตามรูปแบบการลบหรือไม่
+     *
+     * @param event เหตุการณ์ที่ต้องการตรวจสอบ
+     * @return true หากเหตุการณ์ไม่สามารถลบได้, false ถ้าเหตุการณ์ตรงตามเงื่อนไขการลบ
+     *
+     * การทำงาน:
+     * 1. ตรวจสอบว่า `kind` ของเหตุการณ์ต้องไม่ใช่ 5 (ประเภทที่เกี่ยวข้องกับการลบ)
+     *    - หาก `kind` ไม่ใช่ 5 จะคืนค่า `false` แสดงว่าเหตุการณ์นี้ไม่ถูกต้องสำหรับการลบ
+     * 2. เรียกใช้ฟังก์ชัน `isDeletable` เพื่อตรวจสอบว่าเหตุการณ์ตรงตามเงื่อนไขการลบหรือไม่
+     *    - หาก `isDeletable` คืนค่า `true` หมายความว่าเหตุการณ์สามารถลบได้
+     *    - หาก `isDeletable` คืนค่า `false` หมายความว่าเหตุการณ์ไม่สามารถลบได้
+     *
+     * สรุป:
+     * - คืนค่า `true` เฉพาะกรณีที่เหตุการณ์ไม่ตรงตามเงื่อนไขการลบ (ไม่สามารถลบได้)
+     * - คืนค่า `false` หากเหตุการณ์ตรงตามเงื่อนไขการลบ (สามารถลบได้)
+     */
+    fun validDeletion(event: Event): Boolean {
+        // ตรวจสอบว่า kind ของเหตุการณ์ไม่ใช่ 5
+        if (event.kind?.toInt() != 5) {
+            return false
+        }
+
+        // ตรวจสอบว่าเหตุการณ์ไม่ตรงตามเงื่อนไขการลบ
+        return !isDeletable(event)
     }
 
 
@@ -67,36 +95,6 @@ class EventDeletion @Inject constructor(private val sqlExec: StoredServiceImpl) 
                 it.size > 1 && it[0] == "e" &&
                     sqlExec.selectById(it[1])?.pubkey == event.pubkey
         } ?: false
-    }
-
-
-    /**
-     * ฟังก์ชันสำหรับตรวจสอบว่า event id เคยถูกลบไปแล้วหรือไม่
-     * @param event เหตุการณ์ที่ต้องการตรวจสอบ
-     * @return true ถ้าไม่เคยถูกลบ, false ถ้า event id นั้นเคยถูกลบแล้วจะแสดง id
-     */
-    suspend fun isEventDeleted(eventID: String): Boolean {
-
-        // คำสั่งค้นหาข้อมูล
-        val query = FiltersX(
-            tags = mapOf(
-                TAG_E to setOf(eventID)
-            ),
-            kinds = setOf(5) // kind 5 หมายถึง event ที่ถูกลบ
-        )
-
-        val eventRecord = sqlExec.filterList(query)
-            ?.takeIf { it.isNotEmpty() } // ตรวจสอบว่าผลลัพธ์ไม่ใช่ null หรือเป็น list ที่ไม่ว่าง
-            ?.let { eventData ->
-                eventData[0].tags // ดึงข้อมูล tags จาก eventData
-                    ?.filter { it.isNotEmpty() && it[0] == "e" } // ตรวจสอบว่า tag นั้นมีและ tag แรกคือ "e"
-                    ?.map { it[1] } // เอาเฉพาะค่าของ tag ที่สองที่เป็น event id
-                    ?.first() // คืนค่าตัวแรกถ้ามี หรือ null ถ้าไม่มี
-            }
-
-        // คืนค่า true ถ้า eventRecord เป็น null หรือเป็น list ว่าง
-        // คืนค่า false ถ้า eventRecord มีค่า
-        return eventRecord.isNullOrEmpty()
     }
 
 

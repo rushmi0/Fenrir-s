@@ -3,10 +3,8 @@ package org.fenrirs.relay.model
 import org.fenrirs.relay.core.nip01.Transform.toEvent
 import org.fenrirs.relay.core.nip01.Transform.validateElement
 import org.fenrirs.relay.policy.EventValidateField
-import org.fenrirs.storage.Environment
+import org.fenrirs.storage.NostrRelayConfig
 
-import org.fenrirs.utils.Bech32
-import org.fenrirs.utils.ShiftTo.toHex
 import org.fenrirs.utils.ShiftTo.toJsonEltArray
 
 import org.fenrirs.relay.policy.Event
@@ -25,14 +23,12 @@ import okhttp3.*
 @Bean
 class ProfileSync @Inject constructor(
     private val sqlExec: StoredServiceImpl,
-    private val env: Environment,
+    private val env: NostrRelayConfig,
 ) {
 
     private val LOG = LoggerFactory.getLogger(ProfileSync::class.java)
 
-    private val publicKey: String? by lazy {
-        if (env.RELAY_OWNER.startsWith("npub")) Bech32.decode(env.RELAY_OWNER).data.toHex() else env.RELAY_OWNER
-    }
+    private val publicKey = env.RELAY_OWNER
 
     private val client = OkHttpClient.Builder()
         .readTimeout(0, TimeUnit.MILLISECONDS)

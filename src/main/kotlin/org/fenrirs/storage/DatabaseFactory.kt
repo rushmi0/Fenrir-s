@@ -19,7 +19,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 object DatabaseFactory {
 
     @Inject
-    lateinit var ENV: Environment
+    lateinit var ENV: NostrRelayConfig
 
     @JvmStatic
     fun initialize() {

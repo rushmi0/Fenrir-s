@@ -18,7 +18,7 @@ import org.fenrirs.relay.core.nip01.command.COUNT
 import org.fenrirs.relay.core.nip01.command.REQ
 import org.fenrirs.relay.core.nip01.command.CommandFactory.parse
 import org.fenrirs.relay.core.nip01.response.RelayResponse
-import org.fenrirs.relay.core.nip01.ProtocolFlowFactory
+import org.fenrirs.relay.core.nip01.BasicProtocolFlow
 import org.fenrirs.relay.core.nip11.RelayInformation
 import org.fenrirs.storage.Subscription.clearSession
 
@@ -34,14 +34,12 @@ import org.slf4j.LoggerFactory
 
 @ServerWebSocket("/")
 class Gateway @Inject constructor(
-    private val nip01: ProtocolFlowFactory,
+    private val service: BasicProtocolFlow,
     private val nip11: RelayInformation,
 ) {
 
-    private val service = nip01.launchProtocol()
-
     @OnOpen
-    suspend fun onOpen(
+    fun onOpen(
         request: HttpRequest<*>,
         session: WebSocketSession?,
         @Header(HttpHeaders.ACCEPT) accept: String?
@@ -56,7 +54,7 @@ class Gateway @Inject constructor(
         LOG.info("User Agent: $userAgent")
 
         session?.let {
-            LOG.info("${GREEN}* open$RESET ${session.id}")
+            LOG.info("${GREEN}* open$RESET $session")
             return@let HttpResponse.ok("Session opened")
                 .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         }
@@ -90,14 +88,14 @@ class Gateway @Inject constructor(
             }
 
         } catch (e: IllegalArgumentException) {
-            LOG.error("handle command: ${RED}${e.message}${RESET}")
+            LOG.warn("handle command: ${RED}${e.message}${RESET}")
             RelayResponse.NOTICE("ERROR: ${e.message}").toClient(session)
         } catch (_: NullPointerException) { }
     }
 
     @OnClose
     fun onClose(session: WebSocketSession) {
-        LOG.info("${PURPLE}# close: ${RESET}$session")
+        LOG.info("${PURPLE}# close ${RESET}$session")
         clearSession(session)
     }
 

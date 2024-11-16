@@ -23,12 +23,12 @@ RUN addgroup -S appgroup -g 1000 && \
 USER runner
 WORKDIR /app
 
-COPY --from=build /home/builder/app/build/native/nativeOptimizedCompile/fenrir-s-v1.0 ./
+COPY --from=build /home/builder/app/build/native/nativeOptimizedCompile/fenrir-s-v1.0.1 ./
 COPY --chown=runner:appgroup .env /app/.env
 
 EXPOSE 6724
 
-ENTRYPOINT sh -c "/app/fenrir-s-v1.0; \
+ENTRYPOINT sh -c "/app/fenrir-s-v1.0.1 -Xms256m -Xmx2g; \
     while [ ! -f logs/activity.log ]; do sleep 3; done; \
     cd logs; tail -n 100 -f activity.log"
 
