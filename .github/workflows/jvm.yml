@@ -51,7 +51,7 @@ jobs:
       # ขั้นตอนที่ 7: ตรวจสอบว่าไฟล์ jar ถูกสร้างขึ้นแล้ว
       - name: Check Build Output
         run: |
-          if [ -f build/libs/fenrir-s-1.0-all-optimized.jar ]; then
+          if [ -f build/libs/fenrir-s-1.0.1-all-optimized.jar ]; then
             echo "Build successful!"
           else
             echo "Build failed!"
