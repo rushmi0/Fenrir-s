@@ -15,7 +15,7 @@ RUN dos2unix gradlew
 RUN ./gradlew build -x test
 
 
-FROM bellsoft/liberica-openjdk-alpine:21
+FROM bellsoft/liberica-runtime-container
 RUN apk update && apk add --no-cache bash && rm -rf /var/cache/apk/*
 
 RUN addgroup -S appgroup -g 1000 && \
@@ -29,7 +29,6 @@ COPY --chown=runner:appgroup .env /app/.env
 
 EXPOSE 6724
 
-ENTRYPOINT sh -c "java -Xms256m -Xmx2g -XX:+UseG1GC -jar fenrir-s-1.0.1-all-optimized.jar; \
-    while [ ! -f logs/activity.log ]; do sleep 3; done; \
-    cd logs; tail -n 100 -f activity.log"
+# cat /etc/os-release
+ENTRYPOINT sh -c "java -Xms256m -Xmx1g -XX:+UseG1GC -jar fenrir-s-1.0.1-all-optimized.jar"
 

@@ -12,10 +12,9 @@ RUN chmod +x ./gradlew
 RUN ./gradlew nativeOptimizedCompile
 
 
-FROM bellsoft/liberica-openjdk-alpine-musl
+FROM bellsoft/liberica-native-image-kit-container:jdk-21-nik-23-glibc
+RUN apk update && apk add --no-cache bash && rm -rf /var/cache/apk/*
 
-RUN apk update && \
-    apk add --no-cache libc6-compat
 
 RUN addgroup -S appgroup -g 1000 && \
     adduser -S -G appgroup -u 1000 -h /app runner
@@ -28,7 +27,5 @@ COPY --chown=runner:appgroup .env /app/.env
 
 EXPOSE 6724
 
-ENTRYPOINT sh -c "/app/fenrir-s-v1.0.1 -Xms256m -Xmx2g; \
-    while [ ! -f logs/activity.log ]; do sleep 3; done; \
-    cd logs; tail -n 100 -f activity.log"
+ENTRYPOINT sh -c "/app/fenrir-s-v1.0.1 -Xms256m -Xmx1g"
 
