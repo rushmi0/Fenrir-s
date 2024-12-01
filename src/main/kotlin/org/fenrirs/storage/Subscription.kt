@@ -1,19 +1,21 @@
 package org.fenrirs.storage
 
-import io.github.reactivecircus.cache4k.Cache
+
 import io.micronaut.context.annotation.Bean
 import io.micronaut.websocket.WebSocketSession
 
 import org.fenrirs.relay.core.nip01.SubscriptionData
 import org.fenrirs.relay.policy.FiltersX
 
-//import org.slf4j.LoggerFactory
+import kotlin.time.Duration.Companion.minutes
+import io.github.reactivecircus.cache4k.Cache
 
 @Bean
 object Subscription {
 
     private val config: Cache<String, SubscriptionData> = Cache.Builder<String, SubscriptionData>()
-        .maximumCacheSize(50_000)
+        .maximumCacheSize(50_000) // จำกัดขนาด Cache
+        .expireAfterWrite(20.minutes) // ข้อมูลใน Cache จะหมดอายุหลัง 20 นาที
         .build()
 
     private fun <T : Any> set(key: String, value: T) {
@@ -26,9 +28,7 @@ object Subscription {
         return (config as Cache<String, T>).get(key)
     }
 
-    private fun remove(key: String) {
-        config.invalidate(key)
-    }
+    private fun remove(key: String) = config.invalidate(key)
 
     /**
      * เพิ่ม subscription ใหม่ให้กับ session ที่ระบุ
@@ -37,7 +37,10 @@ object Subscription {
      */
     fun addSubscription(session: WebSocketSession, subscriptionData: SubscriptionData) {
         val existingSubscriptions = get<SubscriptionData>(session.id)?.toMutableMap() ?: mutableMapOf()
-        existingSubscriptions.putAll(subscriptionData)
+        // ตรวจสอบว่าข้อมูล subscription ที่เพิ่มเข้ามาไม่มีการซ้ำซ้อน
+        subscriptionData.forEach { (key, value) ->
+            existingSubscriptions[key] = (existingSubscriptions[key] ?: emptyList()) + value
+        }
         set(session.id, existingSubscriptions)
     }
 
@@ -84,17 +87,13 @@ object Subscription {
         if (!session.isOpen) {
             // ถ้า session ถูกปิดไปแล้ว ให้ล้างข้อมูล session นั้นออก
             clearSession(session)
-            //LOG.info("${PURPLE}clear: $RESET$session")
             return false
         }
-        //LOG.info("session: $session")
 
         // ตรวจสอบว่ามี subscription ที่เกี่ยวข้องหรือไม่
         val filters: List<FiltersX> = getSubscription(session, subscriptionId)
-        //LOG.info("Subscription ${filters.size}: $filters")
         return filters.isNotEmpty()
     }
-
 
     /**
      * ลบ subscription จาก session ที่ระบุ
@@ -104,7 +103,12 @@ object Subscription {
     fun clearSubscription(session: WebSocketSession, subscriptionId: String) {
         val existingSubscriptions = get<SubscriptionData>(session.id)?.toMutableMap()
         existingSubscriptions?.remove(subscriptionId)
-        set(session.id, existingSubscriptions ?: mapOf())
+        if (existingSubscriptions.isNullOrEmpty()) {
+            // ถ้าไม่มี subscription เหลืออยู่ใน session ให้ลบข้อมูล session
+            clearSession(session)
+        } else {
+            set(session.id, existingSubscriptions)
+        }
     }
 
     /**
@@ -112,8 +116,4 @@ object Subscription {
      * @param session session ID ที่ต้องการลบข้อมูลทั้งหมด
      */
     fun clearSession(session: WebSocketSession) = remove(session.id)
-
-
-    //private val LOG = LoggerFactory.getLogger(Subscription::class.java)
-
 }
