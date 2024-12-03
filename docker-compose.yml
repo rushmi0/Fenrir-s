@@ -25,8 +25,8 @@ services:
       timeout: 10s
     networks:
       - dev_network
-    ports:
-      - "5432:5432"
+#    ports:
+#      - "5432:5432"
 
   relay-app-jvm:
     container_name: relay-app-jvm
@@ -58,8 +58,8 @@ services:
 
 
 
-  cloudflared-tunnel:
-    container_name: cloudflared-tunnel
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    command: tunnel --no-autoupdate run --token
+#  cloudflared-tunnel:
+#    container_name: cloudflared-tunnel
+#    image: cloudflare/cloudflared:latest
+#    restart: unless-stopped
+#    command: tunnel --no-autoupdate run --token

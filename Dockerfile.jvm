@@ -18,17 +18,25 @@ RUN ./gradlew build -x test
 FROM bellsoft/liberica-runtime-container
 RUN apk update && apk add --no-cache bash && rm -rf /var/cache/apk/*
 
-RUN addgroup -S appgroup -g 1000 && \
-    adduser -S runner -G appgroup -u 1000 -h /app
+RUN addgroup -S nostrapp -g 1000 && \
+    adduser -S runner -G nostrapp -u 1000 -h /app
 
 USER runner
 WORKDIR /app
 
 COPY --from=build /home/builder/app/build/libs/fenrir-s-1.0.1-all-optimized.jar ./
-COPY --chown=runner:appgroup .env /app/.env
+COPY --chown=runner:nostrapp .env /app/.env
+
+RUN mkdir logs && \
+    chmod u=rwx,g=rx,o=r logs/ && \
+    chown runner:nostrapp logs/
+
+RUN chmod u=rx,g=rx,o= /app/fenrir-s-1.0.1-all-optimized.jar && \
+    chmod u=r,g=,o= /app/.env && \
+    chown runner:nostrapp /app/fenrir-s-1.0.1-all-optimized.jar && \
+    chown runner:nostrapp /app/.env
 
 EXPOSE 6724
 
-# cat /etc/os-release
-ENTRYPOINT sh -c "java -Xms256m -Xmx1g -XX:+UseG1GC -jar fenrir-s-1.0.1-all-optimized.jar"
+ENTRYPOINT sh -c "java -Xmx2g -XX:+UseG1GC -jar fenrir-s-1.0.1-all-optimized.jar"
 

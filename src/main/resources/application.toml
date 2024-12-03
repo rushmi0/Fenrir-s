@@ -10,13 +10,6 @@ idle-timeout="21s"
 port = 6724
 
 
-[micronaut.executors.scheduled]
-type = "scheduled"
-virtual = true
-parallelism = 32
-core-pool-size = 16
-
-
 [micronaut.router.static-resources.default]
 mapping = "/**"
 paths = ["classpath:public/"]

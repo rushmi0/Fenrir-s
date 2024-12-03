@@ -1,4 +1,3 @@
-import io.micronaut.gradle.docker.NativeImageDockerfile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -9,7 +8,7 @@ plugins {
     id("io.micronaut.application") version "4.4.0"
     id("io.micronaut.test-resources") version "4.4.0"
     id("io.micronaut.aot") version "4.4.0"
-    id("org.graalvm.buildtools.native") version "0.10.0"
+    id("org.graalvm.buildtools.native") version "0.10.3"
     kotlin("plugin.serialization") version "1.9.23"
 }
 
@@ -32,8 +31,6 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jodatime:$exposedVersion")
 
     implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
-
-    implementation("org.jetbrains.exposed:exposed-money:$exposedVersion")
 
     implementation("org.jetbrains.exposed:exposed-json:$exposedVersion")
 
@@ -125,6 +122,7 @@ graalvmNative {
             // * https://github.com/oracle/graal/issues/1446
             buildArgs.add("-H:+AddAllCharsets")
             buildArgs.add("-R:MaxHeapSize=3G")
+            //buildArgs.add("--gc=")
             buildArgs.add("--no-fallback")
             //buildArgs.add("--target=linux-amd64")
             //buildArgs.add("--target=linux-aarch64")
@@ -162,9 +160,4 @@ micronaut {
         optimizeNetty = true
         replaceLogbackXml = false
     }
-}
-
-
-tasks.named<NativeImageDockerfile>("dockerfileNative") {
-    jdkVersion = "21"
 }

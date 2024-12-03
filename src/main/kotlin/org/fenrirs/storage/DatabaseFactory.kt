@@ -50,11 +50,11 @@ object DatabaseFactory {
 
             isAutoCommit = false
 
-            idleTimeout = 60000
-            keepaliveTime = 60000
-            maxLifetime = 2000000
-            leakDetectionThreshold = 30000
-            validationTimeout = 3000
+            idleTimeout = 60_000
+            keepaliveTime = 600_000
+            maxLifetime = 2_000_000
+            leakDetectionThreshold = 30_000
+            validationTimeout = 3_000
 
             transactionIsolation = "TRANSACTION_REPEATABLE_READ"
 
