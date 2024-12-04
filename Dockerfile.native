@@ -12,7 +12,7 @@ RUN chmod +x ./gradlew
 RUN ./gradlew nativeOptimizedCompile
 
 
-FROM bellsoft/liberica-native-image-kit-container:jdk-21-nik-23-glibc
+FROM bellsoft/alpaquita-linux-base:stream-glibc
 RUN apk update && apk add --no-cache bash && rm -rf /var/cache/apk/*
 
 RUN addgroup -S nostrapp -g 1000 && \
@@ -22,7 +22,7 @@ USER runner
 WORKDIR /app
 
 COPY --from=build /home/builder/app/build/native/nativeOptimizedCompile/fenrir-s-v1.0.1 ./
-COPY --chown=runner:appgroup .env /app/.env
+COPY --chown=runner:nostrapp .env /app/.env
 
 RUN mkdir logs && \
     chmod u=rwx,g=rx,o=r logs/ && \
@@ -30,10 +30,9 @@ RUN mkdir logs && \
 
 RUN chmod u=rx,g=rx,o= /app/fenrir-s-v1.0.1 && \
     chmod u=r,g=,o= /app/.env && \
-    chown runner:nostrapp /app/fenrir-s-v1.0.1 && \
-    chown runner:nostrapp /app/.env
+    chown runner:nostrapp /app/fenrir-s-v1.0.1
 
 EXPOSE 6724
 
-ENTRYPOINT sh -c "/app/fenrir-s-v1.0.1 -Xmx2g"
+ENTRYPOINT sh -c "/app/fenrir-s-v1.0.1 -Xmx512m"
 

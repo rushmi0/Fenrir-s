@@ -13,7 +13,6 @@ import org.fenrirs.storage.NostrRelayConfig
 import java.io.FileNotFoundException
 
 
-@Bean
 @Singleton
 class RelayInformation @Inject constructor(private val env: NostrRelayConfig) {
 

@@ -1,9 +1,5 @@
 FROM eclipse-temurin:21-jdk-jammy AS build
 RUN useradd -ms /bin/bash builder
-USER root
-
-RUN apt-get update && apt-get install -y dos2unix
-
 USER builder
 WORKDIR /home/builder/app
 
@@ -11,7 +7,7 @@ COPY --chown=builder:builder gradlew build.gradle.kts settings.gradle.kts gradle
 COPY --chown=builder:builder src ./src
 COPY --chown=builder:builder gradle ./gradle
 
-RUN dos2unix gradlew
+RUN sed -i 's/\r$//' gradlew
 RUN ./gradlew build -x test
 
 
@@ -31,12 +27,10 @@ RUN mkdir logs && \
     chmod u=rwx,g=rx,o=r logs/ && \
     chown runner:nostrapp logs/
 
-RUN chmod u=rx,g=rx,o= /app/fenrir-s-1.0.1-all-optimized.jar && \
+RUN chmod u=r,g=r,o= /app/fenrir-s-1.0.1-all-optimized.jar && \
     chmod u=r,g=,o= /app/.env && \
-    chown runner:nostrapp /app/fenrir-s-1.0.1-all-optimized.jar && \
-    chown runner:nostrapp /app/.env
+    chown runner:nostrapp /app/fenrir-s-1.0.1-all-optimized.jar
 
 EXPOSE 6724
 
-ENTRYPOINT sh -c "java -Xmx2g -XX:+UseG1GC -jar fenrir-s-1.0.1-all-optimized.jar"
-
+ENTRYPOINT sh -c "java -Xmx512m -XX:+UseParallelGC -jar fenrir-s-1.0.1-all-optimized.jar"

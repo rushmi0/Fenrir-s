@@ -4,6 +4,7 @@ import io.micronaut.context.annotation.Bean
 import io.micronaut.websocket.WebSocketSession
 
 import jakarta.inject.Inject
+import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
 
 import kotlinx.coroutines.runBlocking
@@ -399,6 +400,7 @@ class BasicProtocolFlow @Inject constructor(
 
             }
 
+            delay(1400)
 
             // อัปเดต lastUpdateTime หลังจากค้นหาข้อมูลเสร็จ
             lastUpdateTime = currentTime

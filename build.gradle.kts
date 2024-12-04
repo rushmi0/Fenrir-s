@@ -121,8 +121,7 @@ graalvmNative {
             // * https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildOutput/?fbclid=IwAR007Rh7fYg-CJZywqhFM8PF5XDWPvgOfaV9txFDqpy6PWjtZp2bXpgncL0_aem_Af0UTqW_wKY5RFkebOwqrANSJn-d6fpSoJLMyra23KLgMNQuur3l75gjN29_Ymw1JYkeX7upxGBzGPFkJ4iRuojh
             // * https://github.com/oracle/graal/issues/1446
             buildArgs.add("-H:+AddAllCharsets")
-            buildArgs.add("-R:MaxHeapSize=3G")
-            //buildArgs.add("--gc=")
+            buildArgs.add("-R:MaxHeapSize=4G")
             buildArgs.add("--no-fallback")
             //buildArgs.add("--target=linux-amd64")
             //buildArgs.add("--target=linux-aarch64")
