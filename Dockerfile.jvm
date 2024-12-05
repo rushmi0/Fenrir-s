@@ -1,11 +1,9 @@
 FROM eclipse-temurin:21-jdk-jammy AS build
-RUN useradd -ms /bin/bash builder
-USER builder
-WORKDIR /home/builder/app
+WORKDIR /builder
 
-COPY --chown=builder:builder gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
-COPY --chown=builder:builder src ./src
-COPY --chown=builder:builder gradle ./gradle
+COPY gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
+COPY src ./src
+COPY gradle ./gradle
 
 RUN sed -i 's/\r$//' gradlew
 RUN ./gradlew build -x test
@@ -20,7 +18,7 @@ RUN addgroup -S nostrapp -g 1000 && \
 USER runner
 WORKDIR /app
 
-COPY --from=build /home/builder/app/build/libs/fenrir-s-1.0.1-all-optimized.jar ./
+COPY --from=build --chown=runner:nostrapp /builder/build/libs/fenrir-s-1.0.1-all-optimized.jar ./
 COPY --chown=runner:nostrapp .env /app/.env
 
 RUN mkdir logs && \
@@ -28,8 +26,7 @@ RUN mkdir logs && \
     chown runner:nostrapp logs/
 
 RUN chmod u=r,g=r,o= /app/fenrir-s-1.0.1-all-optimized.jar && \
-    chmod u=r,g=,o= /app/.env && \
-    chown runner:nostrapp /app/fenrir-s-1.0.1-all-optimized.jar
+    chmod u=r,g=,o= /app/.env
 
 EXPOSE 6724
 

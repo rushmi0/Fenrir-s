@@ -1,11 +1,9 @@
 FROM ghcr.io/graalvm/graalvm-community:21.0.2 AS build
-RUN useradd -ms /bin/sh builder
-USER builder
-WORKDIR /home/builder/app
+WORKDIR /builder
 
-COPY --chown=builder:builder gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
-COPY --chown=builder:builder src ./src
-COPY --chown=builder:builder gradle ./gradle
+COPY gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
+COPY src ./src
+COPY gradle ./gradle
 
 RUN sed -i 's/\r$//' gradlew
 RUN chmod +x ./gradlew
@@ -21,16 +19,15 @@ RUN addgroup -S nostrapp -g 1000 && \
 USER runner
 WORKDIR /app
 
-COPY --from=build /home/builder/app/build/native/nativeOptimizedCompile/fenrir-s-v1.0.1 ./
+COPY --from=build --chown=runner:nostrapp /builder/build/native/nativeOptimizedCompile/fenrir-s-v1.0.1 ./
 COPY --chown=runner:nostrapp .env /app/.env
 
 RUN mkdir logs && \
     chmod u=rwx,g=rx,o=r logs/ && \
     chown runner:nostrapp logs/
 
-RUN chmod u=rx,g=rx,o= /app/fenrir-s-v1.0.1 && \
-    chmod u=r,g=,o= /app/.env && \
-    chown runner:nostrapp /app/fenrir-s-v1.0.1
+RUN chmod u=rx,g=r,o= /app/fenrir-s-v1.0.1 && \
+    chmod u=r,g=,o= /app/.env
 
 EXPOSE 6724
 
