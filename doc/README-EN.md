@@ -186,7 +186,7 @@ docker compose up --build -d
 
 ## 💬 Contact and Support
 
-- Nostr : `lnwza007@rushmi0.win`
+- Nostr : `lnwza007@lifpay.me`
 - Zap : ⚡rushmi0@getalby.com
 
 --- 
