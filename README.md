@@ -194,8 +194,8 @@ docker compose up --build -d
 
 ## 💬 ติดต่อและสนับสนุน
 
-- Nostr : `lnwza007@lifpay.me`
-- Zap : ⚡rushmi0@getalby.com
+- Nostr : `lnwza007@rushmi0.win`
+- Zap : ⚡rushmi0@lifpay.me
 
 ---
 
