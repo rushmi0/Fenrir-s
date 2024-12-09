@@ -138,7 +138,7 @@ docker compose up relay-db relay-app-jvm
 ### Cloudflare Tunnelの設定(Optional)
 
 1. Cloudflare Tunnel を作ってTokenを受ける。
-2. [docker-compose.yml](docker-compose.yml) ファイルを直してcloudflare-tunnel serviceの部分にTokenを入れる。
+2. [compose.yml](compose.yml) ファイルを直してcloudflare-tunnel serviceの部分にTokenを入れる。
 
 ### Relayへのアクセス
 

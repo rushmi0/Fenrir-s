@@ -22,7 +22,7 @@ jobs:
       - name: Build Docker Image
         uses: adambirds/docker-compose-action@v1.5.0
         with:
-          up-flags: relay-db  # เรียกใช้ relay-db ซึ่งเป็น service ใน docker-compose.yml
+          up-flags: relay-db  # เรียกใช้ relay-db ซึ่งเป็น service ใน compose.yml
 
       # ขั้นตอนที่ 3: ติดตั้ง GraalVM
       # * https://github.com/marketplace/actions/github-action-for-graalvm?version=v1.2.5
