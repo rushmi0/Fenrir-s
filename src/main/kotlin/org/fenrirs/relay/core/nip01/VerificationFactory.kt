@@ -1,7 +1,7 @@
 package org.fenrirs.relay.core.nip01
 
 import kotlinx.serialization.json.*
-import org.fenrirs.relay.policy.TagElt
+//import org.fenrirs.relay.policy.TagElt
 
 import org.fenrirs.relay.policy.EventValidateField
 import org.fenrirs.relay.policy.FiltersXValidateField
@@ -39,23 +39,23 @@ open class VerificationFactory {
         relayPolicy: Array<out NostrField>
     ): ValidationResult {
         val allowedFields = relayPolicy.map { it.fieldName }.toSet()
-        val invalidFields: List<String> = receive.keys.filter { it !in allowedFields && !isValidTag(it) }
+        val invalidFields: List<String> = receive.keys.filter { it !in allowedFields  }
 
         val warning = if (invalidFields.isNotEmpty()) buildErrorMessage(invalidFields) else ""
         return if (warning.isEmpty()) true to "" else false to warning
     }
 
-    private fun isValidTag(tag: String): Boolean {
-        if (!tag.startsWith("#") || tag.length < 2) {
-            return false
-        }
-        val tagKey = tag.substring(1)
-        return try {
-            TagElt.valueOf(tagKey); true
-        } catch (e: IllegalArgumentException) {
-            false
-        }
-    }
+//    private fun isValidTag(tag: String): Boolean {
+//        if (!tag.startsWith("#") || tag.length < 2) {
+//            return false
+//        }
+//        val tagKey = tag.substring(1)
+//        return try {
+//            TagElt.valueOf(tagKey); true
+//        } catch (e: IllegalArgumentException) {
+//            false
+//        }
+//    }
 
     private fun buildErrorMessage(invalidFields: List<String>): String =
         "unsupported: [${invalidFields.joinToString(", ")}] fields"
