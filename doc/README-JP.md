@@ -182,7 +182,7 @@ docker compose up --build -d
 ## 💬 お問い合わせとサポート
 
 - Nostr : `lnwza007@rushmi0.win`
-- Zap : ⚡rushmi0@lifpay.me
+- Zap : ⚡parkinghot99@walletofsatoshi.com
 
 ---
 
