@@ -62,6 +62,7 @@ jobs:
         run: |
           npm install -g wscat
           
-          echo '["EVENT",{"content":"。　♡ 。　　♡。　　♡ \n♡。　＼　　｜　　／。　♡\n        สวัสดี #siamstr\n♡。　／　　｜　　＼。　♡ \n。　♡。 　　。　　♡","created_at":1742903918,"id":"0000cfad049fa75e0a282090a39fcb1a87de491cd6ebcb4d575967980e3119cc","kind":1,"pubkey":"e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3","sig":"851cf353da085dd73f3248ce811713c247c87900f6eda9af60404d6714e01cebc10b6018ad7bdbd8386584ec757b5bad63445370fc2b214693e526f10f345708","tags":[["t","siamstr"],["nonce","3271","16"]]}]' | wscat -c ws://localhost:6724/
+          wscat -c ws://localhost:6724/ -P -v <<< '["EVENT",{"content":"。　♡ 。　　♡。　　♡ \n♡。　＼　　｜　　／。　♡\n        สวัสดี #siamstr\n♡。　／　　｜　　＼。　♡ \n。　♡。 　　。　　♡","created_at":1742903918,"id":"0000cfad049fa75e0a282090a39fcb1a87de491cd6ebcb4d575967980e3119cc","kind":1,"pubkey":"e4b2c64f0e4e54abb34d5624cd040e05ecc77f0c467cc46e2cc4d5be98abe3e3","sig":"851cf353da085dd73f3248ce811713c247c87900f6eda9af60404d6714e01cebc10b6018ad7bdbd8386584ec757b5bad63445370fc2b214693e526f10f345708","tags":[["t","siamstr"],["nonce","3271","16"]]}]'
     
-          echo '["REQ", "sub123", {"kinds":[1]}]' | wscat -c ws://localhost:6724/
+          wscat -c ws://localhost:6724/ -P -v <<< '["REQ", "sub123", {"kinds":[1]}]'
+
