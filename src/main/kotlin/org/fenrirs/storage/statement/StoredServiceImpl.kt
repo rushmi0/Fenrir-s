@@ -16,6 +16,7 @@ import org.fenrirs.storage.table.EVENT
 import org.fenrirs.storage.table.EVENT.CONTENT
 import org.fenrirs.storage.table.EVENT.CREATED_AT
 import org.fenrirs.storage.table.EVENT.EVENT_ID
+import org.fenrirs.storage.table.EVENT.IS_ACTIVE
 import org.fenrirs.storage.table.EVENT.KIND
 import org.fenrirs.storage.table.EVENT.PUBKEY
 import org.fenrirs.storage.table.EVENT.SIG
@@ -26,17 +27,15 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.json.contains
 
 
-
 @Bean
 class StoredServiceImpl @Inject constructor(
     private val ts: SearchEngine,
     private val env: NostrRelayConfig
 ) : StoredService {
 
-    override suspend fun filterList(filters: FiltersX): List<Event>? {
-        return queryTask {
-            try {
-
+    override suspend fun filterList(filters: FiltersX): Result<List<Event>> {
+        return runCatching {
+            queryTask {
                 /**
                  * สร้างคำสั่ง SQL สำหรับการดึงข้อมูลจากตาราง EVENT โดยพิจารณาจากตัวกรองที่ได้รับ
                  *
@@ -138,6 +137,8 @@ class StoredServiceImpl @Inject constructor(
                     }
                 }
 
+                query.andWhere { IS_ACTIVE eq "1" }
+
                 // กำหนด limit ของการดึงข้อมูล และเรียงลำดับจากมากไปน้อย
                 val limit = filters.limit?.toInt()?.coerceAtMost(env.MAX_LIMIT) ?: 500
                 query.limit(limit).orderBy(CREATED_AT to SortOrder.DESC)
@@ -154,25 +155,17 @@ class StoredServiceImpl @Inject constructor(
                         sig = row[SIG]
                     )
                 }
-            } catch (e: Exception) {
-                LOG.error("Error filtering events: ${e.stackTrace.joinToString("\n")}")
-                null
             }
+        }.onFailure {
+            LOG.error("Error filtering events: ${it.stackTraceToString()}")
         }
+
     }
 
 
-    override suspend fun saveEvent(event: Event): Boolean {
-        return queryTask {
-            try {
-
-                /**
-                 * INSERT INTO EVENT
-                 * (event_id, pubkey, created_at, kind, tags, content, sig)
-                 * VALUES
-                 * (:eventId, :pubkey, :createdAt, :kind, :tags, :content, :sig)
-                 */
-
+    override suspend fun saveEvent(event: Event): Result<Boolean> {
+        return runCatching {
+            queryTask {
                 EVENT.insert {
                     it[EVENT_ID] = event.id!!
                     it[PUBKEY] = event.pubkey!!
@@ -183,12 +176,12 @@ class StoredServiceImpl @Inject constructor(
                     it[SIG] = event.sig!!
                 }
                 true
-            } catch (e: Exception) {
-                LOG.error("Error saving event: ${e.message}")
-                false
             }
+        }.onFailure {
+            LOG.error("Error saving event: ${it.message}")
         }
     }
+
 
 
     override suspend fun selectById(id: String): Event? {

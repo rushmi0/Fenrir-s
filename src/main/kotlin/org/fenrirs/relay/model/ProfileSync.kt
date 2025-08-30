@@ -72,11 +72,16 @@ class ProfileSync @Inject constructor(
                     val eventId: Event? = runBlocking { sqlExec.selectById(event.id!!) }
 
                     if (eventId == null) {
-                        LOG.info("Event ID: $eventId");
-                        sqlExec.saveEvent(event)
+                        LOG.info("Event ID: $eventId")
+                        val result = sqlExec.saveEvent(event)
+                        result.onFailure { e ->
+                            LOG.error("Failed to save event: ${e.message}")
+                        }
+                        result.getOrDefault(false)
                     } else {
                         false
                     }
+
                 }
             }
         }
