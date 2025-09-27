@@ -1,7 +1,8 @@
 package org.fenrirs.storage.statement
 
-import io.micronaut.context.annotation.Bean
+
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import org.fenrirs.relay.core.nip50.SearchEngine
 import org.fenrirs.storage.service.StoredService
 
@@ -27,7 +28,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.json.contains
 
 
-@Bean
+@Singleton
 class StoredServiceImpl @Inject constructor(
     private val ts: SearchEngine,
     private val env: NostrRelayConfig

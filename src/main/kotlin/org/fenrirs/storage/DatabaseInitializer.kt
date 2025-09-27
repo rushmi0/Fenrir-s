@@ -3,7 +3,7 @@ package org.fenrirs.storage
 import io.micronaut.context.event.ApplicationEventListener
 import io.micronaut.context.event.StartupEvent
 import jakarta.inject.Singleton
-import org.slf4j.LoggerFactory
+// import org.slf4j.LoggerFactory
 
 @Singleton
 class DatabaseInitializer(
@@ -13,11 +13,12 @@ class DatabaseInitializer(
     override fun onApplicationEvent(event: StartupEvent) {
         DatabaseFactory.ENV = config
         DatabaseFactory.initialize()
-        LOG.info("Database initialized successfully.")
     }
 
+/*
     companion object {
         val LOG = LoggerFactory.getLogger(DatabaseInitializer::class.java)
     }
+*/
 
 }

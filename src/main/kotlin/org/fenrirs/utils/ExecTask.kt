@@ -3,13 +3,10 @@ package org.fenrirs.utils
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-
-import io.micronaut.context.annotation.Factory
 import kotlinx.coroutines.*
 
 import org.slf4j.LoggerFactory
 
-@Factory
 @OptIn(ExperimentalCoroutinesApi::class)
 object ExecTask {
 
@@ -71,18 +68,18 @@ object ExecTask {
      * ฟังก์ชันนี้จะรันโค้ด suspend บน Virtual Threads Executor โดยใช้ Coroutine Dispatcher
      * พร้อมจำกัดจำนวนงานที่สามารถรันพร้อมกันตามค่า `parallelism`
      *
-     * @param parallelism จำนวนสูงสุดของ Coroutine ที่สามารถรันพร้อมกันได้ (ค่าเริ่มต้นคือ 32)
+     * @param parallelism จำนวนสูงสุดของ Coroutine ที่สามารถรันพร้อมกันได้ (ค่าเริ่มต้นคือ 10000)
      * @param block โค้ด suspend ที่จะถูกรันภายใต้ Virtual Threads Executor
      * @return ผลลัพธ์จากการทำงานของโค้ด block
      */
-    suspend inline fun <T> asyncTask(parallelism: Int = 32, crossinline block: suspend () -> T): T {
+    suspend inline fun <T> asyncTask(parallelism: Int = 10000, crossinline block: suspend () -> T): T {
         return withContext(execService.asCoroutineDispatcher().limitedParallelism(parallelism)) {
             block()
         }
     }
 
 
-    suspend fun <T> parallelIO(parallelism: Int = 32, block: suspend CoroutineScope.() -> T): T {
+    suspend fun <T> parallelIO(parallelism: Int = 10000, block: suspend CoroutineScope.() -> T): T {
         return withContext(Dispatchers.IO.limitedParallelism(parallelism)) {
             block.invoke(this)
         }
