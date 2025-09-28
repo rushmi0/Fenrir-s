@@ -12,10 +12,6 @@ object ExecTask {
 
     val execService: ExecutorService = Executors.newVirtualThreadPerTaskExecutor()
 
-    /**
-     * ฟังก์ชันสำหรับการทำงานแบบขนานด้วย Virtual Threads ผ่าน executorService
-     * @param block โค้ดที่ต้องการให้ Virtual Threads ทำงาน
-     */
     inline fun <T> runWithVirtualThreadsPerTask(crossinline block: () -> T): T {
         val future = CompletableFuture<T>()
 
@@ -36,10 +32,6 @@ object ExecTask {
         return future.get()
     }
 
-    /**
-     * ฟังก์ชันสำหรับการทำงานแบบขนานด้วย Virtual Threads
-     * @param block โค้ดที่ต้องการให้ Virtual Threads ทำงาน
-     */
     inline fun <T : Any> runWithVirtualThreads(crossinline block: () -> T): T {
         val future = CompletableFuture<T>()
 
@@ -64,14 +56,6 @@ object ExecTask {
     }
 
 
-    /**
-     * ฟังก์ชันนี้จะรันโค้ด suspend บน Virtual Threads Executor โดยใช้ Coroutine Dispatcher
-     * พร้อมจำกัดจำนวนงานที่สามารถรันพร้อมกันตามค่า `parallelism`
-     *
-     * @param parallelism จำนวนสูงสุดของ Coroutine ที่สามารถรันพร้อมกันได้ (ค่าเริ่มต้นคือ 10000)
-     * @param block โค้ด suspend ที่จะถูกรันภายใต้ Virtual Threads Executor
-     * @return ผลลัพธ์จากการทำงานของโค้ด block
-     */
     suspend inline fun <T> asyncTask(parallelism: Int = 10000, crossinline block: suspend () -> T): T {
         return withContext(execService.asCoroutineDispatcher().limitedParallelism(parallelism)) {
             block()

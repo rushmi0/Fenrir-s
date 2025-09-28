@@ -12,10 +12,8 @@ import org.fenrirs.utils.ExecTask.asyncTask
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.io.File
-
-import org.jetbrains.exposed.sql.StdOutSqlLogger
-import org.jetbrains.exposed.sql.addLogger
+//import org.jetbrains.exposed.sql.StdOutSqlLogger
+//import org.jetbrains.exposed.sql.addLogger
 
 @Bean
 object DatabaseFactory {
@@ -30,16 +28,9 @@ object DatabaseFactory {
             throw IllegalStateException("ENV has not been initialized")
         }
 
-        val directory = File("src/main/resources/db/migration")
-        val files = directory.listFiles()
-
         Database.connect(hikariConfig())
         transaction {
-            addLogger(StdOutSqlLogger)
             SchemaUtils.create(EVENT)
-            files?.forEach {
-                //exec(it.readText())
-            }
         }
     }
 
@@ -77,7 +68,7 @@ object DatabaseFactory {
 
     suspend fun <T> queryTask(block: () -> T): T = asyncTask {
         transaction {
-            addLogger(StdOutSqlLogger)
+            //addLogger(StdOutSqlLogger)
             block()
         }
     }

@@ -175,6 +175,7 @@ class StoredServiceImpl @Inject constructor(
                     it[TAGS] = event.tags!!
                     it[CONTENT] = event.content!!
                     it[SIG] = event.sig!!
+                    it[IS_ACTIVE] = "1"
                 }
                 true
             }

@@ -1,7 +1,6 @@
 package org.fenrirs
 
 import io.micronaut.runtime.Micronaut
-import org.fenrirs.relay.model.ProfileSync
 import java.io.InputStreamReader
 
 import org.graalvm.polyglot.Context;
@@ -15,19 +14,13 @@ fun main(args: Array<String>) {
         context.eval("js", "console.log('Hello from GraalJS!')")
     }
 
-
     bannerInputStream?.let {
         val bannerText = InputStreamReader(it).readText()
         println(bannerText)
     } ?: println("Banner not found.")
 
-    val relay = Micronaut.build()
+    Micronaut.build()
         .args(*args)
         .banner(false)
-        .start()
-
-    if (relay.isRunning) {
-        relay.getBean(ProfileSync::class.java).sync()
-    }
-
+        .start();
 }
