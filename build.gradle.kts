@@ -24,6 +24,11 @@ val exposedVersion: String by project
 
 dependencies {
 
+
+    implementation("org.graalvm.polyglot:polyglot:25.0.0")
+    implementation("org.graalvm.polyglot:js:25.0.0")
+
+
     implementation("io.github.reactivecircus.cache4k:cache4k:0.13.0")
 
     implementation("org.jetbrains.exposed:exposed-crypt:$exposedVersion")
@@ -73,7 +78,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-    runtimeOnly("ch.qos.logback:logback-classic:1.5.12")
+    runtimeOnly("ch.qos.logback:logback-classic:1.5.13")
 
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("io.micronaut:micronaut-http-client")

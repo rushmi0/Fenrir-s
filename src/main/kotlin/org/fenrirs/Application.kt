@@ -4,10 +4,17 @@ import io.micronaut.runtime.Micronaut
 import org.fenrirs.relay.model.ProfileSync
 import java.io.InputStreamReader
 
+import org.graalvm.polyglot.Context;
+
 fun main(args: Array<String>) {
 
     val classLoader = Thread.currentThread().contextClassLoader
     val bannerInputStream = classLoader.getResourceAsStream("banner.txt")
+
+    Context.create().use { context ->
+        context.eval("js", "console.log('Hello from GraalJS!')")
+    }
+
 
     bannerInputStream?.let {
         val bannerText = InputStreamReader(it).readText()
