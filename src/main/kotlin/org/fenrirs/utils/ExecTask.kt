@@ -56,7 +56,7 @@ object ExecTask {
     }
 
 
-    suspend inline fun <T> asyncTask(parallelism: Int = 10000, crossinline block: suspend () -> T): T {
+    suspend inline fun <T> asyncTask(parallelism: Int = 100_000, crossinline block: suspend () -> T): T {
         return withContext(execService.asCoroutineDispatcher().limitedParallelism(parallelism)) {
             block()
         }

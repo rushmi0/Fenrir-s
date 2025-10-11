@@ -1,4 +1,4 @@
-package org.fenrirs.relay.model
+package org.fenrirs.relay.services
 
 import org.fenrirs.relay.core.nip01.Transform.toEvent
 import org.fenrirs.relay.core.nip01.Transform.validateElement

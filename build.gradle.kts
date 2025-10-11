@@ -1,15 +1,16 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.9.23"
-    id("org.jetbrains.kotlin.plugin.allopen") version "1.9.23"
-    id("com.google.devtools.ksp") version "1.9.23-1.0.19"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("org.jetbrains.kotlin.jvm") version "1.9.25"
+    id("org.jetbrains.kotlin.plugin.allopen") version "1.9.25"
+    id("com.google.devtools.ksp") version "1.9.25-1.0.20"
+    //id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "8.3.7"
     id("io.micronaut.application") version "4.4.0"
     id("io.micronaut.test-resources") version "4.4.0"
-    id("io.micronaut.aot") version "4.4.0"
-    id("org.graalvm.buildtools.native") version "0.10.3"
-    kotlin("plugin.serialization") version "1.9.23"
+    id("io.micronaut.aot") version "4.5.4"
+    id("org.graalvm.buildtools.native") version "0.11.1"
+    kotlin("plugin.serialization") version "1.9.25"
 }
 
 version = "1.0.1"
@@ -27,6 +28,8 @@ dependencies {
 
     implementation("org.graalvm.polyglot:polyglot:25.0.0")
     implementation("org.graalvm.polyglot:js:25.0.0")
+    implementation("org.graalvm.polyglot:python:25.0.0")
+    implementation("org.graalvm.polyglot:wasm:25.0.0")
 
 
     implementation("io.github.reactivecircus.cache4k:cache4k:0.13.0")
