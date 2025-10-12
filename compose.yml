@@ -1,3 +1,6 @@
+volumes:
+  relay_data:
+
 
 networks:
   dev_network:
@@ -14,6 +17,9 @@ services:
       POSTGRES_USER: ${DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - relay_data:/var/lib/postgresql/data
+     # - ./src/main/resources/db/migration:/docker-entrypoint-initdb.d/
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME} || exit 1"]
