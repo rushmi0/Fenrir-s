@@ -28,7 +28,7 @@ class ProofOfWork @Inject constructor(private val env: NostrRelayConfig) {
      * @param difficultyTarget ระดับความยากของ Proof of Work ที่ต้องการตรวจสอบ
      * @return true หาก Proof of Work มีความยากตามที่กำหนด, false หากไม่มีความยาก
      */
-    //fun checkProofOfWork(hex: String, difficultyTarget: Long): Boolean = difficulty(hex) >= difficultyTarget
+    fun checkProofOfWork(hex: String, difficultyTarget: Long): Boolean = difficulty(hex) >= difficultyTarget
 
 
     /**

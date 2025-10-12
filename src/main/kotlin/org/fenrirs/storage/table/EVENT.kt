@@ -6,7 +6,7 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.json.jsonb
 
-object EVENT: Table("event") {
+object EVENT: Table("nostr_t_event") {
 
     val EVENT_ID = varchar("event_id", 64).uniqueIndex()
     val PUBKEY = varchar("pubkey", 64)
@@ -27,4 +27,6 @@ object EVENT: Table("event") {
 
     val CONTENT = text("content")
     val SIG = varchar("sig", 128)
+
+    val IS_ACTIVE = varchar("is_active", 1)
 }

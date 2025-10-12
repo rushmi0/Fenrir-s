@@ -1,7 +1,6 @@
 package org.fenrirs.storage
 
 
-import io.micronaut.context.annotation.Bean
 import io.micronaut.websocket.WebSocketSession
 
 import org.fenrirs.relay.core.nip01.SubscriptionData
@@ -10,11 +9,10 @@ import org.fenrirs.relay.policy.FiltersX
 import kotlin.time.Duration.Companion.minutes
 import io.github.reactivecircus.cache4k.Cache
 
-@Bean
 object Subscription {
 
     private val config: Cache<String, SubscriptionData> = Cache.Builder<String, SubscriptionData>()
-        .maximumCacheSize(50_000) // จำกัดขนาด Cache
+        .maximumCacheSize(500_000) // จำกัดขนาด Cache
         .expireAfterWrite(20.minutes) // ข้อมูลใน Cache จะหมดอายุหลัง 20 นาที
         .build()
 
@@ -104,7 +102,6 @@ object Subscription {
         val existingSubscriptions = get<SubscriptionData>(session.id)?.toMutableMap()
         existingSubscriptions?.remove(subscriptionId)
         if (existingSubscriptions.isNullOrEmpty()) {
-            // ถ้าไม่มี subscription เหลืออยู่ใน session ให้ลบข้อมูล session
             clearSession(session)
         } else {
             set(session.id, existingSubscriptions)

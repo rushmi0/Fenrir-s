@@ -65,3 +65,8 @@ data class CountREQ(val count: Int)
  */
 @Serializable
 data class ApproximateCountREQ(val count: Int, val approximate: Boolean)
+
+
+
+@Serializable
+data class SCRIPT(val event: Event) : Command()

@@ -31,5 +31,5 @@ RUN chmod u=rx,g=r,o= /app/fenrir-s-v1.0.1 && \
 
 EXPOSE 6724
 
-ENTRYPOINT sh -c "/app/fenrir-s-v1.0.1 -Xmx512m"
+ENTRYPOINT exec sh -c "/app/fenrir-s-v1.0.1 -Xms1g -Xmx2g -XX:MaxGCPauseMillis=100 -XX:+ParallelRefProcEnabled -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI"
 

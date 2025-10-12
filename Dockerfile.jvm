@@ -1,33 +1,33 @@
-FROM eclipse-temurin:21-jdk-jammy AS build
+FROM ghcr.io/graalvm/graalvm-community:21.0.2 AS build
 WORKDIR /builder
 
 COPY gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
 COPY src ./src
 COPY gradle ./gradle
 
+RUN cat /etc/os-release
+
 RUN sed -i 's/\r$//' gradlew
 RUN ./gradlew build -x test
 
 
-FROM bellsoft/liberica-runtime-container
-RUN apk update && apk add --no-cache bash && rm -rf /var/cache/apk/*
+RUN groupadd -g 1000 nostrapp && \
+    useradd -m -u 1000 -g nostrapp -s /bin/bash runner
 
-RUN addgroup -S nostrapp -g 1000 && \
-    adduser -S runner -G nostrapp -u 1000 -h /app
+RUN mkdir -p /app && chown runner:nostrapp /app
 
 USER runner
 WORKDIR /app
 
-COPY --from=build --chown=runner:nostrapp /builder/build/libs/fenrir-s-1.0.1-all-optimized.jar ./
+COPY --chown=runner:nostrapp /builder/build/libs/fenrir-s-1.0.1-all-optimized.jar ./
 COPY --chown=runner:nostrapp .env /app/.env
 
 RUN mkdir logs && \
-    chmod u=rwx,g=rx,o=r logs/ && \
-    chown runner:nostrapp logs/
+    chmod u=rwx,g=rx,o=r logs/
 
 RUN chmod u=r,g=r,o= /app/fenrir-s-1.0.1-all-optimized.jar && \
     chmod u=r,g=,o= /app/.env
 
 EXPOSE 6724
 
-ENTRYPOINT sh -c "java -Xmx512m -XX:+UseParallelGC -jar fenrir-s-1.0.1-all-optimized.jar"
+ENTRYPOINT exec java -Dpolyglotimpl.DisableMultiReleaseCheck=true -Xms1g -Xmx1g -XX:+UseG1GC -XX:+UnlockExperimentalVMOptions -XX:+EnableJVMCI -jar fenrir-s-1.0.1-all-optimized.jar

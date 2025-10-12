@@ -10,7 +10,7 @@ services:
 
   relay-db:
     container_name: relay-db
-    image: postgres:15-alpine
+    image: postgres:17.5
     env_file:
       - .env
     environment:

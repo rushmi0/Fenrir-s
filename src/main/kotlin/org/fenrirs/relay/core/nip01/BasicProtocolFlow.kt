@@ -89,14 +89,20 @@ class BasicProtocolFlow @Inject constructor(
      * @param publicKey คีย์สาธารณะของเจ้าของ Relay
      * @return รายการของ public key ที่ติดตามโดยเจ้าของ Relay หากไม่พบข้อมูลจะคืนค่าเป็นรายการที่มี publicKey เพียงตัวเดียว
      */
-    private suspend fun getPassList(publicKey: String): List<String> =
-        sqlExec.filterList(FiltersX(authors = setOf(publicKey), kinds = setOf(3)))
-            ?.firstOrNull()
-            ?.tags
+    private suspend fun getPassList(publicKey: String): List<String> {
+        val result: Result<List<Event>> = sqlExec.filterList(
+            FiltersX(authors = setOf(publicKey), kinds = setOf(3))
+        )
+
+        return result
+            .getOrNull()        // ได้ List<Event>?
+            ?.firstOrNull()     // เอา Event แรก ถ้ามี
+            ?.tags              // List<List<String>>
             ?.filter { it.isNotEmpty() && it[0] == "p" }
             ?.map { it[1] }
             ?.plus(publicKey)
             ?: listOf(publicKey)
+    }
 
 
     /**
@@ -169,21 +175,20 @@ class BasicProtocolFlow @Inject constructor(
         session: WebSocketSession,
         action: suspend () -> Pair<Boolean, String>
     ) {
-        try {
-            val (success, message) = action.invoke()
-
-            if (success) {
-                LOG.info("${session.id} handled ${GREEN}saved, ${RESET}Event${YELLOW}<${event.kind}>${RESET}ID: ${PURPLE}[${event.id}]${RESET}")
-                RelayResponse.OK(event.id!!, true, message).toClient(session)
-            } else {
-                LOG.warn("${RED}Failed ${RESET}to handle event: ${event.id}")
-                RelayResponse.OK(event.id!!, false, message).toClient(session)
+        runCatching { action() }
+            .onSuccess { (success, message) ->
+                if (success) {
+                    LOG.info("${session.id} handled ${GREEN}saved, ${RESET}Event${YELLOW}<${event.kind}>${RESET}ID: ${PURPLE}[${event.id}]${RESET}")
+                    RelayResponse.OK(event.id!!, true, message).toClient(session)
+                } else {
+                    LOG.warn("${RED}Failed ${RESET}to handle event: ${event.id}")
+                    RelayResponse.OK(event.id!!, false, message).toClient(session)
+                }
             }
-
-        } catch (e: Exception) {
-            LOG.error("Error handling event: ${event.id}", e)
-            RelayResponse.NOTICE("error: ${e.message}").toClient(session)
-        }
+            .onFailure { e ->
+                LOG.error("Error handling event: ${event.id}", e)
+                RelayResponse.NOTICE("error: ${e.message}").toClient(session)
+            }
     }
 
 
@@ -195,8 +200,9 @@ class BasicProtocolFlow @Inject constructor(
      */
     private suspend fun handleNormalEvent(event: Event, session: WebSocketSession) {
         handleEvent(event, session) {
-            val status: Boolean = sqlExec.saveEvent(event)
-            status to (if (status) "" else "error: could not save event to the database")
+            sqlExec.saveEvent(event)
+                .map { it to "" }
+                .getOrElse { false to "error: could not save event to the database" }
         }
     }
 
@@ -213,8 +219,9 @@ class BasicProtocolFlow @Inject constructor(
         handleEvent(event, session) {
             val (deletionSuccess, message) = nip09.deleteEvent(event)
             if (deletionSuccess) {
-                val status: Boolean = sqlExec.saveEvent(event)
-                status to (if (status) message else "error: could not save event to the database after deletion")
+                sqlExec.saveEvent(event)
+                    .map { it to message }
+                    .getOrElse { false to "error: could not save event to the database after deletion" }
             } else {
                 false to message
             }
@@ -233,8 +240,9 @@ class BasicProtocolFlow @Inject constructor(
         handleEvent(event, session) {
             val (valid, message) = nip13.verifyProofOfWork(event, enabled)
             if (valid) {
-                val status: Boolean = sqlExec.saveEvent(event)
-                status to (if (status) "" else "error: could not save Proof of Work event")
+                sqlExec.saveEvent(event)
+                    .map { it to "" }
+                    .getOrElse { false to "error: could not save Proof of Work event" }
             } else {
                 false to message
             }
@@ -292,9 +300,15 @@ class BasicProtocolFlow @Inject constructor(
         //LOG.info("FiltersX: $filtersX")
 
         filtersX.forEach { filter ->
-            sqlExec.filterList(filter)?.forEach { event ->
-                RelayResponse.EVENT(subscriptionId, event).toClient(session)
-            }
+            sqlExec.filterList(filter)
+                .onSuccess { events ->
+                    events.forEach { event ->
+                        RelayResponse.EVENT(subscriptionId, event).toClient(session)
+                    }
+                }
+                .onFailure { e ->
+                    LOG.error("Error while processing filter for $subscriptionId: ${e.message}")
+                }
         }
         RelayResponse.EOSE(subscriptionId).toClient(session)
         startRealTimeUpdates<REQ>(subscriptionId, session)
@@ -343,7 +357,12 @@ class BasicProtocolFlow @Inject constructor(
         session: WebSocketSession
     ) {
         filtersX.forEach { filter ->
-            val count = sqlExec.filterList(filter)?.size ?: 0
+            val count = sqlExec.filterList(filter)
+                .map { it.size } // ถ้า success จะได้จำนวน Event
+                .getOrElse { e ->
+                    LOG.warn("Failed to count events for $subscriptionId: ${e.message}")
+                    0 // fallback เป็น 0 ถ้า error
+                }
 
             val response = when {
                 count < 0 -> throw IllegalArgumentException("Count cannot be negative")
@@ -353,12 +372,10 @@ class BasicProtocolFlow @Inject constructor(
 
             RelayResponse.COUNT(subscriptionId, response).toClient(session)
         }
-
         // แจ้งว่าเสร็จสิ้นการนับจำนวนเหตุการณ์
         RelayResponse.EOSE(subscriptionId).toClient(session)
         startRealTimeUpdates<COUNT>(subscriptionId, session)
     }
-
 
 
     /**
@@ -384,18 +401,23 @@ class BasicProtocolFlow @Inject constructor(
 
             updatedFiltersX.forEach { filter ->
 
-                // ตรวจสอบว่า events ไม่เป็น null และไม่ใช่ list ว่าง
-                sqlExec.filterList(filter).takeIf { !it.isNullOrEmpty() }?.let { events ->
-                    when (T::class) {
-                        COUNT::class -> {
-                            val count = events.size
-                            val data = if (count >= 93_412_452) ApproximateCountREQ(93_412_452, true) else CountREQ(count)
-                            RelayResponse.COUNT(subscriptionId, data).toClient(session)
-                        }
-                        REQ::class -> events.forEach { event ->
-                            RelayResponse.EVENT(subscriptionId, event).toClient(session)
+                sqlExec.filterList(filter).onSuccess { events ->
+                    if (events.isNotEmpty()) {
+                        when (T::class) {
+                            COUNT::class -> {
+                                val count = events.size
+                                val data =
+                                    if (count >= 93_412_452) ApproximateCountREQ(93_412_452, true) else CountREQ(count)
+                                RelayResponse.COUNT(subscriptionId, data).toClient(session)
+                            }
+
+                            REQ::class -> events.forEach { event ->
+                                RelayResponse.EVENT(subscriptionId, event).toClient(session)
+                            }
                         }
                     }
+                }.onFailure {
+                    LOG.warn("Error filtering for $subscriptionId: ${it.message}")
                 }
 
             }
