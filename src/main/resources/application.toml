@@ -9,7 +9,35 @@ idle-timeout="21s"
 #host = "localhost"
 port = 6724
 
-
 [micronaut.router.static-resources.default]
 mapping = "/**"
 paths = ["classpath:public/"]
+
+
+[micronaut.control-panel]
+enabled = true
+allowed-environments = ["dev"]
+path = "/control-panel"
+
+
+
+[micronaut.views.react]
+react.enabled = true
+client-bundle-url = "/static/client.js"
+server-bundle-path = "classpath:views/ssr-components.mjs"
+sandbox = true
+
+[micronaut.router.static-resources.js]
+mapping = "/static/**"
+paths = ["classpath:static"]
+
+[micronaut.executors.blocking]
+virtual = false
+
+[micronaut.server.netty.responses.file]
+cache-seconds=0
+
+[micronaut.io.watch]
+enabled=true
+paths="build/resources/main/views"
+

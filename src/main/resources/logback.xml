@@ -1,10 +1,5 @@
 <configuration>
 
-    <!-- Enable SQL logging for Exposed -->
-<!--    <logger name="Exposed" level="DEBUG" />-->
-<!--    <logger name="org.jetbrains.exposed.sql.statements.Statement" level="TRACE" />-->
-
-
     <!-- Console Appender -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -14,14 +9,23 @@
         </encoder>
     </appender>
 
-
-    <!-- File Appender -->
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+    <!-- Rolling File Appender (1MB limit + date/time in filename) -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/activity.log</file>
         <append>true</append>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/activity.%d{yyyy-MM-dd}.log</fileNamePattern>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- File name pattern when log is rotated -->
+            <fileNamePattern>logs/activity_%d{yyyy-MM-HH:mm:ss.SSS}.%i.log</fileNamePattern>
+
+            <!-- Maximum file size before rotation occurs -->
+            <maxFileSize>30GB</maxFileSize>
+
+            <!-- Number of days to keep old log files -->
             <maxHistory>90</maxHistory>
+
+            <!-- Total size cap for all archived log files -->
+            <!-- <totalSizeCap>1GB</totalSizeCap> -->
         </rollingPolicy>
         <encoder>
             <pattern>
@@ -30,12 +34,13 @@
         </encoder>
     </appender>
 
+    <!-- Logging Levels -->
     <logger name="io.micronaut.http.client" level="TRACE"/>
     <logger name="io.micronaut.http.HttpStatus" level="DEBUG"/>
 
     <root level="INFO">
-        <appender-ref ref="STDOUT" />
-        <appender-ref ref="FILE" />
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
     </root>
 
 </configuration>

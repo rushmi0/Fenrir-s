@@ -45,8 +45,22 @@ object CommandFactory {
             "COUNT" -> parseSubWithFilters<COUNT>(jsonElement)
             "CLOSE" -> parseClose(jsonElement)
             // "AUTH" -> TODO("Not yet implemented")
+            "SCRIPT" -> parseScript(jsonElement)
             else -> throw IllegalArgumentException("Unknown command: $cmd")
         }
+    }
+
+    private fun parseScript(jsonArray: JsonArray): CommandParseResult {
+        if (jsonArray.size != 2 || jsonArray[1] !is JsonObject) {
+            throw IllegalArgumentException("invalid: EVENT command format")
+        }
+
+        val eventJson = jsonArray[1].jsonObject
+        val event: Event = eventJson.toEvent()
+        val data: Map<String, JsonElement> = eventJson.toMap()
+
+        val (status, warning) = validateElement(data, EventValidateField.entries.toTypedArray())
+        return EVENT(event) to (status to warning)
     }
 
 

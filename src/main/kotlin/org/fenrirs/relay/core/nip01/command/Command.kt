@@ -69,4 +69,4 @@ data class ApproximateCountREQ(val count: Int, val approximate: Boolean)
 
 
 @Serializable
-data class SCRIPT(val event: Event) : Command()
+data class SCRIPT(val lang: String, val script: String) : Command()

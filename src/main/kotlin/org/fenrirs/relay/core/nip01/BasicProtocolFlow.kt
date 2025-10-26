@@ -1,13 +1,12 @@
 package org.fenrirs.relay.core.nip01
 
-import io.micronaut.context.annotation.Bean
 import io.micronaut.websocket.WebSocketSession
 
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
 
-import kotlinx.coroutines.runBlocking
 import org.fenrirs.relay.core.nip01.command.COUNT
 import org.fenrirs.relay.core.nip01.command.REQ
 import org.slf4j.LoggerFactory
@@ -33,7 +32,7 @@ import org.fenrirs.utils.Color.RED
 import org.fenrirs.utils.Color.RESET
 import org.fenrirs.utils.Color.YELLOW
 
-@Bean
+@Singleton
 class BasicProtocolFlow @Inject constructor(
     private val sqlExec: StoredServiceImpl,
     private val nip09: EventDeletion,
@@ -49,7 +48,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param warning ข้อความแจ้งเตือน (ถ้ามี)
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    fun onEvent(event: Event, status: Boolean, warning: String, session: WebSocketSession) = runBlocking {
+    suspend fun onEvent(event: Event, status: Boolean, warning: String, session: WebSocketSession) {
         //LOG.info("Received event: $event")
 
         if (!status) {

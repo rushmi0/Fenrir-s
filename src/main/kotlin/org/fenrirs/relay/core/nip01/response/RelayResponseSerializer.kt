@@ -92,7 +92,6 @@ object RelayResponseSerializer : KSerializer<RelayResponse<*>> {
                 )
             )
 
-            // กรณีประเภทที่ไม่รู้จัก
             else -> throw SerializationException("Unknown type")
         }
 

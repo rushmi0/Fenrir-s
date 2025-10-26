@@ -19,6 +19,7 @@ import org.fenrirs.relay.core.nip01.command.REQ
 import org.fenrirs.relay.core.nip01.command.CommandFactory.parse
 import org.fenrirs.relay.core.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip01.BasicProtocolFlow
+import org.fenrirs.relay.core.nip01.command.SCRIPT
 import org.fenrirs.relay.core.nip11.RelayInformation
 import org.fenrirs.storage.Subscription.clearSession
 
@@ -30,7 +31,6 @@ import org.fenrirs.utils.Color.YELLOW
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-
 
 @ServerWebSocket("/")
 class Gateway @Inject constructor(

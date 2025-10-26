@@ -3,7 +3,7 @@ volumes:
 
 
 networks:
-  dev_network:
+  relay_net:
     driver: bridge
 
 services:
@@ -19,7 +19,6 @@ services:
       POSTGRES_DB: ${DATABASE_NAME}
     volumes:
       - relay_data:/var/lib/postgresql/data
-     # - ./src/main/resources/db/migration:/docker-entrypoint-initdb.d/
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME} -d ${DATABASE_NAME} || exit 1"]
@@ -28,7 +27,7 @@ services:
       start_period: 60s
       timeout: 10s
     networks:
-      - dev_network
+      - relay_net
     ports:
       - "5432:5432"
 
@@ -44,7 +43,7 @@ services:
     ports:
       - "6724:6724"
     networks:
-      - dev_network
+      - relay_net
 
   relay-app-native:
     container_name: relay-app-native
@@ -58,7 +57,7 @@ services:
     ports:
       - "6725:6724"
     networks:
-      - dev_network
+      - relay_net
 
 
 

@@ -15,3 +15,6 @@ out/
 .factorypath
 /test-results-native/test/TEST-junit-jupiter.xml
 /logs/
+logs
+node_modules
+src/main/resources/views

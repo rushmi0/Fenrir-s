@@ -9,6 +9,7 @@ fun main() {
         context.eval("js", "console.log('Hello from GraalJS!')")
     }
     val script = """
+        
         let _a = 3; 
         let _b = 2; 
         console.log(`sum: ${'$'}{_a+_b}`);
