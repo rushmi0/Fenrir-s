@@ -124,8 +124,10 @@ graalvmNative {
             buildArgs.add("-R:MaxHeapSize=4G")
             buildArgs.add("--no-fallback")
             //buildArgs.add("--target=linux-amd64")
-            //buildArgs.add("--target=linux-aarch64")
-            buildArgs.add("-march=native")
+            //buildArgs.add("-march=x86-64-v2") // current app
+            //buildArgs.add("-march=x86-64-v3") // server 2020+
+            //buildArgs.add("-march=compatibility") // Distributed generally.
+            buildArgs.add("-march=native") // Use only one device.
             imageName.set("${project.name}-v$version")
             javaLauncher.set(javaToolchains.launcherFor {
                 languageVersion.set(JavaLanguageVersion.of(21))
