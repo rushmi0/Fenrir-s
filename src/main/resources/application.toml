@@ -10,6 +10,17 @@ idle-timeout="21s"
 port = 6724
 
 
-[micronaut.router.static-resources.default]
+#[micronaut.router.static-resources.default]
+#mapping = "/**"
+#paths = ["classpath:public/"]
+
+[micronaut.http.services.errors]
+json.enabled = false
+
+[micronaut.router.static-resources.assets]
+mapping = "/assets/**"
+paths = ["classpath:public/assets"]
+
+[micronaut.router.static-resources.web]
 mapping = "/**"
-paths = ["classpath:public/"]
+paths = ["classpath:public"]

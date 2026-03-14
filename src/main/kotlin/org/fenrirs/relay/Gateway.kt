@@ -45,7 +45,6 @@ class Gateway @Inject constructor(
         @Header(HttpHeaders.ACCEPT) accept: String?
     ): MutableHttpResponse<String>? {
 
-        // ดึงข้อมูลของไคลเอนต์
         val clientIp = request.headers["X-Forwarded-For"] ?: request.remoteAddress.address.hostAddress
         val userAgent = request.headers["User-Agent"] ?: "N/A"
         val sessionId = session?.id ?: "N/A"

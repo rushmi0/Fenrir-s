@@ -17,18 +17,8 @@ import java.io.FileNotFoundException
 class RelayInformation @Inject constructor(private val env: NostrRelayConfig) {
 
 
-    /**
-     * ฟังก์ชันสำหรับดึงข้อมูล relay information (NIP-11)
-     * @param contentType: ประเภทของเนื้อหาที่ต้องการ (application/json หรือ text/html)
-     * @return ข้อมูล relay information ที่ถูกดึงจาก Redis cache หรือไฟล์ระบบ
-     */
     fun loadRelayInfo(contentType: String): String = loadContent(contentType)
 
-    /**
-     * ฟังก์ชันสำหรับโหลดเนื้อหาจากไฟล์ตามประเภทของ contentType
-     * @param contentType: ประเภทของเนื้อหาที่ต้องการ
-     * @return ข้อมูลที่โหลดจากไฟล์
-     */
     private fun loadContent(contentType: String): String {
         return if (contentType == MediaType.APPLICATION_JSON) {
             // ถ้า contentType เป็น application/json ให้โหลดไฟล์ JSON
@@ -69,11 +59,6 @@ class RelayInformation @Inject constructor(private val env: NostrRelayConfig) {
     }
 
 
-    /**
-     * ฟังก์ชันสำหรับอ่านไฟล์จาก classpath
-     * @param path เส้นทางของไฟล์ใน classpath
-     * @return ข้อมูลที่อ่านจากไฟล์
-     */
     private fun loadFromClasspath(path: String): String {
         val resourceLoader: ClassPathResourceLoader =
             ResourceResolver().getLoader(ClassPathResourceLoader::class.java).get()
