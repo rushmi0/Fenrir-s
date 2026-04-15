@@ -3,7 +3,6 @@ package org.fenrirs.relay.core.nip01.response
 import io.micronaut.context.annotation.Bean
 import io.micronaut.core.annotation.Introspected
 import io.micronaut.websocket.WebSocketSession
-import io.micronaut.websocket.exceptions.WebSocketSessionException
 import jakarta.inject.Inject
 
 import kotlinx.serialization.Serializable
@@ -29,7 +28,7 @@ sealed class RelayResponse<out T> {
     lateinit var sqlExec: StoredServiceImpl
 
     /**
-     * EVENT เป็นการตอบกลับประเภทเหตุการณ์ ใช้ในการส่งเหตุการณ์ที่ได้รับการร้องขอจากไคลเอนต์
+     * `EVENT` เป็นการตอบกลับประเภทเหตุการณ์ ใช้ในการส่งเหตุการณ์ที่ได้รับการร้องขอจากไคลเอนต์
      * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงไปถึงการร้องขอนั้นๆ จากไคลเอนต์
      * @param event เหตุการณ์ที่เกิดขึ้น
      */
@@ -37,7 +36,7 @@ sealed class RelayResponse<out T> {
 
 
     /**
-     * COUNT ใช้ในการตอบกลับประเภทจำนวน ซึ่งส่งคืนจำนวนเหตุการณ์ที่ตรงกับเงื่อนไขที่กำหนด
+     * `COUNT` ใช้ในการตอบกลับประเภทจำนวน ซึ่งส่งคืนจำนวนเหตุการณ์ที่ตรงกับเงื่อนไขที่กำหนด
      * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงไปถึงการร้องขอนั้นๆ
      * @param countResponse จำนวนเหตุการณ์ที่ตรงตามเงื่อนไข
      */
@@ -45,7 +44,7 @@ sealed class RelayResponse<out T> {
 
 
     /**
-     * OK เป็นการตอบกลับประเภทการยืนยันความสำเร็จของการดำเนินการ ใช้ในการบอกสถานะการยอมรับหรือปฏิเสธข้อความ EVENT จากไคลเอนต์
+     * `OK` เป็นการตอบกลับประเภทการยืนยันความสำเร็จของการดำเนินการ ใช้ในการบอกสถานะการยอมรับหรือปฏิเสธข้อความ EVENT จากไคลเอนต์
      * จะมีพารามิเตอร์ที่ 2 เป็น true เมื่อเหตุการณ์ได้รับการยอมรับจาก Relay และ false ในกรณีอื่นๆ เช่นการปฏิเสธ EVENT จากไคลเอนต์
      * พารามิเตอร์ที่ 3 จะต้องมีเสมอ อาจจะเป็นสตริงว่างเมื่อพารามิเตอร์ที่ 2 เป็น true หรือเป็น false และแจ้งเหตุผลที่ปฏิเสธ EVENT นั้นๆ
      * @param eventId ไอดีของเหตุการณ์ที่ได้รับจากไคลเอนต์
@@ -56,7 +55,7 @@ sealed class RelayResponse<out T> {
 
 
     /**
-     * EOSE เป็นการตอบกลับเมื่อสิ้นสุดการส่งข้อมูลของการร้องขอข้อมูลนั้นๆ ที่ทางฝั่งไคลเอนต์ต้องการ
+     * `EOSE` เป็นการตอบกลับเมื่อสิ้นสุดการส่งข้อมูลของการร้องขอข้อมูลนั้นๆ ที่ทางฝั่งไคลเอนต์ต้องการ
      * ใช้ในการบอกว่าจบการส่งเหตุการณ์ที่ Relay เก็บไว้แล้ว และจะเริ่มส่งเหตุการณ์ใหม่ๆ ที่ได้รับตามเวลาจริง
      * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงไปถึงการร้องขอนั้นๆ ขอจากไคลเอนต์
      */
@@ -64,14 +63,14 @@ sealed class RelayResponse<out T> {
 
 
     /**
-     * CANCEL ใช้ในการยืนยันว่าคำขอจากไคลเอนต์ได้ถูกยกเลิกแล้ว
+     * `CANCEL` ใช้ในการยืนยันว่าคำขอจากไคลเอนต์ได้ถูกยกเลิกแล้ว
      * @param subscriptionId ไอดีที่ใช้ติดตามหรืออ้างอิงถึงคำร้องขอจากไคลเอนต์
      */
     data class CANCEL(val subscriptionId: String) : RelayResponse<Unit>()
 
 
     /**
-     * CLOSED ใช้สำหรับแจ้งว่าการเชื่อมต่อถูกปิดโดย Relay
+     * `CLOSED` ใช้สำหรับแจ้งว่าการเชื่อมต่อถูกปิดโดย Relay
      * @param subscriptionId ไอดีที่ใช้ติดตามหรืออ้างอิงถึงคำร้องขอจากไคลเอนต์
      * @param message ข้อความเพิ่มเติมเกี่ยวกับการปิดการเชื่อมต่อ
      */
@@ -79,40 +78,38 @@ sealed class RelayResponse<out T> {
 
 
     /**
-     * NOTICE เป็นการตอบกลับประเภทการแจ้งเตือน
+     * `NOTICE` เป็นการตอบกลับประเภทการแจ้งเตือน
      * @param message ข้อความแจ้งเตือนหรือข้อความเกี่ยวกับข้อผิดพลาดที่ต้องแจ้งให้ไคลเอนต์ทราบ
      */
     data class NOTICE(val message: String) : RelayResponse<Unit>()
 
 
     /**
-     * ฟังก์ชัน toJson ใช้ในการแปลงข้อมูล ที่ใช้ในการตอบกลับจากรูปแบบ Kotlin Object ไปเป็น JSON string
+     * `toJson` ใช้ในการแปลงข้อมูล ที่ใช้ในการตอบกลับจากรูปแบบ Kotlin Object ไปเป็น JSON string
      * @return JSON string ที่ใช้ในการตอบกลับ
      */
     fun toJson(): String = Json.encodeToString(RelayResponseSerializer, this)
 
 
     /**
-     * ฟังก์ชัน toClient ใช้ในการส่งการตอบกลับไปยังไคลเอนต์ผ่าน WebSocket
+     * `toClient` ใช้ในการส่งการตอบกลับไปยังไคลเอนต์ผ่าน WebSocket
      * @param session ใช้ในการสื่อสารกับไคลเอนต์
      */
-    fun toClient(session: WebSocketSession) {
-        when {
-            session.isOpen -> {
-                try {
-                    val payload = this@RelayResponse.toJson()
-                    //LOG.info("$session payload: $payload")
-                    session.sendAsync(payload)
+    fun toClient(session: WebSocketSession?) {
+        val currentSession = session ?: return
+        runCatching {
+            if (currentSession.isOpen) {
+                val payload = this@RelayResponse.toJson()
+                currentSession.sendAsync(payload)
 
-                    if (this@RelayResponse is CANCEL) {
-                        clearSubscription(session, subscriptionId)
-                    }
-                } catch (e: WebSocketSessionException) {
-                    LOG.info("$session is closed, cannot send message")
+                if (this@RelayResponse is CANCEL) {
+                    clearSubscription(currentSession, subscriptionId)
                 }
+            } else {
+                LOG.info("Session ${currentSession.id} is already closed")
             }
-
-            else -> LOG.info("$session is closed")
+        }.onFailure { e ->
+            LOG.error("Failed to send message to session ${currentSession.id}: ${e.message}")
         }
     }
 

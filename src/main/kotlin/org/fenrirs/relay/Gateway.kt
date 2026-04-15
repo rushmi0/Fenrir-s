@@ -44,23 +44,13 @@ class Gateway @Inject constructor(
         session: WebSocketSession?,
         @Header(HttpHeaders.ACCEPT) accept: String?
     ): MutableHttpResponse<String>? {
-
-        val clientIp = request.headers["X-Forwarded-For"] ?: request.remoteAddress.address.hostAddress
-        val userAgent = request.headers["User-Agent"] ?: "N/A"
-        val sessionId = session?.id ?: "N/A"
-
-        LOG.info("${YELLOW}Client IP: $clientIp, Session ID: $sessionId$RESET")
-        LOG.info("User Agent: $userAgent")
-
         session?.let {
             LOG.info("${GREEN}* open$RESET $session")
             return@let HttpResponse.ok("Session opened")
                 .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
         }
 
-        //LOG.info("${YELLOW}accept: $RESET$accept ${BLUE}session: $RESET${session?.id}")
         val contentType = if (accept == "application/nostr+json") MediaType.APPLICATION_JSON else MediaType.TEXT_HTML
-
         return HttpResponse.ok(nip11.loadRelayInfo(contentType))
             .contentType(contentType)
             .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")

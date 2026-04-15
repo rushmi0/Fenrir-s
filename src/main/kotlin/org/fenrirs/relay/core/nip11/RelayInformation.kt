@@ -4,7 +4,6 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
 import io.micronaut.http.MediaType
-import io.micronaut.context.annotation.Bean
 
 import io.micronaut.core.io.ResourceResolver
 import io.micronaut.core.io.scan.ClassPathResourceLoader
@@ -21,10 +20,8 @@ class RelayInformation @Inject constructor(private val env: NostrRelayConfig) {
 
     private fun loadContent(contentType: String): String {
         return if (contentType == MediaType.APPLICATION_JSON) {
-            // ถ้า contentType เป็น application/json ให้โหลดไฟล์ JSON
             relayInfo()
         } else {
-            // ถ้า contentType เป็น text/html ให้โหลดไฟล์ HTML
             loadFromClasspath("public/index.html")
         }
     }

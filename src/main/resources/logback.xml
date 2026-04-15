@@ -9,7 +9,7 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>
-                [%boldMagenta(%d{yyyy-MM-dd HH:mm:ss.SSS,UTC})] %green([%thread]) %highlight(%-5level) %boldYellow(%logger{36}) - %msg%n
+                [%d{HH:mm:ss.SSS}] %highlight([%thread]) %-5level %logger{36} - %msg%n
             </pattern>
         </encoder>
     </appender>
@@ -25,7 +25,7 @@
         </rollingPolicy>
         <encoder>
             <pattern>
-                [%boldMagenta(%d{yyyy-MM-dd HH:mm:ss.SSS,UTC})] %green([%thread]) %highlight(%-5level) %boldYellow(%logger{36}) - %msg%n
+                [%d{HH:mm:ss.SSS}] %highlight([%thread]) %-5level %logger{36} - %msg%n
             </pattern>
         </encoder>
     </appender>

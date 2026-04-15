@@ -14,8 +14,8 @@ import io.github.reactivecircus.cache4k.Cache
 object Subscription {
 
     private val config: Cache<String, SubscriptionData> = Cache.Builder<String, SubscriptionData>()
-        .maximumCacheSize(50_000) // จำกัดขนาด Cache
-        .expireAfterWrite(20.minutes) // ข้อมูลใน Cache จะหมดอายุหลัง 20 นาที
+        .maximumCacheSize(50_000)
+        .expireAfterWrite(20.minutes)
         .build()
 
     private fun <T : Any> set(key: String, value: T) {

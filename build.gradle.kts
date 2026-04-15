@@ -113,6 +113,9 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+tasks.shadowJar {
+    archiveFileName.set("${project.name}-${version}-jvm.jar")
+}
 
 // * https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/BuildOutput.md
 graalvmNative {
@@ -123,12 +126,12 @@ graalvmNative {
             buildArgs.add("-H:+AddAllCharsets")
             buildArgs.add("-R:MaxHeapSize=4G")
             buildArgs.add("--no-fallback")
-            //buildArgs.add("--target=linux-amd64")
+            //buildArgs.add("--target=aarch64-linux")
             //buildArgs.add("-march=x86-64-v2") // current app
             //buildArgs.add("-march=x86-64-v3") // server 2020+
-            //buildArgs.add("-march=compatibility") // Distributed generally.
-            buildArgs.add("-march=native") // Use only one device.
-            imageName.set("${project.name}-v$version")
+            buildArgs.add("-march=compatibility") // Distributed generally.
+            //buildArgs.add("-march=native") // Use only one device.
+            imageName.set("${project.name}-${version}-linux-amd64")
             javaLauncher.set(javaToolchains.launcherFor {
                 languageVersion.set(JavaLanguageVersion.of(21))
                 vendor.set(JvmVendorSpec.GRAAL_VM)
