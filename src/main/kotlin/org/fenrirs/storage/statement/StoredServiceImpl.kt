@@ -1,14 +1,14 @@
 package org.fenrirs.storage.statement
 
-import io.micronaut.context.annotation.Bean
 import jakarta.inject.Inject
-import org.fenrirs.relay.core.nip50.SearchEngine
+import jakarta.inject.Singleton
+import org.fenrirs.relay.core.nip.nip50.SearchEngine
 import org.fenrirs.storage.service.StoredService
 
 import org.slf4j.LoggerFactory
 
-import org.fenrirs.relay.policy.Event
-import org.fenrirs.relay.policy.FiltersX
+import org.fenrirs.relay.models.Event
+import org.fenrirs.relay.models.FiltersX
 import org.fenrirs.storage.DatabaseFactory.queryTask
 import org.fenrirs.storage.NostrRelayConfig
 
@@ -21,13 +21,15 @@ import org.fenrirs.storage.table.EVENT.PUBKEY
 import org.fenrirs.storage.table.EVENT.SIG
 import org.fenrirs.storage.table.EVENT.TAGS
 
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.json.contains
+import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.core.vendors.H2Dialect
+import org.jetbrains.exposed.v1.core.vendors.currentDialect
+import org.jetbrains.exposed.v1.jdbc.*
+import org.jetbrains.exposed.v1.json.contains
 
 
 
-@Bean
+@Singleton
 class StoredServiceImpl @Inject constructor(
     private val ts: SearchEngine,
     private val env: NostrRelayConfig
@@ -35,7 +37,7 @@ class StoredServiceImpl @Inject constructor(
 
     override suspend fun filterList(filters: FiltersX): List<Event>? {
         return queryTask {
-            try {
+            runCatching {
 
                 /**
                  * สร้างคำสั่ง SQL สำหรับการดึงข้อมูลจากตาราง EVENT โดยพิจารณาจากตัวกรองที่ได้รับ
@@ -118,7 +120,13 @@ class StoredServiceImpl @Inject constructor(
                 // ถ้ามีการระบุ tags ใน filters ให้เพิ่มเงื่อนไขการค้นหา TAGS ที่ตรงกับค่าที่กำหนด
                 filters.tags.forEach { (key, values) ->
                     values.forEach { value ->
-                        val jsonValue = TAGS.contains("""[["${key.tag}","$value"]]""")
+                        // H2 (แม้เปิด MODE=PostgreSQL) ไม่รองรับ jsonb containment operator (@> / ::jsonb)
+                        // ที่ Postgres ใช้จริง จึงต้อง fallback มาใช้ LIKE จับข้อความ JSON ที่ serialize ไว้แทน
+                        val jsonValue = if (currentDialect is H2Dialect) {
+                            TAGS.castTo<String>(TextColumnType()) like "%[\"$key\",\"$value\"]%"
+                        } else {
+                            TAGS.contains("""[["$key","$value"]]""")
+                        }
                         query.andWhere { jsonValue }
                     }
                 }
@@ -154,8 +162,8 @@ class StoredServiceImpl @Inject constructor(
                         sig = row[SIG]
                     )
                 }
-            } catch (e: Exception) {
-                LOG.error("Error filtering events: ${e.stackTrace.joinToString("\n")}")
+            }.getOrElse { e ->
+                LOG.error("[DATABASE] Failed to filter events", e)
                 null
             }
         }
@@ -164,7 +172,7 @@ class StoredServiceImpl @Inject constructor(
 
     override suspend fun saveEvent(event: Event): Boolean {
         return queryTask {
-            try {
+            runCatching {
 
                 /**
                  * INSERT INTO EVENT
@@ -183,8 +191,8 @@ class StoredServiceImpl @Inject constructor(
                     it[SIG] = event.sig!!
                 }
                 true
-            } catch (e: Exception) {
-                LOG.error("Error saving event: ${e.message}")
+            }.getOrElse { e ->
+                LOG.error("[DATABASE] Failed to save event id={}", event.id, e)
                 false
             }
         }
@@ -193,7 +201,7 @@ class StoredServiceImpl @Inject constructor(
 
     override suspend fun selectById(id: String): Event? {
         return queryTask {
-            try {
+            runCatching {
 
                 /**
                  * SELECT * FROM event
@@ -213,8 +221,8 @@ class StoredServiceImpl @Inject constructor(
                         sig = it[SIG]
                     )
                 }
-            } catch (e: Exception) {
-                LOG.error("Error selecting event by ID: $id. ${e.message}")
+            }.getOrElse { e ->
+                LOG.error("[DATABASE] Failed to select event id={}", id, e)
                 null
             }
         }
@@ -222,7 +230,7 @@ class StoredServiceImpl @Inject constructor(
 
     override suspend fun deleteEvent(eventId: String): Boolean {
         return queryTask {
-            try {
+            runCatching {
 
                 /**
                  * DELETE
@@ -231,8 +239,8 @@ class StoredServiceImpl @Inject constructor(
                  */
                 EVENT.deleteWhere { EVENT_ID eq eventId } > 0
 
-            } catch (e: Exception) {
-                e.printStackTrace()
+            }.getOrElse { e ->
+                LOG.error("[DATABASE] Failed to delete event id={}", eventId, e)
                 false
             }
         }

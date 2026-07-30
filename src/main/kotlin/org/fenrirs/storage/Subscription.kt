@@ -1,47 +1,51 @@
 package org.fenrirs.storage
 
 
-import io.micronaut.context.annotation.Bean
 import io.micronaut.websocket.WebSocketSession
 
-import org.fenrirs.relay.core.nip01.SubscriptionData
-import org.fenrirs.relay.policy.FiltersX
+import org.fenrirs.relay.core.nip.nip01.SubscriptionData
+import org.fenrirs.relay.models.FiltersX
+
+import org.fenrirs.storage.DatabaseFactory.cacheTask
+import org.fenrirs.storage.table.SUBSCRIPTION
+
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.upsert
 
 import kotlin.time.Duration.Companion.minutes
-import io.github.reactivecircus.cache4k.Cache
 
-@Bean
 object Subscription {
 
-    private val config: Cache<String, SubscriptionData> = Cache.Builder<String, SubscriptionData>()
-        .maximumCacheSize(50_000)
-        .expireAfterWrite(20.minutes)
-        .build()
+    private val TTL_MILLIS = 20.minutes.inWholeMilliseconds
 
-    private fun <T : Any> set(key: String, value: T) {
-        @Suppress("UNCHECKED_CAST")
-        (config as Cache<String, T>).put(key, value)
-    }
-
-    private fun <T : Any> get(key: String): T? {
-        @Suppress("UNCHECKED_CAST")
-        return (config as Cache<String, T>).get(key)
-    }
-
-    private fun remove(key: String) = config.invalidate(key)
+    private fun isExpired(updatedAt: Long): Boolean = System.currentTimeMillis() - updatedAt > TTL_MILLIS
 
     /**
      * เพิ่ม subscription ใหม่ให้กับ session ที่ระบุ
      * @param session session ID ที่ต้องการเพิ่ม subscription
      * @param subscriptionData ข้อมูล subscription ที่ต้องการเพิ่ม ซึ่งประกอบด้วย subscriptionId และ filters
      */
-    fun addSubscription(session: WebSocketSession, subscriptionData: SubscriptionData) {
-        val existingSubscriptions = get<SubscriptionData>(session.id)?.toMutableMap() ?: mutableMapOf()
-        // ตรวจสอบว่าข้อมูล subscription ที่เพิ่มเข้ามาไม่มีการซ้ำซ้อน
-        subscriptionData.forEach { (key, value) ->
-            existingSubscriptions[key] = (existingSubscriptions[key] ?: emptyList()) + value
+    suspend fun addSubscription(session: WebSocketSession, subscriptionData: SubscriptionData) = cacheTask {
+        val now = System.currentTimeMillis()
+
+        subscriptionData.forEach { (subscriptionId, filters) ->
+            val existingFilters = SUBSCRIPTION
+                .selectAll()
+                .where { (SUBSCRIPTION.SESSION_ID eq session.id) and (SUBSCRIPTION.SUBSCRIPTION_ID eq subscriptionId) }
+                .firstOrNull()
+                ?.let { row -> if (isExpired(row[SUBSCRIPTION.UPDATED_AT])) null else row[SUBSCRIPTION.FILTERS] }
+
+            // ตรวจสอบว่าข้อมูล subscription ที่เพิ่มเข้ามาไม่มีการซ้ำซ้อน
+            SUBSCRIPTION.upsert {
+                it[SESSION_ID] = session.id
+                it[SUBSCRIPTION_ID] = subscriptionId
+                it[FILTERS] = (existingFilters ?: emptyList()) + filters
+                it[UPDATED_AT] = now
+            }
         }
-        set(session.id, existingSubscriptions)
     }
 
     /**
@@ -49,7 +53,13 @@ object Subscription {
      * @param session session ID ที่ต้องการดึงข้อมูล
      * @return ข้อมูลทั้งหมดของ session หรือ map ว่างหากไม่มีข้อมูล
      */
-    fun getSession(session: WebSocketSession): SubscriptionData = get<SubscriptionData>(session.id) ?: mapOf()
+    suspend fun getSession(session: WebSocketSession): SubscriptionData = cacheTask {
+        SUBSCRIPTION
+            .selectAll()
+            .where { SUBSCRIPTION.SESSION_ID eq session.id }
+            .filterNot { isExpired(it[SUBSCRIPTION.UPDATED_AT]) }
+            .associate { it[SUBSCRIPTION.SUBSCRIPTION_ID] to it[SUBSCRIPTION.FILTERS] }
+    }
 
     /**
      * ดึงข้อมูลเฉพาะของ subscriptionId ใน session ที่ระบุ
@@ -57,7 +67,7 @@ object Subscription {
      * @param subscriptionId ID ของ subscription ที่ต้องการดึงข้อมูล
      * @return ข้อมูลของ subscription ที่ระบุ หรือ list ว่างหากไม่พบข้อมูล
      */
-    fun getSubscription(session: WebSocketSession, subscriptionId: String): List<FiltersX> {
+    suspend fun getSubscription(session: WebSocketSession, subscriptionId: String): List<FiltersX> {
         return getSession(session)[subscriptionId] ?: emptyList()
     }
 
@@ -69,7 +79,7 @@ object Subscription {
      * โดยฟังก์ชันนี้จะใช้ในการบันทึกข้อมูล subscription ที่ระบุลงในระบบ
      * หาก subscriptionId มีอยู่แล้ว จะทำการอัพเดตข้อมูล filters ของ subscription นั้น
      */
-    fun saveSubscription(session: WebSocketSession, subscriptionId: String, filtersX: List<FiltersX>) {
+    suspend fun saveSubscription(session: WebSocketSession, subscriptionId: String, filtersX: List<FiltersX>) {
         val subscriptionData = mapOf(subscriptionId to filtersX)
         addSubscription(session, subscriptionData)
     }
@@ -82,7 +92,7 @@ object Subscription {
      * @return true ถ้า subscription นั้นยังคงอยู่ (มี filters ที่เกี่ยวข้องและ WebSocketSession ยังเปิดอยู่)
      *         false ถ้า subscription นั้นไม่มีอยู่ในระบบแล้วหรือ WebSocketSession ถูกปิดไปแล้ว
      */
-    fun isSubscriptionActive(session: WebSocketSession, subscriptionId: String): Boolean {
+    suspend fun isSubscriptionActive(session: WebSocketSession, subscriptionId: String): Boolean {
         // ตรวจสอบว่า session ยังเปิดอยู่หรือไม่
         if (!session.isOpen) {
             // ถ้า session ถูกปิดไปแล้ว ให้ล้างข้อมูล session นั้นออก
@@ -100,20 +110,15 @@ object Subscription {
      * @param session session ID ที่ต้องการลบ subscription
      * @param subscriptionId ID ของ subscription ที่ต้องการลบ
      */
-    fun clearSubscription(session: WebSocketSession, subscriptionId: String) {
-        val existingSubscriptions = get<SubscriptionData>(session.id)?.toMutableMap()
-        existingSubscriptions?.remove(subscriptionId)
-        if (existingSubscriptions.isNullOrEmpty()) {
-            // ถ้าไม่มี subscription เหลืออยู่ใน session ให้ลบข้อมูล session
-            clearSession(session)
-        } else {
-            set(session.id, existingSubscriptions)
-        }
+    suspend fun clearSubscription(session: WebSocketSession, subscriptionId: String) = cacheTask {
+        SUBSCRIPTION.deleteWhere { (SESSION_ID eq session.id) and (SUBSCRIPTION_ID eq subscriptionId) }
     }
 
     /**
      * ลบข้อมูลทั้งหมดของ session ที่ระบุ
      * @param session session ID ที่ต้องการลบข้อมูลทั้งหมด
      */
-    fun clearSession(session: WebSocketSession) = remove(session.id)
+    suspend fun clearSession(session: WebSocketSession) = cacheTask {
+        SUBSCRIPTION.deleteWhere { SESSION_ID eq session.id }
+    }
 }

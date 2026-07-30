@@ -15,11 +15,9 @@ object Schnorr {
      * @return ผลลัพธ์การตรวจสอบเป็น Boolean (true ถ้าลายเซ็นถูกต้อง, false ถ้าลายเซ็นไม่ถูกต้อง)
      */
     fun verify(data: String, publicKey: String, signature: String): Boolean {
-        return try {
+        return runCatching {
             verifySignature(data.fromHex(), publicKey.fromHex(), signature.fromHex())
-        } catch (e: Exception) {
-            false
-        }
+        }.getOrDefault(false)
     }
 
     private fun verifySignature(msg: ByteArray, pubkey: ByteArray, sig: ByteArray): Boolean {

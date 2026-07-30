@@ -3,4 +3,4 @@ defaultPackage: org.fenrirs
 testFramework: junit
 sourceLanguage: kotlin
 buildTool: gradle_kotlin
-features: [ app-name, gradle, http-client-test, junit, jdbc-hikari, kotlin, kotlin-application, ksp, micronaut-aot, micronaut-build, micronaut-http-validation, netty-server, postgres, readme, serialization-jackson, shade, slf4j-simple-logger, static-resources, test-resources, toml, toml-build, websocket ]
+features: [app-name, graalvm, gradle, h2, http-client-test, jdbc-hikari, junit, kotlin, kotlin-application, ksp, logback, micronaut-aop, micronaut-aot, micronaut-build, micronaut-configuration-validation-gradle-plugin, micronaut-http-validation, netty-server, readme, serialization-jackson, shade, static-resources, toml, toml-build, websocket]

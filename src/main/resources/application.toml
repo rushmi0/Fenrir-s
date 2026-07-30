@@ -1,26 +1,12 @@
 micronaut.application.name = 'fenrir-s'
 
 [micronaut.server]
-cors.enabled = true
-cors.configurations.all.allowed-origins = "*"
-cors.configurations.all.allow-credentials=false
-cors.localhost-pass-through = true
 idle-timeout="30s"
 #host = "localhost"
 port = 6724
 
-
-#[micronaut.router.static-resources.default]
-#mapping = "/**"
-#paths = ["classpath:public/"]
-
-[micronaut.http.services.errors]
-json.enabled = false
-
-[micronaut.router.static-resources.assets]
+[micronaut.router.static-resources.default]
+enabled = true
 mapping = "/assets/**"
 paths = ["classpath:public/assets"]
 
-[micronaut.router.static-resources.web]
-mapping = "/**"
-paths = ["classpath:public"]

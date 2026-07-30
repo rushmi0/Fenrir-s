@@ -3,8 +3,8 @@ package org.fenrirs.storage.table
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.json.jsonb
+import org.jetbrains.exposed.v1.core.*
+import org.jetbrains.exposed.v1.json.jsonb
 
 object EVENT: Table("event") {
 

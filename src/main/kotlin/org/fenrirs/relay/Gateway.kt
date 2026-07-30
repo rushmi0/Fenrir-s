@@ -1,9 +1,6 @@
 package org.fenrirs.relay
 
 
-import io.micronaut.http.*
-import io.micronaut.http.annotation.Header
-
 import io.micronaut.websocket.WebSocketSession
 import io.micronaut.websocket.annotation.OnClose
 import io.micronaut.websocket.annotation.OnMessage
@@ -11,22 +8,20 @@ import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
 
 import jakarta.inject.Inject
+import kotlinx.coroutines.runBlocking
 
-import org.fenrirs.relay.core.nip01.command.EVENT
-import org.fenrirs.relay.core.nip01.command.CLOSE
-import org.fenrirs.relay.core.nip01.command.COUNT
-import org.fenrirs.relay.core.nip01.command.REQ
-import org.fenrirs.relay.core.nip01.command.CommandFactory.parse
-import org.fenrirs.relay.core.nip01.response.RelayResponse
-import org.fenrirs.relay.core.nip01.BasicProtocolFlow
-import org.fenrirs.relay.core.nip11.RelayInformation
+import org.fenrirs.relay.core.nip.nip01.command.AUTH
+import org.fenrirs.relay.core.nip.nip01.command.EVENT
+import org.fenrirs.relay.core.nip.nip01.command.CLOSE
+import org.fenrirs.relay.core.nip.nip01.command.COUNT
+import org.fenrirs.relay.core.nip.nip01.command.REQ
+import org.fenrirs.relay.core.nip.nip01.command.CommandFactory.parse
+import org.fenrirs.relay.core.nip.nip01.response.RelayResponse
+import org.fenrirs.relay.core.nip.nip01.BasicProtocolFlow
+import org.fenrirs.relay.core.policy.PolicyConfig
+import org.fenrirs.relay.core.pubsub.SubscriptionRegistry
+import org.fenrirs.storage.Authentication
 import org.fenrirs.storage.Subscription.clearSession
-
-import org.fenrirs.utils.Color.GREEN
-import org.fenrirs.utils.Color.PURPLE
-import org.fenrirs.utils.Color.RED
-import org.fenrirs.utils.Color.RESET
-import org.fenrirs.utils.Color.YELLOW
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -35,36 +30,23 @@ import org.slf4j.LoggerFactory
 @ServerWebSocket("/")
 class Gateway @Inject constructor(
     private val service: BasicProtocolFlow,
-    private val nip11: RelayInformation,
+    private val registry: SubscriptionRegistry,
+    private val authentication: Authentication,
+    private val config: PolicyConfig,
 ) {
 
     @OnOpen
-    fun onOpen(
-        request: HttpRequest<*>,
-        session: WebSocketSession?,
-        @Header(HttpHeaders.ACCEPT) accept: String?
-    ): MutableHttpResponse<String>? {
-        session?.let {
-            LOG.info("${GREEN}* open$RESET $session")
-            return@let HttpResponse.ok("Session opened")
-                .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
+    fun onOpen(session: WebSocketSession) {
+        LOG.info("[CONN] Opened session={}", session.id)
+        if (config.AUTH_ENABLED) {
+            RelayResponse.AUTH(authentication.challengeFor(session)).toClient(session)
         }
-
-        val contentType = if (accept == "application/nostr+json") MediaType.APPLICATION_JSON else MediaType.TEXT_HTML
-        return HttpResponse.ok(nip11.loadRelayInfo(contentType))
-            .contentType(contentType)
-            .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
     }
 
 
     @OnMessage(maxPayloadLength = 524288)
     suspend fun onMessage(session: WebSocketSession, message: String) {
-        try {
-
-            /**
-             * ทำการตรวจสอบความถูกต้องของข้อมูล ที่ได้รับจากไคลเอนต์และตอบกลับอย่างเหมาะสม
-             * ถ้าข้อมูลถูกต้องเป็นไปตามข้อกำหนดจะถูกแปลงข้อมูลให้อยู่ในรูปของ Kotlin Object เพื่อสามารถนำไปใช้งานต่อได้สะดวก
-             */
+        runCatching {
             val (cmd, validationResult) = parse(message) // Pair<Command?, Pair<Boolean, String>>
             val (status, warning) = validationResult
 
@@ -73,19 +55,27 @@ class Gateway @Inject constructor(
                 is REQ -> service.onRequest(cmd.subscriptionId, cmd.filtersX, status, warning, session)
                 is COUNT -> service.onCount(cmd.subscriptionId, cmd.filtersX, status, warning, session)
                 is CLOSE -> service.onClose(cmd.subscriptionId, session)
+                is AUTH -> service.onAuth(cmd.event, status, warning, session)
                 else -> service.onUnknown(session)
             }
-
-        } catch (e: IllegalArgumentException) {
-            LOG.warn("handle command: ${RED}${e.message}${RESET}")
-            RelayResponse.NOTICE("ERROR: ${e.message}").toClient(session)
-        } catch (_: NullPointerException) { }
+        }.onFailure { e ->
+            when (e) {
+                is IllegalArgumentException -> {
+                    LOG.warn("[COMMAND] Rejected session={} reason={}", session.id, e.message)
+                    RelayResponse.NOTICE("ERROR: ${e.message}").toClient(session)
+                }
+                is NullPointerException -> Unit
+                else -> throw e
+            }
+        }
     }
 
     @OnClose
-    fun onClose(session: WebSocketSession) {
-        LOG.info("${PURPLE}# close ${RESET}$session")
+    fun onClose(session: WebSocketSession) = runBlocking {
+        LOG.info("[CONN] Closed session={}", session.id)
+        registry.unregisterSession(session.id)
         clearSession(session)
+        authentication.clearSession(session)
     }
 
     companion object {

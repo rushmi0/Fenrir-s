@@ -1,7 +1,7 @@
 package org.fenrirs.storage.service
 
-import org.fenrirs.relay.policy.Event
-import org.fenrirs.relay.policy.FiltersX
+import org.fenrirs.relay.models.Event
+import org.fenrirs.relay.models.FiltersX
 
 interface StoredService {
 

@@ -1,1 +1,1 @@
-rootProject.name = "fenrir-s"
+rootProject.name="Fenrir-s"

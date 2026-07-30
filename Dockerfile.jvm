@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jdk-jammy AS build
+FROM eclipse-temurin:25-jdk-jammy AS build
 WORKDIR /builder
 
 COPY gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
@@ -18,16 +18,16 @@ RUN addgroup -S nostrapp -g 1000 && \
 USER runner
 WORKDIR /app
 
-COPY --from=build --chown=runner:nostrapp /builder/build/libs/fenrir-s-1.0.1-jvm.jar ./
+COPY --from=build --chown=runner:nostrapp /builder/build/libs/Fenrir-s-2.0-jvm.jar ./
 COPY --chown=runner:nostrapp .env /app/.env
 
 RUN mkdir logs && \
     chmod u=rwx,g=rx,o=r logs/ && \
     chown runner:nostrapp logs/
 
-RUN chmod u=r,g=r,o= /app/fenrir-s-1.0.1-jvm.jar && \
+RUN chmod u=r,g=r,o= /app/Fenrir-s-2.0-jvm.jar && \
     chmod u=r,g=,o= /app/.env
 
 EXPOSE 6724
 
-ENTRYPOINT exec sh -c "java -Xmx512m -jar fenrir-s-1.0.1-jvm.jar"
+ENTRYPOINT exec sh -c "java -Xmx512m -jar Fenrir-s-2.0-jvm.jar"

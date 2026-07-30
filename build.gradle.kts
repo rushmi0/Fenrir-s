@@ -1,21 +1,65 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.internal.os.OperatingSystem
+import java.util.Locale
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.9.23"
-    id("org.jetbrains.kotlin.plugin.allopen") version "1.9.23"
-    id("com.google.devtools.ksp") version "1.9.23-1.0.19"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("io.micronaut.application") version "4.4.0"
-    id("io.micronaut.test-resources") version "4.4.0"
-    id("io.micronaut.aot") version "4.4.0"
-    id("org.graalvm.buildtools.native") version "0.10.3"
-    kotlin("plugin.serialization") version "1.9.23"
+    id("org.jetbrains.kotlin.jvm") version "2.3.21"
+    id("org.jetbrains.kotlin.plugin.allopen") version "2.3.21"
+    id("com.google.devtools.ksp") version "2.3.7"
+    id("io.micronaut.application") version "5.0.2"
+    id("com.gradleup.shadow") version "9.4.1"
+    id("io.micronaut.aot") version "5.0.2"
+    id("org.graalvm.buildtools.native") version "1.1.6"
+    kotlin("plugin.serialization") version "2.3.21"
 }
 
-version = "1.0.1"
+version = "2.0"
 group = "org.fenrirs"
 
-val kotlinVersion = project.properties["kotlinVersion"]
+
+enum class OsName { WINDOWS, MAC, LINUX, UNKNOWN }
+enum class OsArch { X86_32, X86_64, ARM64, UNKNOWN }
+data class OsType(val name: OsName, val arch: OsArch)
+
+val currentOsType = run {
+    val gradleOs = OperatingSystem.current()
+    val osName = when {
+        gradleOs.isMacOsX -> OsName.MAC
+        gradleOs.isWindows -> OsName.WINDOWS
+        gradleOs.isLinux -> OsName.LINUX
+        else -> OsName.UNKNOWN
+    }
+
+    val osArch = when (providers.systemProperty("sun.arch.data.model").get()) {
+        "32" -> OsArch.X86_32
+        "64" -> when (providers.systemProperty("os.arch").get().lowercase(Locale.getDefault())) {
+            "aarch64" -> OsArch.ARM64
+            else -> OsArch.X86_64
+        }
+        else -> OsArch.UNKNOWN
+    }
+
+    OsType(osName, osArch)
+}
+
+val nativeImageSuffix = run {
+    val osPart = when (currentOsType.name) {
+        OsName.MAC -> "macos"
+        OsName.WINDOWS -> "windows"
+        OsName.LINUX -> "linux"
+        OsName.UNKNOWN -> "unknown"
+    }
+    val archPart = when (currentOsType.arch) {
+        OsArch.ARM64 -> "arm64"
+        OsArch.X86_64 -> "amd64"
+        OsArch.X86_32 -> "x86"
+        OsArch.UNKNOWN -> "unknown"
+    }
+    "$osPart-$archPart"
+}
+
+
+val kotlinVersion= project.properties["kotlinVersion"]
+
 repositories {
     mavenCentral()
 }
@@ -23,46 +67,29 @@ repositories {
 val exposedVersion: String by project
 
 dependencies {
-
-    implementation("io.github.reactivecircus.cache4k:cache4k:0.13.0")
-
-    implementation("org.jetbrains.exposed:exposed-crypt:$exposedVersion")
-
-    implementation("org.jetbrains.exposed:exposed-jodatime:$exposedVersion")
-
-    implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
-
-    implementation("org.jetbrains.exposed:exposed-json:$exposedVersion")
-
-    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-core
-    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
-
-    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-dao
-    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
-
-    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-jdbc
-    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-
-    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-java-time
-    implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
-
-    // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
-
-    // https://github.com/Kotlin/kotlinx.serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-
-    // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
-
-    // https://mvnrepository.com/artifact/org.mockito/mockito-core
-    testImplementation("org.mockito:mockito-core:5.11.0")
-
-    // https://mvnrepository.com/artifact/io.micronaut/micronaut-websocket
-    implementation("io.micronaut:micronaut-websocket:4.7.1")
-
     ksp("io.micronaut:micronaut-http-validation")
     ksp("io.micronaut.serde:micronaut-serde-processor")
+
+    implementation("org.jetbrains.exposed:exposed-crypt:${exposedVersion}")
+    implementation("org.jetbrains.exposed:exposed-jodatime:${exposedVersion}")
+    implementation("org.jetbrains.exposed:exposed-kotlin-datetime:${exposedVersion}")
+    implementation("org.jetbrains.exposed:exposed-json:${exposedVersion}")
+    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-core
+    implementation("org.jetbrains.exposed:exposed-core:${exposedVersion}")
+    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-dao
+    implementation("org.jetbrains.exposed:exposed-dao:${exposedVersion}")
+    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-jdbc
+    implementation("org.jetbrains.exposed:exposed-jdbc:${exposedVersion}")
+    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-java-time
+    implementation("org.jetbrains.exposed:exposed-java-time:${exposedVersion}")
+
+    // Source: https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+
+    implementation("io.micronaut:micronaut-aop")
+    implementation("io.micronaut:micronaut-websocket")
     implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")
     implementation("io.micronaut.serde:micronaut-serde-jackson")
     implementation("io.micronaut.sql:micronaut-jdbc-hikari")
@@ -70,76 +97,51 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinVersion}")
     compileOnly("io.micronaut:micronaut-http-client")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-
-    // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
-    runtimeOnly("ch.qos.logback:logback-classic:1.5.12")
-
+    implementation("tools.jackson.module:jackson-module-kotlin")
+    runtimeOnly("ch.qos.logback:logback-classic")
+    runtimeOnly("com.h2database:h2")
     runtimeOnly("org.postgresql:postgresql")
-    testImplementation("io.micronaut:micronaut-http-client")
+    //testImplementation("io.micronaut:micronaut-http-client")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
+
 
 
 application {
     mainClass = "org.fenrirs.ApplicationKt"
-    applicationDefaultJvmArgs = listOf("-Dapplication.version=$version")
 }
-
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.toVersion("25")
 }
 
-
-
-tasks {
-    compileTestKotlin {
-        kotlinOptions {
-            jvmTarget = "21"
-        }
-    }
-    compileKotlin {
-        kotlinOptions {
-            jvmTarget = "21"
-        }
-    }
-}
-
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_21.toString()
-    }
-}
 
 tasks.shadowJar {
     archiveFileName.set("${project.name}-${version}-jvm.jar")
 }
 
-// * https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/BuildOutput.md
+// graalvmNative.toolchainDetection = false
 graalvmNative {
     binaries {
         all {
-            // * https://www.graalvm.org/latest/reference-manual/native-image/overview/BuildOutput/?fbclid=IwAR007Rh7fYg-CJZywqhFM8PF5XDWPvgOfaV9txFDqpy6PWjtZp2bXpgncL0_aem_Af0UTqW_wKY5RFkebOwqrANSJn-d6fpSoJLMyra23KLgMNQuur3l75gjN29_Ymw1JYkeX7upxGBzGPFkJ4iRuojh
-            // * https://github.com/oracle/graal/issues/1446
-            buildArgs.add("-H:+AddAllCharsets")
-            buildArgs.add("-R:MaxHeapSize=4G")
-            buildArgs.add("--no-fallback")
-            //buildArgs.add("--target=aarch64-linux")
-            //buildArgs.add("-march=x86-64-v2") // current app
-            //buildArgs.add("-march=x86-64-v3") // server 2020+
-            buildArgs.add("-march=compatibility") // Distributed generally.
-            //buildArgs.add("-march=native") // Use only one device.
-            imageName.set("${project.name}-${version}-linux-amd64")
+            buildArgs.add("-H:+SharedArenaSupport")
+            //buildArgs.add("-H:+PrintAnalysisCallTree")
+            buildArgs.add("-H:+UnlockExperimentalVMOptions")
+
+            buildArgs.add("-H:+StaticExecutableWithDynamicLibC")
+            buildArgs.add("-march=compatibility")
+            imageName.set("${project.name}-relay-${version}-${nativeImageSuffix}")
             javaLauncher.set(javaToolchains.launcherFor {
-                languageVersion.set(JavaLanguageVersion.of(21))
+                languageVersion.set(JavaLanguageVersion.of(25))
                 vendor.set(JvmVendorSpec.GRAAL_VM)
             })
             verbose.set(true)
         }
     }
+
 }
+
+
 
 
 micronaut {
@@ -148,9 +150,6 @@ micronaut {
     processing {
         incremental(true)
         annotations("org.fenrirs.*")
-    }
-    testResources {
-        additionalModules.add("jdbc-postgresql")
     }
     aot {
         // Please review carefully the optimizations enabled below
@@ -162,6 +161,17 @@ micronaut {
         optimizeClassLoading = true
         deduceEnvironment = true
         optimizeNetty = true
-        replaceLogbackXml = false
+        replaceLogbackXml = true
     }
+
 }
+
+
+// https://docs.gradle.org/current/userguide/upgrading_major_version_9.html#test_task_fails_when_no_tests_are_discovered
+tasks.withType<AbstractTestTask>().configureEach {
+    failOnNoDiscoveredTests = false
+}
+
+
+
+

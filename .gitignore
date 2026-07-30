@@ -13,6 +13,5 @@ out/
 .settings
 .classpath
 .factorypath
-/test-results-native/test/TEST-junit-jupiter.xml
-/logs/
-local.properties
+.claude
+scripts/python/.venv

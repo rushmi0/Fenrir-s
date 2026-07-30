@@ -1,4 +1,4 @@
-FROM ghcr.io/graalvm/graalvm-community:21.0.2 AS build
+FROM ghcr.io/graalvm/graalvm-community:25.0.2 AS build
 WORKDIR /builder
 
 COPY gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
@@ -19,17 +19,16 @@ RUN addgroup -S nostrapp -g 1000 && \
 USER runner
 WORKDIR /app
 
-COPY --from=build --chown=runner:nostrapp /builder/build/native/nativeOptimizedCompile/fenrir-s-1.0.1-linux-amd64 ./
+COPY --from=build --chown=runner:nostrapp /builder/build/native/nativeOptimizedCompile/Fenrir-s-relay-2.0-linux-amd64 ./
 COPY --chown=runner:nostrapp .env /app/.env
 
 RUN mkdir logs && \
     chmod u=rwx,g=rx,o=r logs/ && \
     chown runner:nostrapp logs/
 
-RUN chmod u=rx,g=r,o= /app/fenrir-s-1.0.1-linux-amd64 && \
+RUN chmod u=rx,g=r,o= /app/Fenrir-s-relay-2.0-linux-amd64 && \
     chmod u=r,g=,o= /app/.env
 
 EXPOSE 6724
 
-ENTRYPOINT exec sh -c "/app/fenrir-s-1.0.1-linux-amd64 -Xmx512m"
-
+ENTRYPOINT exec sh -c "/app/Fenrir-s-relay-2.0-linux-amd64 -Xmx512m"
