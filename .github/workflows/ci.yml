@@ -31,7 +31,7 @@ jobs:
 
 
   build-jvm:
-    name: JVM Jar
+    name: JVM
     runs-on: ubuntu-latest
     needs: test
     steps:
@@ -71,8 +71,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y musl-tools musl-dev
       - name: Build static zlib against musl
         run: |
-          ZLIB=1.3.1
-          curl -LO https://zlib.net/zlib-${ZLIB}.tar.gz
+          ZLIB=1.3.2
+          curl -fLO https://zlib.net/zlib-${ZLIB}.tar.gz
           tar xf zlib-${ZLIB}.tar.gz
           cd zlib-${ZLIB}
           CC=musl-gcc ./configure --static --prefix="$HOME/musl"
