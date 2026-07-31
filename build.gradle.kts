@@ -121,7 +121,7 @@ tasks.shadowJar {
 }
 
 // graalvmNative.toolchainDetection = false
-graalvmNative {
+/*graalvmNative {
     binaries {
         all {
             buildArgs.add("-H:+SharedArenaSupport")
@@ -139,6 +139,41 @@ graalvmNative {
         }
     }
 
+}*/
+
+val muslStatic = providers.gradleProperty("muslStatic")
+    .map(String::toBoolean).getOrElse(false)
+
+val libcName: String? = if (currentOsType.name == OsName.LINUX) {
+    if (muslStatic) "musl" else "glibc"
+} else null
+
+graalvmNative {
+    binaries {
+        all {
+            buildArgs.add("-H:+SharedArenaSupport")
+            buildArgs.add("-H:+UnlockExperimentalVMOptions")
+
+            if (muslStatic) {
+                buildArgs.add("--static")
+                buildArgs.add("--libc=musl")
+            } else {
+                buildArgs.add("-H:+StaticExecutableWithDynamicLibC")
+            }
+
+            buildArgs.add("-march=compatibility")
+            buildArgs.add("-H:BuildOutputJSONFile=build-output.json")
+            imageName.set(buildString {
+                append("${project.name}-relay-${version}-${nativeImageSuffix}")
+                if (libcName != null) append("-$libcName")
+            })
+            javaLauncher.set(javaToolchains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(25))
+                vendor.set(JvmVendorSpec.GRAAL_VM)
+            })
+            verbose.set(true)
+        }
+    }
 }
 
 
