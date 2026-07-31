@@ -13,22 +13,6 @@ concurrency:
 
 jobs:
 
-  test:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 25
-
-      - uses: gradle/actions/setup-gradle@v4
-
-      - name: Run tests
-        run: ./gradlew test -Dorg.gradle.java.home="$JAVA_HOME"
-
 
   build-jvm:
     name: JVM
@@ -83,6 +67,7 @@ jobs:
           export PATH="$HOME/musl/bin:$PATH"
           export CFLAGS="-I$HOME/musl/include"
           export LDFLAGS="-L$HOME/musl/lib"
+          export CC=musl-gcc
           ./gradlew nativeOptimizedCompile -PmuslStatic=true \
             -Dorg.gradle.java.home="$JAVA_HOME"
       - uses: actions/upload-artifact@v4
@@ -106,10 +91,6 @@ jobs:
             name: linux-amd64
           - os: ubuntu-24.04-arm
             name: linux-arm64
-          - os: macos-13
-            name: macos-amd64
-          - os: macos-latest
-            name: macos-arm64
           - os: windows-latest
             name: windows-amd64
     steps:

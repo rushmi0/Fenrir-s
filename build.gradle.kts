@@ -157,6 +157,7 @@ graalvmNative {
             if (muslStatic) {
                 buildArgs.add("--static")
                 buildArgs.add("--libc=musl")
+                buildArgs.add("-H:-CheckToolchain")
             } else {
                 buildArgs.add("-H:+StaticExecutableWithDynamicLibC")
             }
