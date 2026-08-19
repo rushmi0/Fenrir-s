@@ -8,12 +8,6 @@ import Chamfer from '@/components/ui/Chamfer'
 import logo from '@/assets/images/fenrir-logo-horizontal-v2.png'
 import styles from './LoginPage.module.css'
 
-/**
- * Sign-in entry point (`/login`) for any registered operator - general or admin - reacts to the
- * relay's system state (see task's "System States" section) via AuthFlow, which picks the
- * setup-token/nsec-register/pin-login starting step on its own. Redirects straight to the feed if
- * a valid session already exists.
- */
 export default function LoginPage() {
   const [status, setStatus] = useState<SystemStatus | null>(null)
   const [statusError, setStatusError] = useState<string | null>(null)
