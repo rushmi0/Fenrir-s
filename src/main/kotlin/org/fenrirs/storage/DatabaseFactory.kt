@@ -6,6 +6,7 @@ import com.zaxxer.hikari.HikariDataSource
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import org.fenrirs.storage.table.KV_STORE
+import org.fenrirs.storage.table.OPERATOR
 
 import org.fenrirs.storage.table.EVENT
 import org.fenrirs.storage.table.SUBSCRIPTION
@@ -55,6 +56,7 @@ object DatabaseFactory {
         configDb = Database.connect(configH2Hikari())
         transaction(configDb) {
             SchemaUtils.create(KV_STORE)
+            SchemaUtils.create(OPERATOR)
         }
 
         secondaryDb = Database.connect(businessH2Hikari())
@@ -118,10 +120,12 @@ object DatabaseFactory {
             username = "sa"
             password = ""
 
-            minimumIdle = 1
-            maximumPoolSize = 10
+            minimumIdle = 2
+            maximumPoolSize = 20
 
             isAutoCommit = false
+
+            leakDetectionThreshold = 30_000
 
             validate()
         }
@@ -143,6 +147,8 @@ object DatabaseFactory {
             maximumPoolSize = 10
 
             isAutoCommit = false
+
+            leakDetectionThreshold = 30_000
 
             validate()
         }
@@ -166,6 +172,8 @@ object DatabaseFactory {
             maximumPoolSize = 10
 
             isAutoCommit = false
+
+            leakDetectionThreshold = 30_000
 
             validate()
         }

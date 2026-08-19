@@ -1,0 +1,69 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(23, 23, 43, 0.5);
+  animation: fenrir-fade-in 150ms ease-out;
+}
+
+.card {
+  width: min(320px, 88vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px;
+  background: var(--fenrir-surface);
+  filter: drop-shadow(8px 8px 0 var(--fenrir-ink));
+  font-family: 'JetBrains Mono', monospace;
+  text-align: center;
+}
+
+.title {
+  margin: 0 0 6px;
+  font-family: 'Silkscreen', monospace;
+  font-size: 18px;
+  color: var(--fenrir-ink);
+}
+
+.subtitle {
+  margin: 0 0 20px;
+  color: var(--fenrir-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.error {
+  margin: 10px 0 0;
+  color: #c0392b;
+  font-size: 12px;
+}
+
+.hint {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: var(--fenrir-muted-light);
+}
+
+.cancel {
+  margin-top: 20px;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--fenrir-muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cancel:hover {
+  color: var(--fenrir-ink);
+}
+
+.cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

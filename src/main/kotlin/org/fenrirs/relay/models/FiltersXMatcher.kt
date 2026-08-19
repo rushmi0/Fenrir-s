@@ -3,9 +3,10 @@ package org.fenrirs.relay.models
 /**
  * In-memory equivalent of the WHERE clause built in StoredServiceImpl.filterList,
  * used to test a single freshly-saved Event against a client-supplied filter
- * without touching the database. NOTE: `search` (NIP-50 full-text) is deliberately
- * NOT evaluated here since Postgres tsquery ranking isn't reproducible cheaply in
- * memory — see SubscriptionRegistry's search fallback in BasicProtocolFlow.
+ * without touching the database. NOTE: `search` (NIP-50 full-text) is matched here
+ * with a plain case-insensitive substring check on CONTENT, which is only an
+ * approximation of the DB-side tsquery/LIKE ranking used for the initial REQ/COUNT
+ * result set — live-update push cannot cheaply reproduce that ranking in memory.
  */
 fun FiltersX.matches(event: Event): Boolean {
     if (ids.isNotEmpty() && event.id !in ids) return false
@@ -22,5 +23,10 @@ fun FiltersX.matches(event: Event): Boolean {
             if (!hit) return false
         }
     }
+
+    search?.let { term ->
+        if (term.isNotBlank() && !(event.content ?: "").contains(term, ignoreCase = true)) return false
+    }
+
     return true
 }

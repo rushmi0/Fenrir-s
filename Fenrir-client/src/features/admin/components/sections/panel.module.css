@@ -1,0 +1,186 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.checkboxField {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fenrir-muted);
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.7rem;
+  border: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-surface);
+  color: var(--fenrir-ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+}
+
+.input:disabled {
+  opacity: 0.6;
+}
+
+.input:focus {
+  outline: 2px solid var(--fenrir-accent);
+  outline-offset: 1px;
+}
+
+.save {
+  align-self: flex-start;
+  padding: 0.6rem 1.1rem;
+  border: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-accent);
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--fenrir-muted);
+}
+
+.error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #c0392b;
+}
+
+.saved {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--fenrir-success);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rowText {
+  min-width: 0;
+}
+
+.rowTitle {
+  margin: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--fenrir-ink);
+}
+
+.rowSub {
+  margin: 2px 0 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--fenrir-muted-light);
+}
+
+.sliderRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sliderHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sliderValue {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--fenrir-accent);
+}
+
+.slider {
+  width: 100%;
+  accent-color: var(--fenrir-accent);
+}
+
+.pillList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pillRow {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pillValue {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.7rem;
+  border: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-surface);
+  color: var(--fenrir-ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pillRemove {
+  flex-shrink: 0;
+  padding: 0.5rem 0.8rem;
+  border: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-surface);
+  color: #c0392b;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.pillAdd {
+  flex-shrink: 0;
+  width: 42px;
+  border: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-accent);
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pillAdd:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 380px) {
+  .row {
+    flex-wrap: wrap;
+  }
+}

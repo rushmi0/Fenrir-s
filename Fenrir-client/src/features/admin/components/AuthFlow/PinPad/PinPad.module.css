@@ -1,0 +1,54 @@
+.pad {
+  outline: none;
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 22px 0 26px;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-surface);
+}
+
+.dotFilled {
+  background: var(--fenrir-ink);
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.key {
+  padding: 16px 8px;
+  border: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-surface);
+  color: var(--fenrir-ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.key:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.key:not(:disabled):hover {
+  background: var(--fenrir-bg);
+}
+
+.spacer {
+  pointer-events: none;
+}

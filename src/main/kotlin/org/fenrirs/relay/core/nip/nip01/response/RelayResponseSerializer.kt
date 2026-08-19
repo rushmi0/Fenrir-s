@@ -15,18 +15,10 @@ object RelayResponseSerializer : KSerializer<RelayResponse<*>> {
 
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("RelayResponse")
 
-    /**
-     * ฟังก์ชัน serialize ใช้ในการแปลง RelayResponse<*> เป็น JSON
-     * @param encoder ใช้ในการ encode ข้อมูลเป็น JSON
-     * @param value ข้อมูลประเภท RelayResponse<*> ที่ต้องการแปลงเป็น JSON
-     * @throws SerializationException ถ้า encoder ไม่ใช่ JsonEncoder หรือประเภทของ value ไม่รู้จัก
-     */
     override fun serialize(encoder: Encoder, value: RelayResponse<*>) {
-        // ตรวจสอบว่า encoder เป็น JsonEncoder หรือไม่
         val jsonEncoder =
             encoder as? JsonEncoder ?: throw SerializationException("Only JSON encoding is supported")
 
-        // สร้าง JsonObject ตามประเภทของ RelayResponse
         val jsonObject = when (value) {
 
             is RelayResponse.EVENT -> JsonArray(

@@ -3,6 +3,8 @@ package org.fenrirs.storage.service
 import org.fenrirs.relay.models.Event
 import org.fenrirs.relay.models.FiltersX
 
+enum class SaveOutcome { SAVED, DUPLICATE, FAILED }
+
 interface StoredService {
 
     /**
@@ -11,6 +13,14 @@ interface StoredService {
      * @return ค่าเป็น true หากการบันทึกสำเร็จ และ false หากไม่สำเร็จ
      */
     suspend fun saveEvent(event: Event): Boolean
+
+    /**
+     * saveIfAbsent พยายามบันทึกเหตุการณ์ในทรานแซกชันเดียว โดยอาศัย unique index บน EVENT_ID
+     * เพื่อตรวจจับ duplicate แทนการ SELECT เช็คก่อน INSERT แยกทรานแซกชัน
+     * @param event เหตุการณ์ที่ต้องการบันทึก
+     * @return [SaveOutcome.SAVED], [SaveOutcome.DUPLICATE], หรือ [SaveOutcome.FAILED]
+     */
+    suspend fun saveIfAbsent(event: Event): SaveOutcome
 
     /**
      * deleteEvent ใช้ในการลบเหตุการณ์จากฐานข้อมูล

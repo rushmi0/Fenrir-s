@@ -54,65 +54,67 @@ class NostrRelayConfig : PolicyConfig {
     val PRIMARY_DATABASE_ENABLED: Boolean by lazy { prop.getProperty("PRIMARY_DATABASE_ENABLED")?.toBoolean() ?: false }
 
     // Relay info
-    override val RELAY_OWNER: String by lazy {
-        val relayNpub = KeyValueStoreImpl.get("NPUB")
-        if (relayNpub?.startsWith("npub") == true) {
-            Bech32.decode(relayNpub).data.toHex()
-        } else relayNpub ?: ""
-    }
-    val RELAY_NAME: String by lazy { KeyValueStoreImpl.get("NAME") ?: "" }
-    val RELAY_DESCRIPTION: String by lazy { KeyValueStoreImpl.get("DESCRIPTION") ?: "" }
-    val RELAY_CONTACT: String by lazy { KeyValueStoreImpl.get("CONTACT") ?: "" }
+    // ค่าด้านล่างนี้อ่านจาก KeyValueStoreImpl สด ๆ ทุกครั้งที่เข้าถึง (ไม่ใช้ `by lazy`) เพราะแอดมินแก้ค่าผ่าน
+    // ConfigController/SecurityPolicyController ได้ตลอดเวลาที่ relay รันอยู่ - ต้องเห็นผลทันทีโดยไม่ต้อง restart
+    override val RELAY_OWNER: String
+        get() {
+            val relayNpub = KeyValueStoreImpl.get("NPUB")
+            return if (relayNpub?.startsWith("npub") == true) {
+                Bech32.decode(relayNpub).data.toHex()
+            } else relayNpub ?: ""
+        }
+    val RELAY_NAME: String get() = KeyValueStoreImpl.get("NAME") ?: ""
+    val RELAY_DESCRIPTION: String get() = KeyValueStoreImpl.get("DESCRIPTION") ?: ""
+    val RELAY_CONTACT: String get() = KeyValueStoreImpl.get("CONTACT") ?: ""
     // ที่อยู่ของ relay นี้เอง (เช่น wss://relay.example.com/) ใช้ตรวจสอบ "relay" tag ใน NIP-42 AUTH event
-    val RELAY_URL: String by lazy { KeyValueStoreImpl.get("RELAY_URL") ?: "" }
+    val RELAY_URL: String get() = KeyValueStoreImpl.get("RELAY_URL") ?: ""
 
     // Policy settings
-    override val FOLLOWS_PASS: Boolean by lazy { KeyValueStoreImpl.get("FOLLOWS_PASS")?.toBoolean() ?: false }
-    override val ALL_PASS: Boolean by lazy { KeyValueStoreImpl.get("ALL_PASS")?.toBoolean() ?: false }
-    override val PROOF_OF_WORK_ENABLED: Boolean by lazy { KeyValueStoreImpl.get("POW_ENABLED")?.toBoolean() ?: false }
-    val PROOF_OF_WORK_DIFFICULTY: Int by lazy {
-        KeyValueStoreImpl.get("MIN_DIFFICULTY")?.toIntOrNull() ?: 4
-    }
+    override val FOLLOWS_PASS: Boolean get() = KeyValueStoreImpl.get("FOLLOWS_PASS")?.toBoolean() ?: false
+    override val ALL_PASS: Boolean get() = KeyValueStoreImpl.get("ALL_PASS")?.toBoolean() ?: false
+    override val PROOF_OF_WORK_ENABLED: Boolean get() = KeyValueStoreImpl.get("POW_ENABLED")?.toBoolean() ?: false
+    val PROOF_OF_WORK_DIFFICULTY: Int
+        get() = KeyValueStoreImpl.get("MIN_DIFFICULTY")?.toIntOrNull() ?: 4
 
 
     // Limitation settings
-    val MAX_FILTERS: Int by lazy { KeyValueStoreImpl.get("MAX_FILTERS")?.toIntOrNull() ?: 5 }
-    val MAX_LIMIT: Int by lazy { KeyValueStoreImpl.get("MAX_LIMIT")?.toIntOrNull() ?: 500 }
+    val MAX_FILTERS: Int get() = KeyValueStoreImpl.get("MAX_FILTERS")?.toIntOrNull() ?: 5
+    val MAX_LIMIT: Int get() = KeyValueStoreImpl.get("MAX_LIMIT")?.toIntOrNull() ?: 500
     val PAYMENT_REQ: Boolean = false
 
     // ต้องยืนยันตัวตนตาม NIP-42 ก่อนถึงจะ REQ/COUNT/EVENT ได้หรือไม่ - บังคับใช้จริงใน AuthenticationRule (policy package)
-    override val AUTH_ENABLED: Boolean by lazy { KeyValueStoreImpl.get("AUTH_ENABLED")?.toBoolean() ?: false }
+    override val AUTH_ENABLED: Boolean get() = KeyValueStoreImpl.get("AUTH_ENABLED")?.toBoolean() ?: false
 
 
-    override val AUTH_WHITELIST_PUBKEYS: Set<String> by lazy {
-        KeyValueStoreImpl.get("AUTH_WHITELIST_PUBKEYS")
+    override val AUTH_WHITELIST_PUBKEYS: Set<String>
+        get() = KeyValueStoreImpl.get("AUTH_WHITELIST_PUBKEYS")
             ?.split(",")
             ?.map { it.trim() }
             ?.filter { it.isNotEmpty() }
             ?.map { normalizePubkey(it) }
             ?.toSet()
             ?: emptySet()
-    }
 
     // Database backup settings
-    val BACKUP_ENABLED: Boolean by lazy { KeyValueStoreImpl.get("BACKUP_ENABLED")?.toBoolean() ?: false }
-    val BACKUP_SYNC: List<String> by lazy {
-        val defaultBackupSync = listOf(
-            "wss://relay.notoshi.win",
-            "wss://relay.siamstr.com",
-            "wss://relay.damus.io",
-            "wss://nostr-01.yakihonne.com",
-            "wss://nos.lol",
-            "wss://purplerelay.com"
-        )
+    val BACKUP_ENABLED: Boolean get() = KeyValueStoreImpl.get("BACKUP_ENABLED")?.toBoolean() ?: false
+    val BACKUP_SYNC: List<String>
+        get() {
+            val defaultBackupSync = listOf(
+                "wss://relay.notoshi.win",
+                "wss://relay.siamstr.com",
+                "wss://relay.damus.io",
+                "wss://nostr-01.yakihonne.com",
+                "wss://nos.lol",
+                "wss://purplerelay.com"
+            )
 
-        val syncValue = KeyValueStoreImpl.get("SYNC")
-            ?.split(",")
-            ?.map { it.trim() }
-            ?.filter { it.isNotEmpty() }
-            ?: emptyList()
-        defaultBackupSync + syncValue
-    }
+            val syncValue = KeyValueStoreImpl.get("SYNC")
+                ?.split(",")
+                ?.map { it.trim() }
+                ?.filter { it.isNotEmpty() }
+                ?: emptyList()
+            return defaultBackupSync + syncValue
+        }
 
     companion object {
         private fun normalizePubkey(pubkey: String): String =

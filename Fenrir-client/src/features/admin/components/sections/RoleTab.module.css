@@ -1,0 +1,24 @@
+.badge {
+  padding: 3px 8px;
+  border: 2px solid var(--fenrir-ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.badgeOwner {
+  background: var(--fenrir-amber);
+  color: var(--fenrir-ink);
+}
+
+.badgeModerator {
+  background: var(--fenrir-teal);
+  color: var(--fenrir-ink);
+}
+
+.badgeReader {
+  background: var(--fenrir-line-soft);
+  color: var(--fenrir-ink);
+}

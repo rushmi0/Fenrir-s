@@ -1,0 +1,68 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--fenrir-surface);
+  border: 2px solid var(--fenrir-ink);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--fenrir-ink);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: var(--fenrir-muted);
+}
+
+.error {
+  margin: 0;
+  font-size: 12px;
+  color: #c0392b;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.submit {
+  padding: 8px 14px;
+  border: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-accent);
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.adminLink {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--fenrir-muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}

@@ -15,3 +15,6 @@ out/
 .factorypath
 .claude
 scripts/python/.venv
+local.properties
+Fenrir-client/node_modules
+Fenrir-client/dist

@@ -30,4 +30,4 @@ RUN chmod u=r,g=r,o= /app/Fenrir-s-2.0-jvm.jar && \
 
 EXPOSE 6724
 
-ENTRYPOINT exec sh -c "java -Xmx512m -jar Fenrir-s-2.0-jvm.jar"
+ENTRYPOINT exec sh -c "java -Xmx512m --sun-misc-unsafe-memory-access=allow -jar Fenrir-s-2.0-jvm.jar"

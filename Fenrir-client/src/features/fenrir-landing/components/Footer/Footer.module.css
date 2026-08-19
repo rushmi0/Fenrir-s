@@ -1,0 +1,7 @@
+.footer {
+  border-top: 2px solid var(--fenrir-ink);
+  padding: 28px 48px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--fenrir-muted);
+}

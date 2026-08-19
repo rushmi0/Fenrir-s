@@ -1,0 +1,91 @@
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--fenrir-surface);
+  border-bottom: 2px solid var(--fenrir-ink);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.badge {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--fenrir-accent);
+  border: 2px solid var(--fenrir-ink);
+  color: #fff;
+  font-family: 'Silkscreen', monospace;
+  font-size: 12px;
+}
+
+.titleBlock {
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--fenrir-ink);
+}
+
+.title {
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subtitle {
+  display: block;
+  font-size: 11px;
+  color: var(--fenrir-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--fenrir-ink);
+  cursor: pointer;
+  padding: 4px;
+}
+
+@media (max-width: 480px) {
+  .bar {
+    padding: 10px 12px;
+  }
+
+  .subtitle {
+    display: none;
+  }
+}
+

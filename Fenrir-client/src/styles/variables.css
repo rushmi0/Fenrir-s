@@ -1,0 +1,20 @@
+:root {
+  --fenrir-ink: #17172b;
+  --fenrir-bg: #ececf1;
+  --fenrir-surface: #ffffff;
+  --fenrir-muted: #4c4c66;
+  --fenrir-muted-light: #7c7c9c;
+  --fenrir-line-soft: #d6d6e8;
+  --fenrir-success: #22b573;
+  --fenrir-terminal-bg: #17172b;
+  --fenrir-terminal-border: #33334f;
+  --fenrir-terminal-dim: #7c7c9c;
+  --fenrir-terminal-text: #d6d6f0;
+  --fenrir-accent: #7c5cff;
+  --fenrir-accent-soft: #f2eeff;
+  --fenrir-red: #ff5f56;
+  --fenrir-green: #22b573;
+  --fenrir-amber: #f4b740;
+  --fenrir-teal: #4fd1ae;
+  --fenrir-header-h: 65px;
+}

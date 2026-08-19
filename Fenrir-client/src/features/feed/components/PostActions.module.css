@@ -1,0 +1,80 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  color: var(--fenrir-muted);
+  cursor: pointer;
+}
+
+.action:hover:not(:disabled) {
+  color: var(--fenrir-ink);
+}
+
+.action:disabled {
+  cursor: default;
+}
+
+.actionActive {
+  color: var(--fenrir-accent);
+}
+
+.icon {
+  width: 16px !important;
+  height: 16px !important;
+}
+
+.composer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: var(--fenrir-bg);
+  border: 2px solid var(--fenrir-ink);
+}
+
+.composerInput {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--fenrir-ink);
+}
+
+.composerInput:focus {
+  outline: none;
+}
+
+.composerSend {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-accent);
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.composerSend:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

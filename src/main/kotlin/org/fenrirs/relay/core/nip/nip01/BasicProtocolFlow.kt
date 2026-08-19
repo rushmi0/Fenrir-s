@@ -7,12 +7,8 @@ import jakarta.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 
-import org.fenrirs.relay.core.nip.nip01.command.COUNT
-import org.fenrirs.relay.core.nip.nip01.command.REQ
 import org.slf4j.LoggerFactory
 
 import org.fenrirs.relay.models.Event
@@ -34,11 +30,8 @@ import org.fenrirs.relay.core.pubsub.SubscriptionEntry
 import org.fenrirs.relay.core.pubsub.SubscriptionRegistry
 
 import org.fenrirs.storage.Authentication
-import org.fenrirs.storage.Subscription.getSubscription
-import org.fenrirs.storage.Subscription.isSubscriptionActive
-import org.fenrirs.storage.Subscription.saveSubscription
+import org.fenrirs.storage.service.SaveOutcome
 import org.fenrirs.storage.statement.StoredServiceImpl
-import kotlin.time.Duration.Companion.milliseconds
 
 
 @Singleton
@@ -69,7 +62,8 @@ class BasicProtocolFlow @Inject constructor(
             return
         }
 
-        val decision = policyController.evaluate(PolicyContext(session, CommandType.EVENT, event = event))
+        val decision: PolicyDecision =
+            policyController.evaluate(PolicyContext(session, CommandType.EVENT, event = event))
         when (decision) {
             is PolicyDecision.Allow -> ingestEvent(event, session)
             is PolicyDecision.Deny -> RelayResponse.OK(event.id!!, false, decision.reason).toClient(session)
@@ -104,12 +98,18 @@ class BasicProtocolFlow @Inject constructor(
             throw IllegalArgumentException("blocked: event rejected")
         }
 
-        val existing: Event? = sqlExec.selectById(event.id!!)
-        when {
-            existing != null -> handleDuplicateEvent(event, session)
-            nip09.isDeletable(event) -> handleDeletableEvent(event, session)
-            else -> handleNormalEvent(event, session)
+        // เหตุการณ์ที่ลบได้ (kind 5 พร้อม e-tag) ต้องรู้สถานะ duplicate ก่อนจะรัน side effect ของการลบ
+        // จึงยังคง SELECT เช็คแยกไว้ (ปริมาณ traffic ของเส้นทางนี้น้อยมากเทียบกับ event ทั่วไป)
+        if (nip09.isDeletable(event)) {
+            val existing: Event? = sqlExec.selectById(event.id!!)
+            when {
+                existing != null -> handleDuplicateEvent(event, session)
+                else -> handleDeletableEvent(event, session)
+            }
+            return
         }
+
+        handleNormalEvent(event, session)
     }
 
 
@@ -153,9 +153,15 @@ class BasicProtocolFlow @Inject constructor(
      */
     private suspend fun handleNormalEvent(event: Event, session: WebSocketSession) {
         handleEvent(event, session) {
-            val status: Boolean = sqlExec.saveEvent(event)
-            if (status) eventBus.publish(event)
-            status to (if (status) "" else "error: could not save event to the database")
+            when (sqlExec.saveIfAbsent(event)) {
+                SaveOutcome.SAVED -> {
+                    eventBus.publish(event)
+                    true to ""
+                }
+
+                SaveOutcome.DUPLICATE -> false to "duplicate: already have this event"
+                SaveOutcome.FAILED -> false to "error: could not save event to the database"
+            }
         }
     }
 
@@ -235,12 +241,6 @@ class BasicProtocolFlow @Inject constructor(
             }
         }
         RelayResponse.EOSE(subscriptionId).toClient(session)
-
-        if (filtersX.any { it.search != null }) {
-            registry.unregister(session.id, subscriptionId)
-            saveSubscription(session, subscriptionId, filtersX)
-            startRealTimeUpdates<REQ>(subscriptionId, session)
-        }
     }
 
 
@@ -305,12 +305,6 @@ class BasicProtocolFlow @Inject constructor(
 
         // แจ้งว่าเสร็จสิ้นการนับจำนวนเหตุการณ์
         RelayResponse.EOSE(subscriptionId).toClient(session)
-
-        if (filtersX.any { it.search != null }) {
-            registry.unregister(session.id, subscriptionId)
-            saveSubscription(session, subscriptionId, filtersX)
-            startRealTimeUpdates<COUNT>(subscriptionId, session)
-        }
     }
 
 
@@ -340,53 +334,6 @@ class BasicProtocolFlow @Inject constructor(
                 }
             }
         }
-    }
-
-
-
-    /**
-     * ฟังก์ชัน startRealTimeUpdates ใช้ในการเริ่มต้นการอัปเดตข้อมูลแบบเรียลไทม์
-     *
-     * @param subscriptionId ไอดีที่ใช้ในการติดตามหรืออ้างอิงการร้องขอนั้นๆ จากไคลเอนต์
-     * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
-     */
-    private suspend inline fun <reified T> startRealTimeUpdates(subscriptionId: String, session: WebSocketSession) {
-        var lastUpdateTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
-
-        do {
-            val currentTime = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis())
-            val updatedFiltersX = getSubscription(session, subscriptionId).map {
-                it.copy(
-                    since = lastUpdateTime,
-                    until = currentTime
-                )
-            }
-
-
-            updatedFiltersX.forEach { filter ->
-
-                // ตรวจสอบว่า events ไม่เป็น null และไม่ใช่ list ว่าง
-                sqlExec.filterList(filter).takeIf { !it.isNullOrEmpty() }?.let { events ->
-                    when (T::class) {
-                        COUNT::class -> {
-                            val count = events.size
-                            val data = if (count >= 93_412_452) ApproximateCountREQ(93_412_452, true) else CountREQ(count)
-                            RelayResponse.COUNT(subscriptionId, data).toClient(session)
-                        }
-                        REQ::class -> events.forEach { event ->
-                            RelayResponse.EVENT(subscriptionId, event).toClient(session)
-                        }
-                    }
-                }
-
-            }
-
-            delay(1400.milliseconds)
-
-            // อัปเดต lastUpdateTime หลังจากค้นหาข้อมูลเสร็จ
-            lastUpdateTime = currentTime
-
-        } while (isSubscriptionActive(session, subscriptionId))
     }
 
 
@@ -426,9 +373,11 @@ class BasicProtocolFlow @Inject constructor(
             is PolicyDecision.Deny -> {
                 RelayResponse.OK(event.id!!, false, decision.reason).toClient(session)
             }
+
             is PolicyDecision.RequireAuth -> {
                 RelayResponse.OK(event.id!!, false, decision.reason).toClient(session)
             }
+
             is PolicyDecision.Allow -> Unit
         }
 

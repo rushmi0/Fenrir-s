@@ -1,0 +1,21 @@
+.page {
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--fenrir-bg);
+  color: var(--fenrir-ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+  animation: fenrir-fade-in 220ms ease-out;
+}
+
+.page ::selection {
+  background: var(--fenrir-accent);
+  color: #fff;
+}
+
+.page a {
+  text-decoration: none;
+}
+
+.page a:hover {
+  text-decoration: underline;
+}

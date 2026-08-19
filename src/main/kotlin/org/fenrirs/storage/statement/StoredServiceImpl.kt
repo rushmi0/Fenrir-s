@@ -11,6 +11,8 @@ import org.fenrirs.relay.models.Event
 import org.fenrirs.relay.models.FiltersX
 import org.fenrirs.storage.DatabaseFactory.queryTask
 import org.fenrirs.storage.NostrRelayConfig
+import org.fenrirs.storage.service.SaveOutcome
+import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 
 import org.fenrirs.storage.table.EVENT
 import org.fenrirs.storage.table.EVENT.CONTENT
@@ -122,8 +124,10 @@ class StoredServiceImpl @Inject constructor(
                     values.forEach { value ->
                         // H2 (แม้เปิด MODE=PostgreSQL) ไม่รองรับ jsonb containment operator (@> / ::jsonb)
                         // ที่ Postgres ใช้จริง จึงต้อง fallback มาใช้ LIKE จับข้อความ JSON ที่ serialize ไว้แทน
+                        // ปิดท้ายด้วย `"` ไม่ใช่ `"]` เพราะ tag จริง (เช่น NIP-10 e-tag ["e", id, relay, marker])
+                        // มักมีสมาชิกต่อท้าย value อีก - ปิดด้วย `]` เดิมจะจับได้เฉพาะ tag ที่มีแค่ 2 สมาชิกเท่านั้น
                         val jsonValue = if (currentDialect is H2Dialect) {
-                            TAGS.castTo<String>(TextColumnType()) like "%[\"$key\",\"$value\"]%"
+                            TAGS.castTo<String>(TextColumnType()) like "%[\"$key\",\"$value\"%"
                         } else {
                             TAGS.contains("""[["$key","$value"]]""")
                         }
@@ -194,6 +198,38 @@ class StoredServiceImpl @Inject constructor(
             }.getOrElse { e ->
                 LOG.error("[DATABASE] Failed to save event id={}", event.id, e)
                 false
+            }
+        }
+    }
+
+
+    override suspend fun saveIfAbsent(event: Event): SaveOutcome {
+        return queryTask {
+            runCatching {
+
+                /**
+                 * INSERT INTO EVENT (...) VALUES (...)
+                 * ไม่ SELECT เช็ค duplicate ก่อน เพื่อลดการขอ connection สองครั้งต่อ event หนึ่งตัว
+                 * ให้ unique index บน EVENT_ID เป็นตัวตรวจจับ duplicate ผ่าน constraint violation แทน
+                 */
+
+                EVENT.insert {
+                    it[EVENT_ID] = event.id!!
+                    it[PUBKEY] = event.pubkey!!
+                    it[CREATED_AT] = event.created_at?.toInt()!!
+                    it[KIND] = event.kind?.toInt()!!
+                    it[TAGS] = event.tags!!
+                    it[CONTENT] = event.content!!
+                    it[SIG] = event.sig!!
+                }
+                SaveOutcome.SAVED
+            }.getOrElse { e ->
+                if (e is ExposedSQLException && e.sqlState == "23505") {
+                    SaveOutcome.DUPLICATE
+                } else {
+                    LOG.error("[DATABASE] Failed to save event id={}", event.id, e)
+                    SaveOutcome.FAILED
+                }
             }
         }
     }

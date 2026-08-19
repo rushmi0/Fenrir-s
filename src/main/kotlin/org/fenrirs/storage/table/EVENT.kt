@@ -9,9 +9,9 @@ import org.jetbrains.exposed.v1.json.jsonb
 object EVENT: Table("event") {
 
     val EVENT_ID = varchar("event_id", 64).uniqueIndex()
-    val PUBKEY = varchar("pubkey", 64)
-    val CREATED_AT = integer("created_at")
-    val KIND = integer("kind")
+    val PUBKEY = varchar("pubkey", 64).index()
+    val CREATED_AT = integer("created_at").index()
+    val KIND = integer("kind").index()
 
     /**
      * คอลัมน์สำหรับเก็บ "tags" ซึ่งเป็นข้อมูล JSON ที่เป็นลิสต์ซ้อนลิสต์

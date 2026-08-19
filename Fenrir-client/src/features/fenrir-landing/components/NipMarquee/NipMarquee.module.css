@@ -1,0 +1,49 @@
+.strip {
+  border-top: 2px solid var(--fenrir-ink);
+  border-bottom: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-surface);
+  padding: 22px 0;
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  width: max-content;
+  animation-name: fenrir-marquee;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes fenrir-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  background: var(--fenrir-bg);
+  border: 2px solid var(--fenrir-ink);
+  padding: 10px 20px;
+  margin: 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.check {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    animation: none;
+  }
+}

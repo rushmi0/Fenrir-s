@@ -40,7 +40,10 @@ class Authentication : AuthSessionStore {
      * เพื่อ resolve [org.fenrirs.relay.core.policy.RuleContext] ของ session นี้
      */
     override fun authenticatedPubkeys(session: WebSocketSession): Set<String> =
-        sessions[session.id]?.pubkeys?.toSet() ?: emptySet()
+        authenticatedPubkeys(session.id)
+
+    override fun authenticatedPubkeys(sessionId: String): Set<String> =
+        sessions[sessionId]?.pubkeys?.toSet() ?: emptySet()
 
     /**
      * session นี้ยืนยันตัวตนแล้วหรือยัง (มีอย่างน้อยหนึ่ง pubkey ที่ auth ผ่าน)

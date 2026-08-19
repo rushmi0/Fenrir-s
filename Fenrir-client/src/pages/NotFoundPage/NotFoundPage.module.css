@@ -1,0 +1,43 @@
+.page {
+  min-height: 100vh;
+  background: var(--fenrir-bg);
+  color: var(--fenrir-ink);
+  font-family: 'JetBrains Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+  animation: fenrir-fade-in 220ms ease-out;
+}
+
+.image {
+  width: 220px;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.code {
+  font-family: 'Silkscreen', monospace;
+  font-size: 48px;
+  margin: 0;
+}
+
+.message {
+  color: var(--fenrir-muted);
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+
+.link {
+  color: var(--fenrir-accent);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}

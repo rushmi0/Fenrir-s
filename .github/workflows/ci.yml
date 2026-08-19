@@ -53,47 +53,6 @@ jobs:
           if-no-files-found: error
 
 
-  build-termux:
-    name: Native static musl (linux-arm64 / Termux)
-    runs-on: ubuntu-24.04-arm
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-      - uses: graalvm/setup-graalvm@v1
-        with:
-          distribution: graalvm-community
-          java-version: 25
-          components: native-image
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          cache: gradle
-      - name: Install musl toolchain
-        run: sudo apt-get update && sudo apt-get install -y musl-tools musl-dev
-      - name: Build static zlib against musl
-        run: |
-          ZLIB=1.3.2
-          curl -fLO https://zlib.net/zlib-${ZLIB}.tar.gz
-          tar xf zlib-${ZLIB}.tar.gz
-          cd zlib-${ZLIB}
-          CC=musl-gcc ./configure --static --prefix="$HOME/musl"
-          make -j"$(nproc)" && make install
-      - name: Build fully static native image
-        shell: bash
-        run: |
-          export PATH="$HOME/musl/bin:$PATH"
-          export CFLAGS="-I$HOME/musl/include"
-          export LDFLAGS="-L$HOME/musl/lib"
-          export CC=musl-gcc
-          ./gradlew nativeOptimizedCompile -PmuslStatic=true \
-            -Dorg.gradle.java.home="$JAVA_HOME"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: fenrir-native-linux-arm64-termux
-          path: |
-            build/native/nativeOptimizedCompile/*-relay-*
-            build/native/nativeOptimizedCompile/build-output.json
-            !build/native/nativeOptimizedCompile/*.txt
-          if-no-files-found: error
-
   build-native:
     name: Native (${{ matrix.name }})
     runs-on: ${{ matrix.os }}

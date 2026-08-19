@@ -1,0 +1,54 @@
+.content {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.icon {
+  width: 12px !important;
+  height: 12px !important;
+  vertical-align: -1px;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--fenrir-accent);
+  text-decoration: underline;
+  word-break: break-all;
+}
+
+.embedImage {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  margin-top: 8px;
+  background: var(--fenrir-ink);
+  border: 2px solid var(--fenrir-ink);
+}
+
+.embedVideo {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  margin-top: 8px;
+  background: var(--fenrir-ink);
+  border: 2px solid var(--fenrir-ink);
+}
+
+.mention {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 4px;
+  background: var(--fenrir-accent-soft);
+  border: 1px solid var(--fenrir-accent);
+  color: var(--fenrir-accent);
+  font-weight: 600;
+}
+
+.hashtag {
+  color: var(--fenrir-accent);
+  font-weight: 600;
+}

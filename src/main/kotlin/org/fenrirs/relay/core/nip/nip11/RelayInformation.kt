@@ -4,17 +4,16 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
 import io.micronaut.http.MediaType
-
 import io.micronaut.core.io.ResourceResolver
 import io.micronaut.core.io.scan.ClassPathResourceLoader
-
-import org.fenrirs.storage.NostrRelayConfig
 import java.io.FileNotFoundException
+import org.fenrirs.storage.NostrRelayConfig
 
 
 @Singleton
-class RelayInformation @Inject constructor(private val env: NostrRelayConfig) {
-
+class RelayInformation @Inject constructor(
+    private val env: NostrRelayConfig
+) {
 
     fun loadRelayInfo(contentType: String): String = loadContent(contentType)
 
@@ -22,9 +21,19 @@ class RelayInformation @Inject constructor(private val env: NostrRelayConfig) {
         return if (contentType == MediaType.APPLICATION_JSON) {
             relayInfo()
         } else {
-            loadFromClasspath("public/index.html")
+            renderIndexView("public/index.html")
         }
     }
+
+    private fun renderIndexView(path : String): String {
+        val resourceLoader: ClassPathResourceLoader =
+            ResourceResolver().getLoader(ClassPathResourceLoader::class.java).get()
+        val resource = resourceLoader.getResource("classpath:$path").orElseThrow {
+            throw FileNotFoundException("File not found: $path")
+        }
+        return resource.openStream().bufferedReader().use { it.readText() }
+    }
+
 
     private fun relayInfo(): String {
         val minPowDifficultyField = if (env.PROOF_OF_WORK_ENABLED) {
@@ -42,7 +51,7 @@ class RelayInformation @Inject constructor(private val env: NostrRelayConfig) {
           "supported_nips": [1,2,4,9,11,13,15,28,42,45,50],
           "icon": "https://i.imgur.com/dwLPgio.png",
           "software": "https://github.com/rushmi0/Fenrir-s",
-          "version": "1.0.1",
+          "version": "2.0",
           "limitation": {
              "max_filters": ${env.MAX_FILTERS},
              "max_limit": ${env.MAX_LIMIT},
@@ -53,15 +62,5 @@ class RelayInformation @Inject constructor(private val env: NostrRelayConfig) {
           }
         }
     """.trimIndent()
-    }
-
-
-    private fun loadFromClasspath(path: String): String {
-        val resourceLoader: ClassPathResourceLoader =
-            ResourceResolver().getLoader(ClassPathResourceLoader::class.java).get()
-        val resource = resourceLoader.getResource("classpath:$path").orElseThrow {
-            throw FileNotFoundException("File not found: $path")
-        }
-        return resource.openStream().bufferedReader().use { it.readText() }
     }
 }

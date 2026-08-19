@@ -1,0 +1,50 @@
+.section {
+  max-width: 1280px;
+  margin: 0 auto 96px;
+  padding: 0 48px;
+}
+
+.panel {
+  background: var(--fenrir-accent);
+  border: 2px solid var(--fenrir-ink);
+  padding: 56px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.heading {
+  font-family: 'Silkscreen', monospace;
+  color: #fff;
+  font-size: 28px;
+  margin: 0 0 8px;
+}
+
+.subtext {
+  color: #eae6ff;
+  font-size: 15px;
+  margin: 0;
+}
+
+.button {
+  display: inline-block;
+  background: var(--fenrir-ink);
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 16px 30px;
+  border: 2px solid var(--fenrir-ink);
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .section {
+    padding: 0 24px;
+  }
+
+  .panel {
+    padding: 40px 28px;
+  }
+}

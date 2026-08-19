@@ -1,0 +1,30 @@
+.track {
+  flex-shrink: 0;
+  width: 46px;
+  height: 26px;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  border: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-line-soft);
+  cursor: pointer;
+}
+
+.track:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.trackOn {
+  background: var(--fenrir-accent);
+  justify-content: flex-end;
+}
+
+.knob {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  background: var(--fenrir-surface);
+  border: 2px solid var(--fenrir-ink);
+}

@@ -1,0 +1,15 @@
+.page {
+  min-height: 100vh;
+  background: var(--fenrir-bg);
+  animation: fenrir-fade-in 220ms ease-out;
+}
+
+.content {
+  padding: 20px;
+}
+
+@media (max-width: 640px) {
+  .content {
+    padding: 14px;
+  }
+}

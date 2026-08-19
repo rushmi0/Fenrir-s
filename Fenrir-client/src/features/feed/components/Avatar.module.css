@@ -1,0 +1,16 @@
+.avatar {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  object-fit: cover;
+  background: var(--fenrir-accent);
+  border: 2px solid var(--fenrir-ink);
+}
+
+.avatarSmall {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border: 2px solid var(--fenrir-ink);
+}

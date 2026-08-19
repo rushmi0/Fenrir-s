@@ -1,0 +1,72 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--fenrir-header-h) - 40px);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.tabs {
+  flex-shrink: 0;
+  display: flex;
+  border: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-surface);
+  margin-bottom: 20px;
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  color: var(--fenrir-ink);
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.tab:not(:last-child) {
+  border-right: 2px solid var(--fenrir-ink);
+}
+
+.tabActive {
+  background: var(--fenrir-accent);
+  color: #fff;
+}
+
+/* The tabs stay put ("landscape, like desktop") on narrow screens too - only this pane scrolls. */
+.panelScroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+@media (max-width: 700px) {
+  .tabs {
+    margin-bottom: 12px;
+  }
+
+  .tab {
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .wrap {
+    height: calc(100vh - var(--fenrir-header-h) - 28px);
+  }
+}
+
+@media (max-width: 480px) {
+  .tab {
+    gap: 4px;
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+}

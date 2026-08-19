@@ -7,6 +7,8 @@ import org.fenrirs.storage.service.KeyValueStore
 import org.fenrirs.storage.table.KV_STORE
 
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
 
@@ -26,11 +28,24 @@ object KeyValueStoreImpl : KeyValueStore {
         }
     }
 
-    override fun sync(defaults: Map<String, String>) = configTask {
-        defaults.forEach { (key, value) ->
-            KV_STORE.upsert {
-                it[KEY] = key
-                it[VALUE] = value
+    /**
+     * Seeds any key not already present in the store from `.env` defaults - never overwrites a
+     * key that already exists, so config changes made through the Admin API survive restarts
+     * instead of being reset back to `.env` on every boot (see [org.fenrirs.relay.SystemPreload]).
+     */
+    override fun sync(defaults: Map<String, String>) {
+        configTask {
+            val existingKeys = KV_STORE.selectAll()
+                .where { KV_STORE.KEY inList defaults.keys }
+                .map { it[KV_STORE.KEY] }
+                .toSet()
+
+            val missing = defaults.filterKeys { it !in existingKeys }
+            if (missing.isNotEmpty()) {
+                KV_STORE.batchInsert(missing.entries) { (key, value) ->
+                    this[KV_STORE.KEY] = key
+                    this[KV_STORE.VALUE] = value
+                }
             }
         }
     }

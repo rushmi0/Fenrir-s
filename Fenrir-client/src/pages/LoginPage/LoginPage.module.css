@@ -1,0 +1,44 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  background: var(--fenrir-bg);
+  padding: 24px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.brand {
+  display: inline-flex;
+  animation: fenrir-fade-up 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.logo {
+  height: 32px;
+  width: auto;
+  image-rendering: pixelated;
+}
+
+.card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--fenrir-surface);
+  border: 2px solid var(--fenrir-ink);
+  filter: drop-shadow(8px 8px 0 var(--fenrir-ink));
+  padding: 40px 36px;
+  animation: fenrir-fade-up 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.status {
+  margin: 0;
+  color: var(--fenrir-muted);
+  font-size: 14px;
+}
+
+.error {
+  margin: 0;
+  color: #c0392b;
+  font-size: 14px;
+}

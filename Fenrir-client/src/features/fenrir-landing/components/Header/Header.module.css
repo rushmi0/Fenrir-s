@@ -1,0 +1,73 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 48px;
+  border-bottom: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-bg);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logoMark {
+  width: 32px;
+  height: 32px;
+  background: var(--fenrir-accent);
+  border: 2px solid var(--fenrir-ink);
+  flex-shrink: 0;
+}
+
+.wordmark {
+  font-family: 'Silkscreen', monospace;
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.navLink {
+  color: var(--fenrir-ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.startButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--fenrir-accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 18px;
+  border: 2px solid var(--fenrir-ink);
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .header {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 16px 20px;
+  }
+
+  .nav {
+    width: 100%;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}

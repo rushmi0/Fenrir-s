@@ -1,0 +1,60 @@
+.card {
+  display: block;
+  margin-top: 8px;
+  border: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-surface);
+  text-decoration: none;
+  color: inherit;
+  overflow: hidden;
+}
+
+.card:hover {
+  background: var(--fenrir-accent-soft);
+}
+
+.image {
+  display: block;
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-bottom: 2px solid var(--fenrir-ink);
+  background: var(--fenrir-line-soft);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+}
+
+.host {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--fenrir-muted-light);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hostIcon {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+.title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--fenrir-ink);
+}
+
+.description {
+  font-size: 12px;
+  color: var(--fenrir-muted);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

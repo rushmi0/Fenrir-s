@@ -1,3 +1,4 @@
+//import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.internal.os.OperatingSystem
 import java.util.Locale
 
@@ -101,7 +102,7 @@ dependencies {
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("com.h2database:h2")
     runtimeOnly("org.postgresql:postgresql")
-    //testImplementation("io.micronaut:micronaut-http-client")
+    testImplementation("io.micronaut:micronaut-http-client")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
@@ -151,7 +152,7 @@ val libcName: String? = if (currentOsType.name == OsName.LINUX) {
 graalvmNative {
     binaries {
         all {
-            buildArgs.add("-H:+SharedArenaSupport")
+            buildArgs.add("-H:-SharedArenaSupport")
             buildArgs.add("-H:+UnlockExperimentalVMOptions")
 
             if (muslStatic) {
