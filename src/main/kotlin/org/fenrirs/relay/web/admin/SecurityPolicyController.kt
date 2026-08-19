@@ -28,7 +28,7 @@ data class SecurityPolicy(
 /**
  * Read/write for the "Security policy" group (see task's "Configuration" section) - the same
  * settings [org.fenrirs.relay.core.policy.PolicyConfig] reads for the relay's NIP-42/pass-list/PoW
- * rules, via the same [KeyValueStoreImpl] config store. OPERATOR role is read-only.
+ * rules, via the same [KeyValueStoreImpl] config store. OPERATOR (general user) has no access.
  */
 @Controller("/inter/api/v1/admin/policy")
 @Produces(MediaType.APPLICATION_JSON)
@@ -36,7 +36,10 @@ data class SecurityPolicy(
 class SecurityPolicyController {
 
     @Get
-    fun get(): SecurityPolicy = read()
+    fun get(@RequestAttribute(AdminAuthFilter.ROLE_ATTRIBUTE) role: String): HttpResponse<*> {
+        if (!RoleGuard.canAccessConsole(role)) return RoleGuard.forbidden("general users cannot access the Admin Console")
+        return HttpResponse.ok(read())
+    }
 
     @Put
     fun put(
@@ -45,11 +48,18 @@ class SecurityPolicyController {
     ): HttpResponse<*> {
         if (!RoleGuard.canWrite(role)) return RoleGuard.forbidden()
 
-        KeyValueStoreImpl.set("ALL_PASS", body.allPass.toString())
+        // Auth Enabled ("require NIP-42 auth before publishing") and All Pass ("accept events
+        // from any pubkey with no restriction") are mutually exclusive - enforced here too (not
+        // just in the admin UI) so a direct API write can't leave both true at once. Auth Enabled
+        // wins if a single request asks for both, since it's the more restrictive setting.
+        val authEnabled = body.authEnabled
+        val allPass = body.allPass && !authEnabled
+
+        KeyValueStoreImpl.set("ALL_PASS", allPass.toString())
         KeyValueStoreImpl.set("FOLLOWS_PASS", body.followsPass.toString())
         KeyValueStoreImpl.set("POW_ENABLED", body.powEnabled.toString())
         KeyValueStoreImpl.set("MIN_DIFFICULTY", body.minDifficulty.toString())
-        KeyValueStoreImpl.set("AUTH_ENABLED", body.authEnabled.toString())
+        KeyValueStoreImpl.set("AUTH_ENABLED", authEnabled.toString())
         KeyValueStoreImpl.set("AUTH_WHITELIST_PUBKEYS", body.authWhitelistPubkeys)
         return HttpResponse.ok(read())
     }

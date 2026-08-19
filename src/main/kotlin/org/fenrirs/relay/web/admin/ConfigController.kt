@@ -34,8 +34,8 @@ data class SystemConfig(
 /**
  * Read/write for the "Relay configuration" and "System settings" groups (see task's
  * "Configuration" section) - both are thin wrappers over [KeyValueStoreImpl], the same config
- * store [org.fenrirs.storage.NostrRelayConfig] reads from. OPERATOR role is read-only; ADMIN/OWNER
- * can write (see [RoleGuard]).
+ * store [org.fenrirs.storage.NostrRelayConfig] reads from. OPERATOR (general user) has no access
+ * at all; ADMIN/OWNER (admin user) can read and write (see [RoleGuard]).
  */
 @Controller("/inter/api/v1/admin/config")
 @Produces(MediaType.APPLICATION_JSON)
@@ -43,7 +43,10 @@ data class SystemConfig(
 class ConfigController {
 
     @Get("/relay")
-    fun getRelay(): RelayConfig = readRelay()
+    fun getRelay(@RequestAttribute(AdminAuthFilter.ROLE_ATTRIBUTE) role: String): HttpResponse<*> {
+        if (!RoleGuard.canAccessConsole(role)) return RoleGuard.forbidden("general users cannot access the Admin Console")
+        return HttpResponse.ok(readRelay())
+    }
 
     @Put("/relay")
     fun putRelay(
@@ -61,7 +64,10 @@ class ConfigController {
     }
 
     @Get("/system")
-    fun getSystem(): SystemConfig = readSystem()
+    fun getSystem(@RequestAttribute(AdminAuthFilter.ROLE_ATTRIBUTE) role: String): HttpResponse<*> {
+        if (!RoleGuard.canAccessConsole(role)) return RoleGuard.forbidden("general users cannot access the Admin Console")
+        return HttpResponse.ok(readSystem())
+    }
 
     @Put("/system")
     fun putSystem(

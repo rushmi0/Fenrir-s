@@ -7,8 +7,11 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Produces
 import io.micronaut.http.annotation.QueryValue
+import io.micronaut.http.annotation.RequestAttribute
 import io.micronaut.http.hateoas.JsonError
 import io.micronaut.serde.annotation.Serdeable
+
+import org.fenrirs.relay.web.AdminAuthFilter
 
 import java.io.ByteArrayOutputStream
 import java.net.InetAddress
@@ -52,7 +55,11 @@ class LinkPreviewController {
         .build()
 
     @Get
-    fun preview(@QueryValue url: String): HttpResponse<*> {
+    fun preview(
+        @RequestAttribute(AdminAuthFilter.ROLE_ATTRIBUTE) role: String,
+        @QueryValue url: String
+    ): HttpResponse<*> {
+        if (!RoleGuard.canAccessConsole(role)) return RoleGuard.forbidden("general users cannot access the Admin Console")
         var current = runCatching { URI(url) }.getOrNull() ?: return badRequest("invalid url")
 
         var body: String? = null

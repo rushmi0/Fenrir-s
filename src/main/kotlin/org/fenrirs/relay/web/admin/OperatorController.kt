@@ -25,8 +25,9 @@ data class AddOperatorRequest(val pubkey: String, val role: String)
 
 /**
  * Admin/Operator management (see task's "Authentication Scope" - Owner/Admin/Operator only).
- * Any authenticated role can list operators; only OWNER can add or remove one, and the OWNER
- * itself can't be removed here (no owner-transfer flow in Phase 1).
+ * OPERATOR (general user) has no access; ADMIN/OWNER (admin user) can list operators, but only
+ * OWNER can add or remove one, and the OWNER itself can't be removed here (no owner-transfer
+ * flow in Phase 1).
  */
 @Controller("/inter/api/v1/admin/operators")
 @Produces(MediaType.APPLICATION_JSON)
@@ -34,8 +35,10 @@ data class AddOperatorRequest(val pubkey: String, val role: String)
 class OperatorController(private val sessions: AdminSessionStore) {
 
     @Get
-    fun list(): List<OperatorDto> =
-        OperatorStoreImpl.all().map { OperatorDto(it.pubkey, it.role, it.createdAt) }
+    fun list(@RequestAttribute(AdminAuthFilter.ROLE_ATTRIBUTE) role: String): HttpResponse<*> {
+        if (!RoleGuard.canAccessConsole(role)) return RoleGuard.forbidden("general users cannot access the Admin Console")
+        return HttpResponse.ok(OperatorStoreImpl.all().map { OperatorDto(it.pubkey, it.role, it.createdAt) })
+    }
 
     @Post
     fun add(

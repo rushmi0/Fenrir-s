@@ -26,7 +26,6 @@ class NostrRelayConfig : PolicyConfig {
     }
 
 
-    /** ค่า default ทั้งหมดที่อ่านจาก .env ใช้ sync เข้า [DatabaseFactory] ตอน startup - ดู [org.fenrirs.relay.SystemPreload] */
     val envDefaults: Map<String, String> = mapOf(
         "NAME" to (prop.getProperty("NAME") ?: ""),
         "DESCRIPTION" to (prop.getProperty("DESCRIPTION") ?: ""),
@@ -42,16 +41,51 @@ class NostrRelayConfig : PolicyConfig {
         "AUTH_ENABLED" to (prop.getProperty("AUTH_ENABLED") ?: "false"),
         "AUTH_WHITELIST_PUBKEYS" to (prop.getProperty("AUTH_WHITELIST_PUBKEYS") ?: ""),
         "BACKUP_ENABLED" to (prop.getProperty("BACKUP_ENABLED") ?: "false"),
-        "SYNC" to (prop.getProperty("SYNC") ?: "")
+        "SYNC" to (prop.getProperty("SYNC") ?: ""),
+        "DATABASE_URL" to (prop.getProperty("DATABASE_URL") ?: ""),
+        "DATABASE_NAME" to (prop.getProperty("DATABASE_NAME") ?: ""),
+        "DATABASE_USERNAME" to (prop.getProperty("DATABASE_USERNAME") ?: ""),
+        "DATABASE_PASSWORD" to (prop.getProperty("DATABASE_PASSWORD") ?: ""),
+        "PRIMARY_DATABASE_ENABLED" to (prop.getProperty("PRIMARY_DATABASE_ENABLED") ?: "false"),
+        "DB_H2_MIN_IDLE" to (prop.getProperty("DB_H2_MIN_IDLE") ?: "2"),
+        "DB_H2_MAX_POOL_SIZE" to (prop.getProperty("DB_H2_MAX_POOL_SIZE") ?: "20"),
+        "DB_H2_LEAK_DETECTION_THRESHOLD" to (prop.getProperty("DB_H2_LEAK_DETECTION_THRESHOLD") ?: "30000"),
+        "DB_PG_MIN_IDLE" to (prop.getProperty("DB_PG_MIN_IDLE") ?: "10"),
+        "DB_PG_MAX_POOL_SIZE" to (prop.getProperty("DB_PG_MAX_POOL_SIZE") ?: "64"),
+        "DB_PG_IDLE_TIMEOUT" to (prop.getProperty("DB_PG_IDLE_TIMEOUT") ?: "60000"),
+        "DB_PG_KEEPALIVE_TIME" to (prop.getProperty("DB_PG_KEEPALIVE_TIME") ?: "600000"),
+        "DB_PG_MAX_LIFETIME" to (prop.getProperty("DB_PG_MAX_LIFETIME") ?: "2000000"),
+        "DB_PG_LEAK_DETECTION_THRESHOLD" to (prop.getProperty("DB_PG_LEAK_DETECTION_THRESHOLD") ?: "30000"),
+        "DB_PG_VALIDATION_TIMEOUT" to (prop.getProperty("DB_PG_VALIDATION_TIMEOUT") ?: "3000"),
+        "DB_PG_TRANSACTION_ISOLATION" to (prop.getProperty("DB_PG_TRANSACTION_ISOLATION") ?: "TRANSACTION_REPEATABLE_READ")
     )
 
 
-    // Database settings - ค่าเชื่อมต่อฐานข้อมูลต้องอ่านจาก .env เท่านั้น เพราะต้องใช้ก่อนที่ฐานข้อมูลใด ๆ จะพร้อมใช้งาน
-    val DATABASE_NAME: String by lazy { prop.getProperty("DATABASE_NAME") ?: "" }
-    val DATABASE_URL: String by lazy { prop.getProperty("DATABASE_URL") ?: "" }
-    val DATABASE_USERNAME: String by lazy { prop.getProperty("DATABASE_USERNAME") ?: "" }
-    val DATABASE_PASSWORD: String by lazy { prop.getProperty("DATABASE_PASSWORD") ?: "" }
-    val PRIMARY_DATABASE_ENABLED: Boolean by lazy { prop.getProperty("PRIMARY_DATABASE_ENABLED")?.toBoolean() ?: false }
+    // Database settings - เก็บใน KV_STORE (relay-sys H2) เหมือนค่าอื่น ๆ ทั้งหมด ไม่ผูกกับ .env อีกต่อไป
+    // (ยกเว้น seed ค่าเริ่มต้นครั้งแรกผ่าน envDefaults ด้านบน) - แก้ผ่าน Admin API ได้ มีผลตอน restart ถัดไป
+    val DATABASE_URL: String get() = KeyValueStoreImpl.get("DATABASE_URL") ?: ""
+    val DATABASE_NAME: String get() = KeyValueStoreImpl.get("DATABASE_NAME") ?: ""
+    val DATABASE_USERNAME: String get() = KeyValueStoreImpl.get("DATABASE_USERNAME") ?: ""
+    val DATABASE_PASSWORD: String get() = KeyValueStoreImpl.get("DATABASE_PASSWORD") ?: ""
+    val PRIMARY_DATABASE_ENABLED: Boolean get() = KeyValueStoreImpl.get("PRIMARY_DATABASE_ENABLED")?.toBoolean() ?: false
+
+    // H2 business-mode (relay-biz, MODE=PostgreSQL) pool settings
+    val DB_H2_MIN_IDLE: Int get() = KeyValueStoreImpl.get("DB_H2_MIN_IDLE")?.toIntOrNull() ?: 2
+    val DB_H2_MAX_POOL_SIZE: Int get() = KeyValueStoreImpl.get("DB_H2_MAX_POOL_SIZE")?.toIntOrNull() ?: 20
+    val DB_H2_LEAK_DETECTION_THRESHOLD: Int
+        get() = KeyValueStoreImpl.get("DB_H2_LEAK_DETECTION_THRESHOLD")?.toIntOrNull() ?: 30_000
+
+    // PostgreSQL (primary) pool settings
+    val DB_PG_MIN_IDLE: Int get() = KeyValueStoreImpl.get("DB_PG_MIN_IDLE")?.toIntOrNull() ?: 10
+    val DB_PG_MAX_POOL_SIZE: Int get() = KeyValueStoreImpl.get("DB_PG_MAX_POOL_SIZE")?.toIntOrNull() ?: 64
+    val DB_PG_IDLE_TIMEOUT: Int get() = KeyValueStoreImpl.get("DB_PG_IDLE_TIMEOUT")?.toIntOrNull() ?: 60_000
+    val DB_PG_KEEPALIVE_TIME: Int get() = KeyValueStoreImpl.get("DB_PG_KEEPALIVE_TIME")?.toIntOrNull() ?: 600_000
+    val DB_PG_MAX_LIFETIME: Int get() = KeyValueStoreImpl.get("DB_PG_MAX_LIFETIME")?.toIntOrNull() ?: 2_000_000
+    val DB_PG_LEAK_DETECTION_THRESHOLD: Int
+        get() = KeyValueStoreImpl.get("DB_PG_LEAK_DETECTION_THRESHOLD")?.toIntOrNull() ?: 30_000
+    val DB_PG_VALIDATION_TIMEOUT: Int get() = KeyValueStoreImpl.get("DB_PG_VALIDATION_TIMEOUT")?.toIntOrNull() ?: 3_000
+    val DB_PG_TRANSACTION_ISOLATION: String
+        get() = KeyValueStoreImpl.get("DB_PG_TRANSACTION_ISOLATION") ?: "TRANSACTION_REPEATABLE_READ"
 
     // Relay info
     // ค่าด้านล่างนี้อ่านจาก KeyValueStoreImpl สด ๆ ทุกครั้งที่เข้าถึง (ไม่ใช้ `by lazy`) เพราะแอดมินแก้ค่าผ่าน

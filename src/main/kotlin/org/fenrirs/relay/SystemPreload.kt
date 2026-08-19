@@ -6,7 +6,6 @@ import jakarta.inject.Singleton
 import org.fenrirs.relay.web.setup.SetupTokenIssuer
 import org.fenrirs.storage.DatabaseFactory
 import org.fenrirs.storage.NostrRelayConfig
-import org.fenrirs.storage.statement.KeyValueStoreImpl
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -17,9 +16,11 @@ class SystemPreload(
 
     override fun onApplicationEvent(event: StartupEvent) {
         DatabaseFactory.ENV = config
+        // KeyValueStoreImpl.sync(config.envDefaults) now runs inside initialize() itself, right
+        // after configDb connects and before the business/primary pools are built - those pools
+        // read connection/pool settings from the KV store too, so the seed has to happen first.
         DatabaseFactory.initialize()
 
-        KeyValueStoreImpl.sync(config.envDefaults)
         SetupTokenIssuer.issueIfNeeded()
     }
 

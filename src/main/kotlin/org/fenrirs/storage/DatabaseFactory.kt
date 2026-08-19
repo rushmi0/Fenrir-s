@@ -13,6 +13,8 @@ import org.fenrirs.storage.table.SUBSCRIPTION
 import org.fenrirs.utils.ExecTask.asyncTask
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 
+import org.fenrirs.storage.statement.KeyValueStoreImpl
+
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -59,6 +61,11 @@ object DatabaseFactory {
             SchemaUtils.create(OPERATOR)
         }
 
+        // ต้อง sync ค่า default จาก .env เข้า KV_STORE ที่นี่ (ก่อนสร้าง pool อื่น ๆ) เพราะ businessH2Hikari()/
+        // postgresHikari() ด้านล่างอ่านค่าการตั้งค่า pool/connection จาก ENV (KV_STORE-backed) แล้ว -
+        // configDb เชื่อมต่อได้เองโดยไม่ต้องพึ่งค่าเหล่านี้ จึงไม่มีปัญหา chicken-and-egg
+        KeyValueStoreImpl.sync(ENV.envDefaults)
+
         secondaryDb = Database.connect(businessH2Hikari())
         transaction(secondaryDb) {
             SchemaUtils.create(EVENT)
@@ -87,18 +94,18 @@ object DatabaseFactory {
             username = ENV.DATABASE_USERNAME
             password = ENV.DATABASE_PASSWORD
 
-            minimumIdle = 10
-            maximumPoolSize = 64
+            minimumIdle = ENV.DB_PG_MIN_IDLE
+            maximumPoolSize = ENV.DB_PG_MAX_POOL_SIZE
 
             isAutoCommit = false
 
-            idleTimeout = 60_000
-            keepaliveTime = 600_000
-            maxLifetime = 2_000_000
-            leakDetectionThreshold = 30_000
-            validationTimeout = 3_000
+            idleTimeout = ENV.DB_PG_IDLE_TIMEOUT.toLong()
+            keepaliveTime = ENV.DB_PG_KEEPALIVE_TIME.toLong()
+            maxLifetime = ENV.DB_PG_MAX_LIFETIME.toLong()
+            leakDetectionThreshold = ENV.DB_PG_LEAK_DETECTION_THRESHOLD.toLong()
+            validationTimeout = ENV.DB_PG_VALIDATION_TIMEOUT.toLong()
 
-            transactionIsolation = "TRANSACTION_REPEATABLE_READ"
+            transactionIsolation = ENV.DB_PG_TRANSACTION_ISOLATION
 
             initializationFailTimeout = -1
 
@@ -120,12 +127,12 @@ object DatabaseFactory {
             username = "sa"
             password = ""
 
-            minimumIdle = 2
-            maximumPoolSize = 20
+            minimumIdle = ENV.DB_H2_MIN_IDLE
+            maximumPoolSize = ENV.DB_H2_MAX_POOL_SIZE
 
             isAutoCommit = false
 
-            leakDetectionThreshold = 30_000
+            leakDetectionThreshold = ENV.DB_H2_LEAK_DETECTION_THRESHOLD.toLong()
 
             validate()
         }
@@ -201,5 +208,19 @@ object DatabaseFactory {
         block()
     }
 
+    /** Which engine the business (event store) database is actually running on right now -
+     * reflects [DatabaseFailover]'s current state, not just what's configured. */
+    fun activeDatabaseMode(): String =
+        if (::primaryDb.isInitialized && activeDb === primaryDb) "POSTGRES" else "H2"
+
+    /** Current size of the active business database - PostgreSQL via `pg_database_size`, local
+     * H2 via the `relay-biz.mv.db` file size on disk. */
+    fun activeDatabaseSizeBytes(): Long = if (activeDatabaseMode() == "POSTGRES") {
+        transaction(primaryDb) {
+            exec("SELECT pg_database_size(current_database())") { rs -> if (rs.next()) rs.getLong(1) else null }
+        } ?: 0L
+    } else {
+        File("${StoragePaths.resolve("relay-biz").absolutePath}.mv.db").length()
+    }
 
 }
