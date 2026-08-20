@@ -8,7 +8,6 @@ import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
 
 import jakarta.inject.Inject
-import kotlinx.coroutines.runBlocking
 
 import org.fenrirs.relay.core.nip.nip01.command.AUTH
 import org.fenrirs.relay.core.nip.nip01.command.EVENT
@@ -21,7 +20,6 @@ import org.fenrirs.relay.core.nip.nip01.BasicProtocolFlow
 import org.fenrirs.relay.core.policy.PolicyConfig
 import org.fenrirs.relay.core.pubsub.SubscriptionRegistry
 import org.fenrirs.storage.Authentication
-import org.fenrirs.storage.Subscription.clearSession
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -71,10 +69,9 @@ class Gateway @Inject constructor(
     }
 
     @OnClose
-    fun onClose(session: WebSocketSession) = runBlocking {
+    fun onClose(session: WebSocketSession) {
         LOG.info("[CONN] Closed session={}", session.id)
         registry.unregisterSession(session.id)
-        clearSession(session)
         authentication.clearSession(session)
     }
 

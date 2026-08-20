@@ -3,12 +3,10 @@ package org.fenrirs.relay.core.nip.nip01.response
 import io.micronaut.core.annotation.Introspected
 import io.micronaut.websocket.WebSocketSession
 
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 import org.fenrirs.relay.models.Event
-import org.fenrirs.storage.Subscription.clearSubscription
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -102,10 +100,6 @@ sealed class RelayResponse<out T> {
             if (currentSession.isOpen) {
                 val payload = this@RelayResponse.toJson()
                 currentSession.sendAsync(payload)
-
-                if (this@RelayResponse is CANCEL) {
-                    runBlocking { clearSubscription(currentSession, subscriptionId) }
-                }
             } else {
                 LOG.debug("[CONN] Session already closed session={}", currentSession.id)
             }

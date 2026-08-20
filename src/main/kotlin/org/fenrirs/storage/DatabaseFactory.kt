@@ -9,7 +9,6 @@ import org.fenrirs.storage.table.KV_STORE
 import org.fenrirs.storage.table.OPERATOR
 
 import org.fenrirs.storage.table.EVENT
-import org.fenrirs.storage.table.SUBSCRIPTION
 import org.fenrirs.utils.ExecTask.asyncTask
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 
@@ -40,8 +39,6 @@ object DatabaseFactory {
 
     internal lateinit var secondaryDb: Database
 
-    private lateinit var cacheDb: Database
-
     internal lateinit var configDb: Database
 
     @Volatile
@@ -69,11 +66,6 @@ object DatabaseFactory {
         secondaryDb = Database.connect(businessH2Hikari())
         transaction(secondaryDb) {
             SchemaUtils.create(EVENT)
-        }
-
-        cacheDb = Database.connect(cacheHikari())
-        transaction(cacheDb) {
-            SchemaUtils.create(SUBSCRIPTION)
         }
 
         if (ENV.PRIMARY_DATABASE_ENABLED) {
@@ -140,29 +132,6 @@ object DatabaseFactory {
         return HikariDataSource(config)
     }
 
-    private fun cacheHikari(): HikariDataSource {
-
-        val config = HikariConfig().apply {
-
-            driverClassName = "org.h2.Driver"
-
-            jdbcUrl = "jdbc:h2:mem:subscription-cache;DB_CLOSE_DELAY=-1;LOCK_TIMEOUT=10000"
-            username = "sa"
-            password = ""
-
-            minimumIdle = 1
-            maximumPoolSize = 10
-
-            isAutoCommit = false
-
-            leakDetectionThreshold = 30_000
-
-            validate()
-        }
-
-        return HikariDataSource(config)
-    }
-
     private fun configH2Hikari(): HikariDataSource {
 
         val dbFile = StoragePaths.resolve("relay-sys")
@@ -191,13 +160,6 @@ object DatabaseFactory {
 
     suspend fun <T> queryTask(block: () -> T): T = asyncTask {
         transaction(activeDb) {
-            //addLogger(StdOutSqlLogger)
-            block()
-        }
-    }
-
-    suspend fun <T> cacheTask(block: () -> T): T = asyncTask {
-        transaction(cacheDb) {
             //addLogger(StdOutSqlLogger)
             block()
         }
