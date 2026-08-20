@@ -48,7 +48,7 @@ class NostrRelayConfig : PolicyConfig {
         "DATABASE_PASSWORD" to (prop.getProperty("DATABASE_PASSWORD") ?: ""),
         "PRIMARY_DATABASE_ENABLED" to (prop.getProperty("PRIMARY_DATABASE_ENABLED") ?: "false"),
         "DB_H2_MIN_IDLE" to (prop.getProperty("DB_H2_MIN_IDLE") ?: "1"),
-        "DB_H2_MAX_POOL_SIZE" to (prop.getProperty("DB_H2_MAX_POOL_SIZE") ?: "8"),
+        "DB_H2_MAX_POOL_SIZE" to (prop.getProperty("DB_H2_MAX_POOL_SIZE") ?: "12"),
         "DB_H2_LEAK_DETECTION_THRESHOLD" to (prop.getProperty("DB_H2_LEAK_DETECTION_THRESHOLD") ?: "30000"),
         "DB_PG_MIN_IDLE" to (prop.getProperty("DB_PG_MIN_IDLE") ?: "10"),
         "DB_PG_MAX_POOL_SIZE" to (prop.getProperty("DB_PG_MAX_POOL_SIZE") ?: "64"),
@@ -69,11 +69,13 @@ class NostrRelayConfig : PolicyConfig {
     val DATABASE_PASSWORD: String get() = KeyValueStoreImpl.get("DATABASE_PASSWORD") ?: ""
     val PRIMARY_DATABASE_ENABLED: Boolean get() = KeyValueStoreImpl.get("PRIMARY_DATABASE_ENABLED")?.toBoolean() ?: false
 
-    // H2 business-mode (relay-biz, MODE=PostgreSQL) pool settings - kept small by default: this is
-    // an embedded, effectively single-writer file DB running on a phone with few cores, so a large
-    // pool just adds connection/thread contention instead of real throughput.
+    // H2 business-mode (relay-biz, MODE=PostgreSQL) pool settings - kept below the original
+    // server-sized default (20) since this is a phone with few cores, but with headroom for
+    // filterList's queryTask/asyncTask, which allows up to 32 concurrent virtual-thread tasks:
+    // an 8-connection cap measurably starved that under heavy REQ churn (HikariCP's leak detector
+    // firing on connections held >30s while queued for a free slot, not actually stuck).
     val DB_H2_MIN_IDLE: Int get() = KeyValueStoreImpl.get("DB_H2_MIN_IDLE")?.toIntOrNull() ?: 1
-    val DB_H2_MAX_POOL_SIZE: Int get() = KeyValueStoreImpl.get("DB_H2_MAX_POOL_SIZE")?.toIntOrNull() ?: 8
+    val DB_H2_MAX_POOL_SIZE: Int get() = KeyValueStoreImpl.get("DB_H2_MAX_POOL_SIZE")?.toIntOrNull() ?: 12
     val DB_H2_LEAK_DETECTION_THRESHOLD: Int
         get() = KeyValueStoreImpl.get("DB_H2_LEAK_DETECTION_THRESHOLD")?.toIntOrNull() ?: 30_000
 
