@@ -131,8 +131,8 @@ class DatabaseConfigController {
     private fun readSettings(): DatabaseSettings = DatabaseSettings(
         activeMode = if (KeyValueStoreImpl.get("PRIMARY_DATABASE_ENABLED")?.toBoolean() == true) "POSTGRES" else "H2",
         h2 = H2PoolConfig(
-            minimumIdle = KeyValueStoreImpl.get("DB_H2_MIN_IDLE")?.toIntOrNull() ?: 2,
-            maximumPoolSize = KeyValueStoreImpl.get("DB_H2_MAX_POOL_SIZE")?.toIntOrNull() ?: 20,
+            minimumIdle = KeyValueStoreImpl.get("DB_H2_MIN_IDLE")?.toIntOrNull() ?: 1,
+            maximumPoolSize = KeyValueStoreImpl.get("DB_H2_MAX_POOL_SIZE")?.toIntOrNull() ?: 8,
             leakDetectionThreshold = KeyValueStoreImpl.get("DB_H2_LEAK_DETECTION_THRESHOLD")?.toIntOrNull() ?: 30_000
         ),
         postgres = PostgresConfig(

@@ -146,8 +146,10 @@ object DatabaseFactory {
             username = "sa"
             password = ""
 
+            // KV_STORE/OPERATOR only see admin-console traffic, not the REQ/EVENT hot path -
+            // a handful of connections is more than enough on a phone-class device.
             minimumIdle = 1
-            maximumPoolSize = 10
+            maximumPoolSize = 4
 
             isAutoCommit = false
 
