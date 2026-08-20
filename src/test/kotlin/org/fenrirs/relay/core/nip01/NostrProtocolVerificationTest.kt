@@ -279,9 +279,10 @@ class NostrProtocolVerificationTest {
     }
 
     @Test
-    fun `filter since must be less than until`() {
+    fun `filter since must be less than or equal to until`() {
         assertFalse(FiltersX(since = 10L, until = 5L).validate().isValid)
         assertTrue(FiltersX(since = 5L, until = 10L).validate().isValid)
+        assertTrue(FiltersX(since = 7L, until = 7L).validate().isValid)
     }
 
     @Test

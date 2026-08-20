@@ -24,8 +24,8 @@ object VerifyFilterX {
     }
 
     private fun FiltersX.isValidSinceUntil(): ValidationResult {
-        if (since != null && until != null && since >= until) {
-            return ValidationResult.invalid("invalid: since '$since' should be less than until '$until'")
+        if (since != null && until != null && since > until) {
+            return ValidationResult.invalid("invalid: since '$since' should be less than or equal to until '$until'")
         }
         return ValidationResult.Valid
     }
