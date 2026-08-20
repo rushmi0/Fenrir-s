@@ -39,15 +39,15 @@ native-dev:
     {{gradlew}} nativeCompile
 
 # Build the optimized native executable (matches CI / release builds)
-build-native:
+build-native: clean build-client
     {{gradlew}} nativeOptimizedCompile
 
 # Build a statically linked musl native executable (Linux only)
-build-native-musl:
+build-native-musl: clean build-client
     {{gradlew}} nativeOptimizedCompile -PmuslStatic=true
 
 # Run the optimized native binary via Gradle
-run-native:
+run-native: clean build-client
     {{gradlew}} nativeOptimizedRun
 
 # Build both JVM and native artifacts

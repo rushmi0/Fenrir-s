@@ -13,6 +13,8 @@ import io.micronaut.serde.annotation.Serdeable
 
 import org.fenrirs.relay.web.AdminAuthFilter
 import org.fenrirs.storage.statement.KeyValueStoreImpl
+import org.fenrirs.utils.Bech32
+import org.fenrirs.utils.ShiftTo.toHex
 
 @Serdeable
 data class RelayConfig(
@@ -57,7 +59,7 @@ class ConfigController {
 
         KeyValueStoreImpl.set("NAME", body.name)
         KeyValueStoreImpl.set("DESCRIPTION", body.description)
-        KeyValueStoreImpl.set("NPUB", body.npub)
+        KeyValueStoreImpl.set("NPUB", toHexPubkey(body.npub))
         KeyValueStoreImpl.set("CONTACT", body.contact)
         KeyValueStoreImpl.set("RELAY_URL", body.relayUrl)
         return HttpResponse.ok(readRelay())
@@ -86,7 +88,7 @@ class ConfigController {
     private fun readRelay(): RelayConfig = RelayConfig(
         name = KeyValueStoreImpl.get("NAME") ?: "",
         description = KeyValueStoreImpl.get("DESCRIPTION") ?: "",
-        npub = KeyValueStoreImpl.get("NPUB") ?: "",
+        npub = toNpub(KeyValueStoreImpl.get("NPUB") ?: ""),
         contact = KeyValueStoreImpl.get("CONTACT") ?: "",
         relayUrl = KeyValueStoreImpl.get("RELAY_URL") ?: ""
     )
@@ -97,4 +99,15 @@ class ConfigController {
         backupEnabled = KeyValueStoreImpl.get("BACKUP_ENABLED")?.toBoolean() ?: false,
         sync = KeyValueStoreImpl.get("SYNC") ?: ""
     )
+
+    private fun toNpub(value: String): String {
+        if (value.isBlank() || value.startsWith("npub")) return value
+        return runCatching { Bech32.encode("npub", value) }.getOrDefault(value)
+    }
+
+    /** Inverse of [toNpub] - normalizes whatever the admin submits (npub or hex) back to hex for storage. */
+    private fun toHexPubkey(value: String): String {
+        if (value.isBlank() || !value.startsWith("npub")) return value
+        return runCatching { Bech32.decode(value).data.toHex() }.getOrDefault(value)
+    }
 }

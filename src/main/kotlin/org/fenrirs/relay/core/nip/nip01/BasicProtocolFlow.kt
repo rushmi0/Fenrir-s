@@ -344,8 +344,6 @@ class BasicProtocolFlow @Inject constructor(
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
     suspend fun onClose(subscriptionId: String, session: WebSocketSession) {
-        // ไม่มีนโยบายใดปฏิเสธ CLOSE ในปัจจุบัน แต่ยังคงผ่าน policyController เพื่อให้ CLOSE เป็นส่วนหนึ่งของ
-        // pipeline เดียวกันกับคำสั่งอื่น (เช่น เผื่ออนาคตอยากจำกัดอัตราการ CLOSE ถี่เกินไป) โดยไม่ต้องแก้ไฟล์นี้อีก
         policyController.evaluate(PolicyContext(session, CommandType.CLOSE, subscriptionId = subscriptionId))
 
         registry.unregister(session.id, subscriptionId)
@@ -365,10 +363,9 @@ class BasicProtocolFlow @Inject constructor(
         if (!status) {
             LOG.warn("[AUTH] Invalid session={} reason={}", session.id, warning)
             RelayResponse.OK(event.id!!, false, warning).toClient(session)
+            return
         }
 
-        // AUTH ต้องผ่าน policy pipeline เสมอ (ปัจจุบันอนุญาตเสมอ - ไม่มีการยืนยันตัวตนใดต้องผ่านก่อนจะ "เริ่ม" ยืนยันตัวตน)
-        // ความถูกต้องของ auth event เอง (kind/challenge/relay tag) เป็นหน้าที่ของ nip42.verify ด้านล่าง ไม่ใช่ policy
         when (val decision = policyController.evaluate(PolicyContext(session, CommandType.AUTH, event = event))) {
             is PolicyDecision.Deny -> {
                 RelayResponse.OK(event.id!!, false, decision.reason).toClient(session)

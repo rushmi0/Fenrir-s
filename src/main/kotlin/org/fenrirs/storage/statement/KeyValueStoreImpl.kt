@@ -28,11 +28,6 @@ object KeyValueStoreImpl : KeyValueStore {
         }
     }
 
-    /**
-     * Seeds any key not already present in the store from `.env` defaults - never overwrites a
-     * key that already exists, so config changes made through the Admin API survive restarts
-     * instead of being reset back to `.env` on every boot (see [org.fenrirs.relay.SystemPreload]).
-     */
     override fun sync(defaults: Map<String, String>) {
         configTask {
             val existingKeys = KV_STORE.selectAll()

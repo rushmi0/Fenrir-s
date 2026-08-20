@@ -64,10 +64,24 @@ class VerifyAuth @Inject constructor(private val env: NostrRelayConfig) {
             if (configuredUrl.isBlank()) return true
             if (relayTag.isNullOrBlank()) return false
 
-            val configuredHost = runCatching { URI(configuredUrl).host }.getOrNull()
-            val actualHost = runCatching { URI(relayTag).host }.getOrNull()
+            val configuredHost = extractHost(configuredUrl)
+            val actualHost = extractHost(relayTag)
 
             return configuredHost != null && configuredHost.equals(actualHost, ignoreCase = true)
+        }
+
+        /**
+         * URI(...).host returns null when given a bare domain with no "scheme://" prefix (e.g.
+         * "relay.example.com") - the admin config UI's "Domain" field (RelayInfoTab.tsx) has no
+         * scheme hint, so RELAY_URL is commonly saved that way. Falling back to "//<value>" makes
+         * URI treat it as an authority component instead of an opaque/relative path, so the host
+         * still resolves. Without this, every auth event would be rejected as a relay mismatch
+         * whenever RELAY_URL lacks a scheme.
+         */
+        private fun extractHost(value: String): String? {
+            val direct = runCatching { URI(value).host }.getOrNull()
+            if (direct != null) return direct
+            return runCatching { URI("//$value").host }.getOrNull()
         }
     }
 }

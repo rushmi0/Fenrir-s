@@ -88,7 +88,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
-
     implementation("io.micronaut:micronaut-aop")
     implementation("io.micronaut:micronaut-websocket")
     implementation("io.micronaut.kotlin:micronaut-kotlin-runtime")

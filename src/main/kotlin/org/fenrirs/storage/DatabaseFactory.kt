@@ -59,9 +59,6 @@ object DatabaseFactory {
             SchemaUtils.create(OPERATOR)
         }
 
-        // ต้อง sync ค่า default จาก .env เข้า KV_STORE ที่นี่ (ก่อนสร้าง pool อื่น ๆ) เพราะ businessH2Hikari()/
-        // postgresHikari() ด้านล่างอ่านค่าการตั้งค่า pool/connection จาก ENV (KV_STORE-backed) แล้ว -
-        // configDb เชื่อมต่อได้เองโดยไม่ต้องพึ่งค่าเหล่านี้ จึงไม่มีปัญหา chicken-and-egg
         KeyValueStoreImpl.sync(ENV.envDefaults)
 
         secondaryDb = Database.connect(businessH2Hikari())

@@ -109,4 +109,19 @@ class VerifyAuthTest {
     fun `missing relay tag fails when RELAY_URL is configured`() {
         assertFalse(VerifyAuth.relayUrlMatches("wss://relay.example.com/", null))
     }
+
+    // The admin config UI's "Domain" field (RelayInfoTab.tsx) has no scheme hint, so RELAY_URL is
+    // commonly saved as a bare domain like "relay.example.com" rather than "wss://relay.example.com/".
+    // URI("relay.example.com").host returns null, which used to make every auth event fail as a
+    // relay mismatch regardless of what the client sent.
+    @Test
+    fun `relay tag matches when configured RELAY_URL is a bare domain without a scheme`() {
+        assertTrue(VerifyAuth.relayUrlMatches("relay.example.com", "wss://relay.example.com/"))
+        assertTrue(VerifyAuth.relayUrlMatches("Relay.Example.com", "wss://relay.example.com/some/path"))
+    }
+
+    @Test
+    fun `relay tag mismatch is still rejected when configured RELAY_URL is a bare domain`() {
+        assertFalse(VerifyAuth.relayUrlMatches("relay.example.com", "wss://evil.example.com/"))
+    }
 }
