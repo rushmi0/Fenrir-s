@@ -4,6 +4,7 @@ import io.micronaut.core.annotation.Introspected
 import io.micronaut.websocket.WebSocketSession
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 import org.fenrirs.relay.models.Event
@@ -86,8 +87,20 @@ sealed class RelayResponse<out T> {
     /**
      * `toJson` ใช้ในการแปลงข้อมูล ที่ใช้ในการตอบกลับจากรูปแบบ Kotlin Object ไปเป็น JSON string
      * @return JSON string ที่ใช้ในการตอบกลับ
+     *
+     * EVENT is fast-pathed: it's the highest-volume response (every backfill row + every live
+     * push, fanned out once per matching subscriber) and its payload is immutable once signed,
+     * so the event body is pulled from [EventJsonCache] and spliced into the envelope directly
+     * instead of re-walking the whole Event object through RelayResponseSerializer every time.
      */
-    fun toJson(): String = Json.encodeToString(RelayResponseSerializer, this)
+    fun toJson(): String {
+        val self = this@RelayResponse
+        return if (self is EVENT) {
+            "[\"EVENT\",${Json.encodeToString(self.subscriptionId)},${EventJsonCache.jsonFor(self.event)}]"
+        } else {
+            Json.encodeToString(RelayResponseSerializer, self)
+        }
+    }
 
 
     /**

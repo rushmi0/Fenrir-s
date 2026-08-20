@@ -21,6 +21,7 @@ import java.net.http.HttpHeaders
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse.BodyHandlers
 import java.time.Duration
+import java.util.concurrent.ConcurrentHashMap
 
 @Serdeable
 data class LinkPreviewDto(
@@ -159,8 +160,14 @@ class LinkPreviewController {
         private val metaTagRegex = Regex("<meta\\s+[^>]*>", RegexOption.IGNORE_CASE)
         private val titleTagRegex = Regex("<title[^>]*>(.*?)</title>", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
 
+        // attr() runs per attribute name (property/name/content) for every <meta> tag on the
+        // fetched page - cache the compiled pattern per name instead of recompiling it on each call.
+        private val attrRegexCache = ConcurrentHashMap<String, Regex>()
+
         private fun attr(tag: String, name: String): String? =
-            Regex("\\b$name\\s*=\\s*[\"']([^\"']*)[\"']", RegexOption.IGNORE_CASE).find(tag)?.groupValues?.get(1)
+            attrRegexCache.getOrPut(name) {
+                Regex("\\b$name\\s*=\\s*[\"']([^\"']*)[\"']", RegexOption.IGNORE_CASE)
+            }.find(tag)?.groupValues?.get(1)
 
         private fun unescapeHtml(s: String): String = s
             .replace("&amp;", "&")
