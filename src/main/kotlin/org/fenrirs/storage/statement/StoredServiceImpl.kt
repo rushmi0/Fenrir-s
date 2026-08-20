@@ -22,12 +22,10 @@ import org.fenrirs.storage.table.EVENT.KIND
 import org.fenrirs.storage.table.EVENT.PUBKEY
 import org.fenrirs.storage.table.EVENT.SIG
 import org.fenrirs.storage.table.EVENT.TAGS
+import org.fenrirs.storage.table.EVENT_TAGS
 
 import org.jetbrains.exposed.v1.core.*
-import org.jetbrains.exposed.v1.core.vendors.H2Dialect
-import org.jetbrains.exposed.v1.core.vendors.currentDialect
 import org.jetbrains.exposed.v1.jdbc.*
-import org.jetbrains.exposed.v1.json.contains
 
 
 
@@ -119,19 +117,18 @@ class StoredServiceImpl @Inject constructor(
                 }
 
 
-                // ถ้ามีการระบุ tags ใน filters ให้เพิ่มเงื่อนไขการค้นหา TAGS ที่ตรงกับค่าที่กำหนด
+                // ถ้ามีการระบุ tags ใน filters ให้เพิ่มเงื่อนไขการค้นหาผ่านตาราง EVENT_TAGS (มี index บน
+                // (tag_name, tag_value)) แทนการ cast TAGS เป็น text แล้ว LIKE สแกนทั้งตาราง
+                //
+                // ต่อ tag key หนึ่งตัว: event ต้องมี "อย่างน้อยหนึ่ง" ค่าใน values ที่ตรงกัน (OR ภายใน key
+                // เดียวกัน ตาม NIP-01) แล้ว AND ข้าม key ที่ต่างกัน - ให้ผลตรงกับ FiltersXMatcher.matches
+                // ที่ใช้ตรวจ event สดตอน fan-out ผ่าน EventBus
                 filters.tags.forEach { (key, values) ->
-                    values.forEach { value ->
-                        // H2 (แม้เปิด MODE=PostgreSQL) ไม่รองรับ jsonb containment operator (@> / ::jsonb)
-                        // ที่ Postgres ใช้จริง จึงต้อง fallback มาใช้ LIKE จับข้อความ JSON ที่ serialize ไว้แทน
-                        // ปิดท้ายด้วย `"` ไม่ใช่ `"]` เพราะ tag จริง (เช่น NIP-10 e-tag ["e", id, relay, marker])
-                        // มักมีสมาชิกต่อท้าย value อีก - ปิดด้วย `]` เดิมจะจับได้เฉพาะ tag ที่มีแค่ 2 สมาชิกเท่านั้น
-                        val jsonValue = if (currentDialect is H2Dialect) {
-                            TAGS.castTo<String>(TextColumnType()) like "%[\"$key\",\"$value\"%"
-                        } else {
-                            TAGS.contains("""[["$key","$value"]]""")
-                        }
-                        query.andWhere { jsonValue }
+                    if (values.isNotEmpty()) {
+                        val matchingEventIds = EVENT_TAGS
+                            .select(EVENT_TAGS.EVENT_ID)
+                            .where { (EVENT_TAGS.TAG_NAME eq key) and (EVENT_TAGS.TAG_VALUE inList values) }
+                        query.andWhere { EVENT_ID inSubQuery matchingEventIds }
                     }
                 }
 
@@ -194,6 +191,7 @@ class StoredServiceImpl @Inject constructor(
                     it[CONTENT] = event.content!!
                     it[SIG] = event.sig!!
                 }
+                indexTags(event.id!!, event.tags!!)
                 true
             }.getOrElse { e ->
                 LOG.error("[DATABASE] Failed to save event id={}", event.id, e)
@@ -222,6 +220,7 @@ class StoredServiceImpl @Inject constructor(
                     it[CONTENT] = event.content!!
                     it[SIG] = event.sig!!
                 }
+                indexTags(event.id!!, event.tags!!)
                 SaveOutcome.SAVED
             }.getOrElse { e ->
                 if (e is ExposedSQLException && e.sqlState == "23505") {
@@ -273,12 +272,29 @@ class StoredServiceImpl @Inject constructor(
                  * FROM event
                  * WHERE event_id = :eventId;
                  */
-                EVENT.deleteWhere { EVENT_ID eq eventId } > 0
+                val deleted = EVENT.deleteWhere { EVENT_ID eq eventId } > 0
+                EVENT_TAGS.deleteWhere { EVENT_TAGS.EVENT_ID eq eventId }
+                deleted
 
             }.getOrElse { e ->
                 LOG.error("[DATABASE] Failed to delete event id={}", eventId, e)
                 false
             }
+        }
+    }
+
+    /**
+     * เก็บ (event_id, tag_name, tag_value) ของทุก tag ที่มีอย่างน้อย 2 สมาชิกลงใน EVENT_TAGS
+     * เพื่อให้ filterList ค้นหาด้วย index แทนการ LIKE สแกน TAGS ทั้งตาราง
+     */
+    private fun indexTags(eventId: String, tags: List<List<String>>) {
+        val pairs = tags.filter { it.size >= 2 }.map { it[0].take(16) to it[1].take(512) }
+        if (pairs.isEmpty()) return
+
+        EVENT_TAGS.batchInsert(pairs, shouldReturnGeneratedValues = false) { (name, value) ->
+            this[EVENT_TAGS.EVENT_ID] = eventId
+            this[EVENT_TAGS.TAG_NAME] = name
+            this[EVENT_TAGS.TAG_VALUE] = value
         }
     }
 

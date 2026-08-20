@@ -27,4 +27,12 @@ object EVENT: Table("event") {
 
     val CONTENT = text("content")
     val SIG = varchar("sig", 128)
+
+    // Composite indexes for the two most common REQ shapes: "kind(s) by author, newest first"
+    // and "kind(s) since/until, newest first" - the single-column indexes above only let H2
+    // narrow down by one predicate before falling back to a scan for the rest.
+    init {
+        index(false, PUBKEY, CREATED_AT)
+        index(false, KIND, CREATED_AT)
+    }
 }

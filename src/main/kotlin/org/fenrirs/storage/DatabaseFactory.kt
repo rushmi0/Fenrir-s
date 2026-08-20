@@ -9,6 +9,7 @@ import org.fenrirs.storage.table.KV_STORE
 import org.fenrirs.storage.table.OPERATOR
 
 import org.fenrirs.storage.table.EVENT
+import org.fenrirs.storage.table.EVENT_TAGS
 import org.fenrirs.utils.ExecTask.asyncTask
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 
@@ -66,6 +67,7 @@ object DatabaseFactory {
         secondaryDb = Database.connect(businessH2Hikari())
         transaction(secondaryDb) {
             SchemaUtils.create(EVENT)
+            SchemaUtils.create(EVENT_TAGS)
         }
 
         if (ENV.PRIMARY_DATABASE_ENABLED) {
