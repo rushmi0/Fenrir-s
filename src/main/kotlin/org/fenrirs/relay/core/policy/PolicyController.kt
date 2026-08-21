@@ -110,15 +110,16 @@ class PolicyController @Inject constructor(
     relayOwnerRule: RelayOwnerRule,
     authenticationRule: AuthenticationRule,
     passListRule: PassListRule,
-    proofOfWorkRule: ProofOfWorkRule
+    proofOfWorkRule: ProofOfWorkRule,
+    featureAccessRule: FeatureAccessRule
 ) {
 
     // ลำดับตั้งใจ: ทางลัด (whitelist/owner) -> ประตู NIP-42 -> pass list -> Proof of Work เป็นด่านสุดท้าย
     private val eventRules: List<PolicyRule> =
         listOf(whitelistRule, relayOwnerRule, authenticationRule, passListRule, proofOfWorkRule)
 
-    // REQ และ COUNT มีข้อกำหนดเหมือนกันทุกประการ: ต้องผ่าน NIP-42 เมื่อ AUTH_ENABLED เท่านั้น
-    private val readRules: List<PolicyRule> = listOf(whitelistRule, authenticationRule)
+    // REQ และ COUNT: ต้องผ่าน NIP-42 เมื่อ AUTH_ENABLED, จากนั้นต้องผ่าน feature permission ของ "feed" ด้วย
+    private val readRules: List<PolicyRule> = listOf(whitelistRule, authenticationRule, featureAccessRule)
 
     // CLOSE และ AUTH ไม่มีเงื่อนไขใด ๆ - AUTH ต้องผ่านได้เสมอเพราะเป็นกลไกที่ใช้ "เข้าสู่" สถานะยืนยันตัวตนเอง
     // (การตรวจสอบความถูกต้องของ AUTH event ตาม NIP-42 เป็นหน้าที่ของ VerifyAuth แยกต่างหาก ไม่ใช่ policy)

@@ -20,7 +20,9 @@ import org.fenrirs.relay.core.nip.nip01.command.CommandFactory.parse
 import org.fenrirs.relay.core.nip.nip01.response.RelayResponse
 import org.fenrirs.relay.core.nip.nip01.BasicProtocolFlow
 import org.fenrirs.relay.core.policy.PolicyConfig
+import org.fenrirs.relay.core.pubsub.ConnectionTracker
 import org.fenrirs.relay.core.pubsub.SubscriptionRegistry
+import org.fenrirs.relay.web.admin.DashboardBroadcaster
 import org.fenrirs.storage.Authentication
 
 import org.slf4j.Logger
@@ -33,11 +35,14 @@ class Gateway @Inject constructor(
     private val registry: SubscriptionRegistry,
     private val authentication: Authentication,
     private val config: PolicyConfig,
+    private val connections: ConnectionTracker,
+    private val dashboardBroadcaster: DashboardBroadcaster,
 ) {
 
     @OnOpen
     fun onOpen(session: WebSocketSession) {
         LOG.info("[CONN] Opened session={}", session.id)
+        dashboardBroadcaster.broadcastConnections(connections.opened())
         if (config.AUTH_ENABLED) {
             RelayResponse.AUTH(authentication.challengeFor(session)).toClient(session)
         }
@@ -75,6 +80,7 @@ class Gateway @Inject constructor(
     @OnClose
     fun onClose(session: WebSocketSession) {
         LOG.info("[CONN] Closed session={}", session.id)
+        dashboardBroadcaster.broadcastConnections(connections.closed())
         registry.unregisterSession(session.id)
         authentication.clearSession(session)
     }

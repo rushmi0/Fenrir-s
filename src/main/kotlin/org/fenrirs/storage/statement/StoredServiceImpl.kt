@@ -11,6 +11,9 @@ import org.fenrirs.relay.models.Event
 import org.fenrirs.relay.models.FiltersX
 import org.fenrirs.storage.DatabaseFactory.queryTask
 import org.fenrirs.storage.NostrRelayConfig
+import org.fenrirs.storage.service.DailyCount
+import org.fenrirs.storage.service.EventStats
+import org.fenrirs.storage.service.KindCount
 import org.fenrirs.storage.service.SaveOutcome
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 
@@ -26,6 +29,7 @@ import org.fenrirs.storage.table.EVENT_TAGS
 
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.jdbc.*
+import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 
 
 
@@ -166,6 +170,50 @@ class StoredServiceImpl @Inject constructor(
             }.getOrElse { e ->
                 LOG.error("[DATABASE] Failed to filter events", e)
                 null
+            }
+        }
+    }
+
+
+    override suspend fun eventStats(sinceDays: Int): EventStats {
+        return queryTask {
+            runCatching {
+
+                // ทุกคำสั่งด้านล่างเป็น raw SQL แทน Exposed DSL เพื่อให้ทำงานเหมือนกันทั้งบน H2 และ
+                // PostgreSQL โดยไม่ต้องพึ่งฟังก์ชัน date/time เฉพาะของแต่ละฐานข้อมูล (ตามแนวทางเดียวกับ
+                // DatabaseFactory.activeDatabaseSizeBytes) - ค่าคงที่ทั้งหมดคำนวณฝั่ง Kotlin ไม่ใช่จาก
+                // input ของผู้ใช้ จึงไม่มีความเสี่ยง SQL injection แม้จะ interpolate ตรงๆ
+
+                val tx = TransactionManager.current()
+
+                val total = tx.exec("SELECT COUNT(*) FROM event") { rs -> if (rs.next()) rs.getLong(1) else 0L } ?: 0L
+
+                val authors = tx.exec("SELECT COUNT(DISTINCT pubkey) FROM event") { rs ->
+                    if (rs.next()) rs.getLong(1) else 0L
+                } ?: 0L
+
+                val oldest = tx.exec("SELECT MIN(created_at) FROM event") { rs ->
+                    if (rs.next()) rs.getLong(1).takeUnless { rs.wasNull() } else null
+                }
+
+                val kindCounts = mutableListOf<KindCount>()
+                tx.exec("SELECT kind, COUNT(*) AS cnt FROM event GROUP BY kind ORDER BY cnt DESC") { rs ->
+                    while (rs.next()) kindCounts += KindCount(rs.getInt(1), rs.getLong(2))
+                }
+
+                val sinceEpoch = System.currentTimeMillis() / 1000 - sinceDays.coerceAtLeast(1).toLong() * 86_400
+                val dailyCounts = mutableListOf<DailyCount>()
+                tx.exec(
+                    "SELECT (created_at / 86400) AS bucket, COUNT(*) AS cnt FROM event " +
+                        "WHERE created_at >= $sinceEpoch GROUP BY (created_at / 86400) ORDER BY bucket"
+                ) { rs ->
+                    while (rs.next()) dailyCounts += DailyCount(rs.getLong(1) * 86_400, rs.getLong(2))
+                }
+
+                EventStats(total, authors, oldest, kindCounts, dailyCounts)
+            }.getOrElse { e ->
+                LOG.error("[DATABASE] Failed to compute event stats", e)
+                EventStats(0, 0, null, emptyList(), emptyList())
             }
         }
     }

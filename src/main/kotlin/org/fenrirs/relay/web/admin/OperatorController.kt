@@ -15,6 +15,7 @@ import io.micronaut.serde.annotation.Serdeable
 
 import org.fenrirs.relay.core.policy.AdminSessionStore
 import org.fenrirs.relay.web.AdminAuthFilter
+import org.fenrirs.storage.statement.AccountPermissionStoreImpl
 import org.fenrirs.storage.statement.OperatorStoreImpl
 
 @Serdeable
@@ -76,6 +77,7 @@ class OperatorController(private val sessions: AdminSessionStore) {
         }
 
         OperatorStoreImpl.remove(pubkey)
+        AccountPermissionStoreImpl.removeAllForAccount(pubkey)
         sessions.revokeAll(pubkey)
         return HttpResponse.noContent<Unit>()
     }

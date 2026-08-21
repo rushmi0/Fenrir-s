@@ -7,6 +7,8 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 import org.fenrirs.storage.table.KV_STORE
 import org.fenrirs.storage.table.OPERATOR
+import org.fenrirs.storage.table.ROLE_PERMISSION
+import org.fenrirs.storage.table.ACCOUNT_PERMISSION_OVERRIDE
 
 import org.fenrirs.storage.table.EVENT
 import org.fenrirs.storage.table.EVENT_TAGS
@@ -14,6 +16,7 @@ import org.fenrirs.utils.ExecTask.asyncTask
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 
 import org.fenrirs.storage.statement.KeyValueStoreImpl
+import org.fenrirs.relay.core.policy.PermissionSeeder
 
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
@@ -57,9 +60,12 @@ object DatabaseFactory {
         transaction(configDb) {
             SchemaUtils.create(KV_STORE)
             SchemaUtils.create(OPERATOR)
+            SchemaUtils.create(ROLE_PERMISSION)
+            SchemaUtils.create(ACCOUNT_PERMISSION_OVERRIDE)
         }
 
         KeyValueStoreImpl.sync(ENV.envDefaults)
+        PermissionSeeder.seed()
 
         secondaryDb = Database.connect(businessH2Hikari())
         transaction(secondaryDb) {

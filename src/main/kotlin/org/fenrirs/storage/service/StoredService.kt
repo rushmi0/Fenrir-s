@@ -5,6 +5,19 @@ import org.fenrirs.relay.models.FiltersX
 
 enum class SaveOutcome { SAVED, DUPLICATE, FAILED }
 
+data class KindCount(val kind: Int, val count: Long)
+
+/** One bucket in the daily-activity trend; [dayStart] is the bucket's start as a Unix second. */
+data class DailyCount(val dayStart: Long, val count: Long)
+
+data class EventStats(
+    val totalEvents: Long,
+    val totalAuthors: Long,
+    val oldestEventAt: Long?,
+    val kindCounts: List<KindCount>,
+    val dailyCounts: List<DailyCount>
+)
+
 interface StoredService {
 
     /**
@@ -43,6 +56,11 @@ interface StoredService {
      */
     suspend fun filterList(filters: FiltersX): List<Event>?
 
-
+    /**
+     * eventStats รวบรวมสถิติของตาราง EVENT สำหรับหน้า Dashboard ของแอดมิน
+     * @param sinceDays จำนวนวันย้อนหลังที่ต้องการนับ dailyCounts
+     * @return สรุปจำนวน event ทั้งหมด, จำนวนผู้เขียนที่ไม่ซ้ำกัน, event เก่าสุด, สัดส่วนตาม kind และแนวโน้มรายวัน
+     */
+    suspend fun eventStats(sinceDays: Int): EventStats
 
 }
