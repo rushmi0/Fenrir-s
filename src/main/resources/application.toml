@@ -10,8 +10,6 @@ enabled = true
 mapping = "/assets/**"
 paths = ["classpath:public/assets"]
 
-# Micronaut Serde defaults to NON_EMPTY, silently dropping blank-string fields from JSON responses
-# (e.g. an unset relay description). The Admin API's config DTOs need every field present so the
-# client can round-trip a full object back on save, so force ALWAYS project-wide.
+
 [micronaut.serde.serialization]
 inclusion = "ALWAYS"

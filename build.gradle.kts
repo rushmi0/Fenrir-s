@@ -144,16 +144,9 @@ tasks.shadowJar {
 val muslStatic = providers.gradleProperty("muslStatic")
     .map(String::toBoolean).getOrElse(false)
 
-// Cross-compile against the Android NDK's Bionic libc instead of glibc/musl, so the
-// resulting binary runs directly on Android/Termux via the OS's own dynamic linker.
-val androidTarget = providers.gradleProperty("androidTarget")
-    .map(String::toBoolean).getOrElse(false)
-
 val extraLibDir = providers.gradleProperty("extraLibDir").orNull
-
 val libcName: String? = if (currentOsType.name == OsName.LINUX) {
     when {
-        androidTarget -> "android"
         muslStatic -> "musl"
         else -> "glibc"
     }
@@ -170,12 +163,7 @@ graalvmNative {
                 buildArgs.add("--libc=musl")
                 buildArgs.add("-H:-CheckToolchain")
                 extraLibDir?.let { buildArgs.add("-H:CLibraryPath=$it") }
-            } else if (androidTarget) {
-                // CC (an NDK clang wrapper) is supplied via the environment; native-image's own
-                // toolchain probing only knows glibc/musl layouts, so skip it here.
-                buildArgs.add("-H:-CheckToolchain")
-                extraLibDir?.let { buildArgs.add("-H:CLibraryPath=$it") }
-            } else {
+            }  else {
                 buildArgs.add("-H:+StaticExecutableWithDynamicLibC")
             }
 
@@ -195,6 +183,12 @@ graalvmNative {
 }
 
 
+afterEvaluate {
+    val plainJarName = "${project.name}-${version}.jar"
+    graalvmNative.binaries.configureEach {
+        classpath.setFrom(classpath.files.filterNot { it.name == plainJarName })
+    }
+}
 
 
 micronaut {
