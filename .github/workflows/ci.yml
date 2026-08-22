@@ -243,3 +243,94 @@ jobs:
           name: Fenrir-s-native-musl-${{ matrix.name }}
           path: dist
           if-no-files-found: error
+
+
+  build-native-android:
+    name: Native Android (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: android-arm64
+            ndk_triple: aarch64-linux-android
+          - name: android-amd64
+            ndk_triple: x86_64-linux-android
+    env:
+      ANDROID_API: 24
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Fenrir-client/package-lock.json
+
+      - name: Install client dependencies
+        run: npm ci
+        working-directory: Fenrir-client
+
+      - name: Build client assets
+        shell: bash
+        run: |
+          npm run build --prefix Fenrir-client
+          rm -rf src/main/resources/public/assets
+          cp -r Fenrir-client/dist/. src/main/resources/public/
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          distribution: graalvm-community
+          java-version: 25
+          components: native-image
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: gradle
+
+      - uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r27c
+          local-cache: true
+
+      - name: Configure Android NDK toolchain
+        run: |
+          ndk_bin="${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin"
+          echo "NDK_BIN=$ndk_bin" >> "$GITHUB_ENV"
+          echo "CC=$ndk_bin/${{ matrix.ndk_triple }}${ANDROID_API}-clang" >> "$GITHUB_ENV"
+          echo "AR=$ndk_bin/llvm-ar" >> "$GITHUB_ENV"
+          echo "$ndk_bin" >> "$GITHUB_PATH"
+
+      - name: Build static zlib for Android
+        run: |
+          curl -fsSL https://zlib.net/zlib-1.3.1.tar.gz -o /tmp/zlib.tar.gz
+          mkdir -p /tmp/zlib
+          tar -xzf /tmp/zlib.tar.gz -C /tmp/zlib --strip-components=1
+          cd /tmp/zlib
+          ./configure --static --prefix=/tmp/android-sysroot-extra
+          make -j"$(nproc)"
+          make install
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build native image for Android
+        shell: bash
+        run: |
+          ./gradlew nativeOptimizedCompile \
+            -PandroidTarget=true \
+            -PandroidExtraLibDir=/tmp/android-sysroot-extra/lib \
+            -Dorg.gradle.java.home="$JAVA_HOME"
+
+      - name: Collect binary
+        shell: bash
+        run: |
+          mkdir -p dist
+          binary=$(find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*-relay-*' ! -name '*.txt')
+          cp "$binary" build/native/nativeOptimizedCompile/build-output.json dist/
+          find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*.so*' -exec cp -n {} dist/ \;
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Fenrir-s-native-${{ matrix.name }}
+          path: dist
+          if-no-files-found: error
