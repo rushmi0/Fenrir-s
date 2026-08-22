@@ -298,6 +298,20 @@ jobs:
           echo "AR=$ndk_bin/llvm-ar" >> "$GITHUB_ENV"
           echo "$ndk_bin" >> "$GITHUB_PATH"
 
+          # setup-ndk's zip extraction sometimes drops the unversioned `clang`/`clang++`
+          # symlinks (they normally point at a versioned binary like `clang-18`), which
+          # leaves the per-target wrapper scripts (e.g. aarch64-linux-android24-clang)
+          # pointing at a nonexistent `clang`. Regenerate them from the real binary if so.
+          for tool in clang clang++; do
+            if [ ! -x "$ndk_bin/$tool" ]; then
+              real=$(find "$ndk_bin" -maxdepth 1 -name "${tool}-[0-9]*" -type f | sort -V | tail -n1)
+              if [ -n "$real" ]; then
+                echo "Restoring missing $ndk_bin/$tool -> $real"
+                ln -sf "$(basename "$real")" "$ndk_bin/$tool"
+              fi
+            fi
+          done
+
           # Fail here with a clear compiler diagnostic instead of letting a broken
           # CC cascade into zlib's generic "Compiler error reporting is too harsh"
           # message a few steps down the line.
