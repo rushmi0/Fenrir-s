@@ -56,6 +56,15 @@ object FeatureRegistry {
             defaultGuestAllowed = false
         ),
         Feature(
+            id = "accounts",
+            name = "Accounts",
+            description = "Directory of relay users, sourced from kind-0 metadata events",
+            category = FeatureCategory.NAVIGATION,
+            alwaysAdminOnly = false,
+            defaultGeneralAllowed = false,
+            defaultGuestAllowed = false
+        ),
+        Feature(
             id = "stats",
             name = "Dashboard",
             description = "Event/kind distribution, daily activity, and relay vitals",

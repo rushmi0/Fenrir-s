@@ -22,6 +22,7 @@ import org.fenrirs.relay.core.pubsub.EventBus
 
 import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Live push channel for the admin Dashboard - real-time counterpart to [StatsController]'s
@@ -73,7 +74,7 @@ class AdminStatsSocket @Inject constructor(
             runCatching { statsService.assemble(SNAPSHOT_DAYS) }
                 .onSuccess { session.sendAsync(Json.encodeToString(SnapshotMessage(type = "snapshot", data = it))) }
                 .onFailure { e -> LOG.error("[DASHBOARD-WS] Failed to assemble snapshot", e) }
-            delay(SNAPSHOT_INTERVAL_MS)
+            delay(SNAPSHOT_INTERVAL_MS.milliseconds)
         }
     }
 

@@ -8,10 +8,7 @@ import org.fenrirs.relay.models.Event
 import org.fenrirs.relay.models.FiltersX
 import org.slf4j.LoggerFactory
 
-/**
- * ประเภทคำสั่งของ NIP-01 (และส่วนขยายอื่น ๆ) ที่ [PolicyController] รับผิดชอบตัดสินใจอนุญาต/ปฏิเสธ
- * เพิ่มคำสั่งใหม่ในอนาคตได้โดยเพิ่มค่าที่นี่ แล้วลงทะเบียน rule list ให้คำสั่งนั้นใน [PolicyController.evaluate]
- */
+
 enum class CommandType { EVENT, REQ, COUNT, CLOSE, AUTH }
 
 /**

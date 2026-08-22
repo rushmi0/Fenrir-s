@@ -18,8 +18,10 @@ import kotlinx.serialization.json.Json
 import org.fenrirs.relay.core.nip.nip01.VerifyEvent.verifyNip01
 import org.fenrirs.relay.core.nip.nip42.VerifyAuth
 import org.fenrirs.relay.core.policy.AdminSessionStore
+import org.fenrirs.relay.core.policy.PolicyConfig
 import org.fenrirs.relay.models.Event
 import org.fenrirs.relay.web.AdminAuthFilter
+import org.fenrirs.relay.web.admin.Role
 import org.fenrirs.storage.statement.OperatorStoreImpl
 
 import org.slf4j.Logger
@@ -43,7 +45,8 @@ data class LoginResponse(val token: String, val pubkey: String, val role: String
 class AuthController(
     private val challenges: LoginChallengeStore,
     private val verifyAuth: VerifyAuth,
-    private val sessions: AdminSessionStore
+    private val sessions: AdminSessionStore,
+    private val policyConfig: PolicyConfig
 ) {
 
     @Get("/challenge")
@@ -65,16 +68,27 @@ class AuthController(
         val (authValid, authWarning) = verifyAuth.verify(event, challengeTag)
         if (!authValid) return HttpResponse.badRequest(JsonError(authWarning))
 
-        val operator = OperatorStoreImpl.find(event.pubkey!!)
-        if (operator == null) {
-            LOG.warn("[ADMIN-AUTH] Login rejected, unknown operator pubkey={}", event.pubkey)
-            return HttpResponse.status<JsonError>(HttpStatus.FORBIDDEN)
-                .body(JsonError("pubkey is not a registered admin/operator"))
+        val pubkey = event.pubkey!!
+
+        // Operator row (the relay's own OWNER, or a legacy ADMIN/OPERATOR row granted before
+        // operator self-service was locked down) always wins if present; otherwise a pubkey on
+        // the auth whitelist logs in at General ("OPERATOR" is General's session-role string -
+        // see PermissionService.resolveSubject) without ever needing an operator row of its own.
+        // Anyone else - the default for every account - has no Admin Console session at all.
+        val operator = OperatorStoreImpl.find(pubkey)
+        val role = when {
+            operator != null -> operator.role
+            policyConfig.isGeneralWhitelisted(pubkey) -> Role.OPERATOR.name
+            else -> {
+                LOG.warn("[ADMIN-AUTH] Login rejected, pubkey={} is not an operator or on the auth whitelist", pubkey)
+                return HttpResponse.status<JsonError>(HttpStatus.FORBIDDEN)
+                    .body(JsonError("pubkey is not a registered operator and is not on the auth whitelist"))
+            }
         }
 
-        val token = sessions.issue(operator.pubkey, operator.role)
-        LOG.info("[ADMIN-AUTH] Login success pubkey={} role={}", operator.pubkey, operator.role)
-        return HttpResponse.ok(LoginResponse(token, operator.pubkey, operator.role))
+        val token = sessions.issue(pubkey, role)
+        LOG.info("[ADMIN-AUTH] Login success pubkey={} role={}", pubkey, role)
+        return HttpResponse.ok(LoginResponse(token, pubkey, role))
     }
 
     @Post("/logout")

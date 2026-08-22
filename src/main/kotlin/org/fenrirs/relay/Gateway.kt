@@ -8,8 +8,15 @@ import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
 
 import jakarta.inject.Inject
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ConcurrentHashMap
 
 import org.fenrirs.relay.core.nip.nip01.command.AUTH
 import org.fenrirs.relay.core.nip.nip01.command.EVENT
@@ -27,6 +34,7 @@ import org.fenrirs.storage.Authentication
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.time.Duration.Companion.milliseconds
 
 
 @ServerWebSocket("/")
@@ -46,6 +54,7 @@ class Gateway @Inject constructor(
         if (config.AUTH_ENABLED) {
             RelayResponse.AUTH(authentication.challengeFor(session)).toClient(session)
         }
+        startKeepalive(session)
     }
 
 
@@ -83,10 +92,27 @@ class Gateway @Inject constructor(
         dashboardBroadcaster.broadcastConnections(connections.closed())
         registry.unregisterSession(session.id)
         authentication.clearSession(session)
+        keepaliveJobs.remove(session.id)?.cancel()
     }
+
+
+    private fun startKeepalive(session: WebSocketSession) {
+        keepaliveJobs[session.id] = keepaliveScope.launch {
+            while (isActive && session.isOpen) {
+                delay(KEEPALIVE_INTERVAL_MS.milliseconds)
+                if (!session.isOpen) break
+                runCatching { session.sendPingAsync(EMPTY_PING_PAYLOAD) }
+            }
+        }
+    }
+
+    private val keepaliveScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val keepaliveJobs = ConcurrentHashMap<String, Job>()
 
     companion object {
         private val LOG: Logger = LoggerFactory.getLogger(Gateway::class.java)
+        private const val KEEPALIVE_INTERVAL_MS = 10_000L
+        private val EMPTY_PING_PAYLOAD = ByteArray(0)
     }
 
 }

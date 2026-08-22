@@ -11,7 +11,19 @@ import org.fenrirs.storage.NostrRelayConfig
 import org.fenrirs.storage.statement.OperatorStoreImpl
 
 @Serdeable
-data class SystemStatus(val state: String, val relayName: String)
+data class SystemStatus(val state: String, val relayName: String) {
+    companion object {
+        fun current(env: NostrRelayConfig): SystemStatus =
+            SystemStatus(if (OperatorStoreImpl.isEmpty()) "INITIAL_SETUP" else "READY", env.RELAY_NAME)
+    }
+}
+
+@Serdeable
+data class BackupSyncInfo(val enabled: Boolean, val relays: List<String>) {
+    companion object {
+        fun current(env: NostrRelayConfig): BackupSyncInfo = BackupSyncInfo(env.BACKUP_ENABLED, env.BACKUP_SYNC)
+    }
+}
 
 /**
  * Public, unauthenticated status endpoint - the Fenrir Client's Login Card reads this on load to
@@ -25,8 +37,15 @@ data class SystemStatus(val state: String, val relayName: String)
 class SystemStatusController(private val env: NostrRelayConfig) {
 
     @Get("/status")
-    fun status(): SystemStatus {
-        val state = if (OperatorStoreImpl.isEmpty()) "INITIAL_SETUP" else "READY"
-        return SystemStatus(state, env.RELAY_NAME)
-    }
+    fun status(): SystemStatus = SystemStatus.current(env)
+
+    /**
+     * The relay's own [NostrRelayConfig.BACKUP_SYNC] list (public relay URLs, nothing sensitive) -
+     * lets the client fall back to querying those relays directly (e.g. for the Accounts page's
+     * kind-0 directory) when this relay's own database has nothing to show. `enabled` mirrors
+     * [NostrRelayConfig.BACKUP_ENABLED] so a caller can skip the fallback entirely when the admin
+     * has turned sync off, even though the relay list itself always has defaults.
+     */
+    @Get("/backup-sync")
+    fun backupSync(): BackupSyncInfo = BackupSyncInfo.current(env)
 }

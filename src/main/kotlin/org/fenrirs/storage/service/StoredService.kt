@@ -10,13 +10,33 @@ data class KindCount(val kind: Int, val count: Long)
 /** One bucket in the daily-activity trend; [dayStart] is the bucket's start as a Unix second. */
 data class DailyCount(val dayStart: Long, val count: Long)
 
+/** Events carrying a given value of the informal (non-NIP-01) `client` tag several Nostr apps
+ * self-attribute their published events with - not every event has one, see [EventStats.totalEvents]
+ * for the untagged remainder. */
+data class ClientCount(val client: String, val count: Long)
+
 data class EventStats(
     val totalEvents: Long,
     val totalAuthors: Long,
+    /** Distinct pubkeys with a kind-0 (metadata/profile) event on this relay - "how many users",
+     * as opposed to [totalAuthors]'s "how many pubkeys have published anything at all". */
+    val totalUsers: Long,
+    val oldestEventAt: Long?,
+    val kindCounts: List<KindCount>,
+    val dailyCounts: List<DailyCount>,
+    val clientCounts: List<ClientCount>
+)
+
+/** Same shape as [EventStats] minus [EventStats.totalAuthors] - always 1 and meaningless when
+ * scoped to a single author (see [StoredService.eventStatsForAuthor]). */
+data class AuthorEventStats(
+    val totalEvents: Long,
     val oldestEventAt: Long?,
     val kindCounts: List<KindCount>,
     val dailyCounts: List<DailyCount>
 )
+
+data class ProfileEvent(val pubkeyHex: String, val createdAt: Long, val content: String)
 
 interface StoredService {
 
@@ -62,5 +82,15 @@ interface StoredService {
      * @return สรุปจำนวน event ทั้งหมด, จำนวนผู้เขียนที่ไม่ซ้ำกัน, event เก่าสุด, สัดส่วนตาม kind และแนวโน้มรายวัน
      */
     suspend fun eventStats(sinceDays: Int): EventStats
+
+    /**
+     * eventStatsForAuthor รวบรวมสถิติของ event ทั้งหมดจาก pubkey เดียว สำหรับแท็บ "Activity" ของ
+     * หน้า Accounts ในฝั่งแอดมิน - เหมือนกับ [eventStats] ทุกประการแต่กรองด้วย pubkey
+     * @param pubkeyHex hex pubkey ของ author ที่ต้องการดูสถิติ
+     * @param sinceDays จำนวนวันย้อนหลังที่ต้องการนับ dailyCounts
+     */
+    suspend fun eventStatsForAuthor(pubkeyHex: String, sinceDays: Int): AuthorEventStats
+
+    suspend fun latestProfileEvents(limit: Int): List<ProfileEvent>
 
 }

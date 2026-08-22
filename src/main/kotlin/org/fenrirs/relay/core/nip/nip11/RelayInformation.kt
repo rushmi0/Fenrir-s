@@ -1,66 +1,87 @@
 package org.fenrirs.relay.core.nip.nip11
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
-import io.micronaut.http.MediaType
 import io.micronaut.core.io.ResourceResolver
 import io.micronaut.core.io.scan.ClassPathResourceLoader
+import io.micronaut.http.MediaType
+import io.micronaut.serde.ObjectMapper
+import io.micronaut.serde.annotation.Serdeable
+
 import java.io.FileNotFoundException
 import org.fenrirs.storage.NostrRelayConfig
 
+@Serdeable
+data class RelayLimitation(
+    @JsonProperty("max_filters") val maxFilters: Int,
+    @JsonProperty("max_limit") val maxLimit: Int,
+    @JsonProperty("min_pow_difficulty") val minPowDifficulty: Int?,
+    @JsonProperty("max_message_length") val maxMessageLength: Int,
+    @JsonProperty("payment_required") val paymentRequired: Boolean,
+    @JsonProperty("auth_required") val authRequired: Boolean
+)
+
+@Serdeable
+data class RelayInfo(
+    val name: String,
+    val description: String,
+    val pubkey: String,
+    val contact: String,
+    @JsonProperty("supported_nips") val supportedNips: List<Int>,
+    val icon: String,
+    val software: String,
+    val version: String,
+    val limitation: RelayLimitation
+) {
+    companion object {
+        val SUPPORTED_NIPS = listOf(1, 2, 4, 9, 11, 13, 15, 28, 42, 45, 50)
+    }
+}
 
 @Singleton
 class RelayInformation @Inject constructor(
-    private val env: NostrRelayConfig
+    private val env: NostrRelayConfig,
+    private val objectMapper: ObjectMapper
 ) {
 
     fun loadRelayInfo(contentType: String): String = loadContent(contentType)
 
+    fun buildRelayInfo(): RelayInfo = RelayInfo(
+        name = env.RELAY_NAME,
+        description = env.RELAY_DESCRIPTION,
+        pubkey = env.RELAY_OWNER,
+        contact = env.RELAY_CONTACT,
+        supportedNips = RelayInfo.SUPPORTED_NIPS,
+        icon = "https://i.imgur.com/dwLPgio.png",
+        software = "https://github.com/rushmi0/Fenrir-s",
+        version = "2.0",
+        limitation = RelayLimitation(
+            maxFilters = env.MAX_FILTERS,
+            maxLimit = env.MAX_LIMIT,
+            minPowDifficulty = if (env.PROOF_OF_WORK_ENABLED) env.PROOF_OF_WORK_DIFFICULTY else null,
+            maxMessageLength = 524288,
+            paymentRequired = env.PAYMENT_REQ,
+            authRequired = env.AUTH_ENABLED
+        )
+    )
+
     private fun loadContent(contentType: String): String {
         return if (contentType == MediaType.APPLICATION_JSON) {
-            relayInfo()
+            objectMapper.writeValueAsString(buildRelayInfo())
         } else {
             renderIndexView("public/index.html")
         }
     }
 
-    private fun renderIndexView(path : String): String {
+    private fun renderIndexView(path: String): String {
         val resourceLoader: ClassPathResourceLoader =
             ResourceResolver().getLoader(ClassPathResourceLoader::class.java).get()
         val resource = resourceLoader.getResource("classpath:$path").orElseThrow {
             throw FileNotFoundException("File not found: $path")
         }
         return resource.openStream().bufferedReader().use { it.readText() }
-    }
-
-
-    private fun relayInfo(): String {
-        val minPowDifficultyField = if (env.PROOF_OF_WORK_ENABLED) {
-            "\"min_pow_difficulty\": ${env.PROOF_OF_WORK_DIFFICULTY},"
-        } else {
-            ""
-        }
-
-        return """
-        {
-          "name": "${env.RELAY_NAME}",
-          "description": "${env.RELAY_DESCRIPTION}",
-          "pubkey": "${env.RELAY_OWNER}",
-          "contact": "${env.RELAY_CONTACT}",
-          "supported_nips": [1,2,4,9,11,13,15,28,42,45,50],
-          "icon": "https://i.imgur.com/dwLPgio.png",
-          "software": "https://github.com/rushmi0/Fenrir-s",
-          "version": "2.0",
-          "limitation": {
-             "max_filters": ${env.MAX_FILTERS},
-             "max_limit": ${env.MAX_LIMIT},
-             $minPowDifficultyField
-             "max_message_length": 524288,
-             "payment_required": ${env.PAYMENT_REQ},
-             "auth_required": ${env.AUTH_ENABLED}
-          }
-        }
-    """.trimIndent()
     }
 }

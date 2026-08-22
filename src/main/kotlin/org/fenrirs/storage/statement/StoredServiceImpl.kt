@@ -11,9 +11,12 @@ import org.fenrirs.relay.models.Event
 import org.fenrirs.relay.models.FiltersX
 import org.fenrirs.storage.DatabaseFactory.queryTask
 import org.fenrirs.storage.NostrRelayConfig
+import org.fenrirs.storage.service.AuthorEventStats
+import org.fenrirs.storage.service.ClientCount
 import org.fenrirs.storage.service.DailyCount
 import org.fenrirs.storage.service.EventStats
 import org.fenrirs.storage.service.KindCount
+import org.fenrirs.storage.service.ProfileEvent
 import org.fenrirs.storage.service.SaveOutcome
 import org.jetbrains.exposed.v1.exceptions.ExposedSQLException
 
@@ -192,6 +195,10 @@ class StoredServiceImpl @Inject constructor(
                     if (rs.next()) rs.getLong(1) else 0L
                 } ?: 0L
 
+                val users = tx.exec("SELECT COUNT(DISTINCT pubkey) FROM event WHERE kind = 0") { rs ->
+                    if (rs.next()) rs.getLong(1) else 0L
+                } ?: 0L
+
                 val oldest = tx.exec("SELECT MIN(created_at) FROM event") { rs ->
                     if (rs.next()) rs.getLong(1).takeUnless { rs.wasNull() } else null
                 }
@@ -210,10 +217,90 @@ class StoredServiceImpl @Inject constructor(
                     while (rs.next()) dailyCounts += DailyCount(rs.getLong(1) * 86_400, rs.getLong(2))
                 }
 
-                EventStats(total, authors, oldest, kindCounts, dailyCounts)
+                val clientCounts = mutableListOf<ClientCount>()
+                tx.exec(
+                    "SELECT tag_value, COUNT(DISTINCT event_id) AS cnt FROM event_tags " +
+                        "WHERE tag_name = 'client' GROUP BY tag_value ORDER BY cnt DESC LIMIT 50"
+                ) { rs ->
+                    while (rs.next()) clientCounts += ClientCount(rs.getString(1), rs.getLong(2))
+                }
+
+                EventStats(total, authors, users, oldest, kindCounts, dailyCounts, clientCounts)
             }.getOrElse { e ->
                 LOG.error("[DATABASE] Failed to compute event stats", e)
-                EventStats(0, 0, null, emptyList(), emptyList())
+                EventStats(0, 0, 0, null, emptyList(), emptyList(), emptyList())
+            }
+        }
+    }
+
+
+    override suspend fun eventStatsForAuthor(pubkeyHex: String, sinceDays: Int): AuthorEventStats {
+        return queryTask {
+            runCatching {
+
+                // Same raw-SQL approach as eventStats (H2/PostgreSQL portability), but every
+                // statement here is filtered to one author. pubkeyHex is caller-supplied (unlike
+                // eventStats's pure-Kotlin day/limit constants), so unlike that function this binds
+                // it as a `?` parameter rather than interpolating it into the SQL string.
+                val pubkeyArg = PUBKEY.columnType to pubkeyHex
+
+                val tx = TransactionManager.current()
+
+                val total = tx.exec("SELECT COUNT(*) FROM event WHERE pubkey = ?", listOf(pubkeyArg)) { rs ->
+                    if (rs.next()) rs.getLong(1) else 0L
+                } ?: 0L
+
+                val oldest = tx.exec("SELECT MIN(created_at) FROM event WHERE pubkey = ?", listOf(pubkeyArg)) { rs ->
+                    if (rs.next()) rs.getLong(1).takeUnless { rs.wasNull() } else null
+                }
+
+                val kindCounts = mutableListOf<KindCount>()
+                tx.exec(
+                    "SELECT kind, COUNT(*) AS cnt FROM event WHERE pubkey = ? GROUP BY kind ORDER BY cnt DESC",
+                    listOf(pubkeyArg)
+                ) { rs ->
+                    while (rs.next()) kindCounts += KindCount(rs.getInt(1), rs.getLong(2))
+                }
+
+                val sinceEpoch = System.currentTimeMillis() / 1000 - sinceDays.coerceAtLeast(1).toLong() * 86_400
+                val dailyCounts = mutableListOf<DailyCount>()
+                tx.exec(
+                    "SELECT (created_at / 86400) AS bucket, COUNT(*) AS cnt FROM event " +
+                        "WHERE pubkey = ? AND created_at >= $sinceEpoch GROUP BY (created_at / 86400) ORDER BY bucket",
+                    listOf(pubkeyArg)
+                ) { rs ->
+                    while (rs.next()) dailyCounts += DailyCount(rs.getLong(1) * 86_400, rs.getLong(2))
+                }
+
+                AuthorEventStats(total, oldest, kindCounts, dailyCounts)
+            }.getOrElse { e ->
+                LOG.error("[DATABASE] Failed to compute per-author event stats", e)
+                AuthorEventStats(0, null, emptyList(), emptyList())
+            }
+        }
+    }
+
+
+    override suspend fun latestProfileEvents(limit: Int): List<ProfileEvent> {
+        return queryTask {
+            runCatching {
+                val boundedLimit = limit.coerceIn(1, 500)
+                val tx = TransactionManager.current()
+
+                val rows = mutableListOf<ProfileEvent>()
+                tx.exec(
+                    "SELECT pubkey, created_at, content FROM (" +
+                        "SELECT pubkey, created_at, content, " +
+                        "ROW_NUMBER() OVER (PARTITION BY pubkey ORDER BY created_at DESC) AS rn " +
+                        "FROM event WHERE kind = 0" +
+                        ") ranked WHERE rn = 1 ORDER BY created_at DESC LIMIT $boundedLimit"
+                ) { rs ->
+                    while (rs.next()) rows += ProfileEvent(rs.getString(1), rs.getLong(2), rs.getString(3))
+                }
+                rows
+            }.getOrElse { e ->
+                LOG.error("[DATABASE] Failed to load latest profile events", e)
+                emptyList()
             }
         }
     }

@@ -12,13 +12,13 @@ import io.micronaut.http.annotation.RequestAttribute
 import io.micronaut.http.hateoas.JsonError
 import io.micronaut.serde.annotation.Serdeable
 
+import org.fenrirs.relay.core.policy.EffectiveRole
 import org.fenrirs.relay.core.policy.FeatureRegistry
 import org.fenrirs.relay.core.policy.PermissionService
 import org.fenrirs.relay.web.AdminAuthFilter
 import org.fenrirs.storage.service.OverrideState
 import org.fenrirs.storage.service.PermissionRole
 import org.fenrirs.storage.statement.AccountPermissionStoreImpl
-import org.fenrirs.storage.statement.OperatorStoreImpl
 import org.fenrirs.storage.statement.RolePermissionStoreImpl
 
 @Serdeable
@@ -48,10 +48,11 @@ class AccountPermissionController(private val permissionService: PermissionServi
     ): HttpResponse<*> {
         if (!RoleGuard.canAccessConsole(role)) return RoleGuard.forbidden("general users cannot access the Admin Console")
 
-        val operator = OperatorStoreImpl.find(pubkey)
-            ?: return HttpResponse.notFound(JsonError("no such operator"))
+        val subject = permissionService.resolveByPubkey(pubkey)
+        if (subject.effectiveRole != EffectiveRole.GENERAL) {
+            return HttpResponse.notFound(JsonError("pubkey is not currently General-tier (not on the auth whitelist)"))
+        }
 
-        val subject = permissionService.resolveSubject(operator.role, pubkey)
         val overrides = AccountPermissionStoreImpl.allForAccount(pubkey)
 
         val rows = FeatureRegistry.all().map { feature ->
@@ -76,7 +77,9 @@ class AccountPermissionController(private val permissionService: PermissionServi
     ): HttpResponse<*> {
         if (!RoleGuard.canWrite(role)) return RoleGuard.forbidden()
 
-        OperatorStoreImpl.find(pubkey) ?: return HttpResponse.notFound(JsonError("no such operator"))
+        if (permissionService.resolveByPubkey(pubkey).effectiveRole != EffectiveRole.GENERAL) {
+            return HttpResponse.notFound(JsonError("pubkey is not currently General-tier (not on the auth whitelist)"))
+        }
 
         val updates: Map<String, OverrideState?> = body.overrides
             .filterKeys { FeatureRegistry.find(it) != null }

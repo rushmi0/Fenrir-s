@@ -4,9 +4,7 @@ import jakarta.inject.Inject
 import jakarta.inject.Singleton
 
 import org.fenrirs.relay.core.nip.nip13.ProofOfWork
-import org.fenrirs.storage.service.OperatorStore
 import org.fenrirs.storage.service.PassListProvider
-import org.fenrirs.storage.statement.OperatorStoreImpl
 
 
 
@@ -106,26 +104,20 @@ class ProofOfWorkRule @Inject constructor(
 
 /**
  * Backend-independent enforcement of the "feed" feature for REQ/COUNT: a WebSocket connection has
- * no bearer-token admin session, only whatever pubkey NIP-42 has proven for it (if any), so identity
- * here is resolved by looking that pubkey up in [OperatorStore] rather than reading a request
- * attribute. Anonymous connections (no proven pubkey) are Guest by definition. Delegates to the same
+ * no bearer-token admin session, only whatever pubkey NIP-42 has proven for it (if any), so
+ * identity here is resolved purely from that pubkey (operator row, else auth whitelist, else
+ * Guest - see [PermissionService.resolveByPubkey]) rather than reading a request attribute.
+ * Anonymous connections (no proven pubkey) are Guest by definition. Delegates to the same
  * [PermissionService] the REST admin endpoints use - one evaluation mechanism, not a parallel one.
  */
 @Singleton
-class FeatureAccessRule(
-    private val permissionService: PermissionService,
-    private val operators: OperatorStore
-) : PolicyRule {
-
-    // Same Kotlin-object-via-DI pitfall as PermissionService's secondary constructor - see there.
-    @Inject constructor(permissionService: PermissionService) : this(permissionService, OperatorStoreImpl)
+class FeatureAccessRule @Inject constructor(private val permissionService: PermissionService) : PolicyRule {
 
     override suspend fun evaluate(context: RuleContext): PolicyDecision? {
         if (context.command != CommandType.REQ && context.command != CommandType.COUNT) return null
 
         val pubkey = context.authenticatedPubkeys.firstOrNull()
-        val operatorRole = pubkey?.let { operators.find(it)?.role }
-        val subject = permissionService.resolveSubject(operatorRole, pubkey)
+        val subject = permissionService.resolveByPubkey(pubkey)
 
         return if (permissionService.canAccess(subject, "feed")) null
         else PolicyDecision.Deny("blocked: feed access is not permitted for this account")

@@ -6,6 +6,7 @@ import jakarta.inject.Singleton
 import kotlinx.serialization.Serializable
 
 import org.fenrirs.relay.core.RelayClock
+import org.fenrirs.relay.core.nip.nip11.RelayInfo
 import org.fenrirs.relay.core.pubsub.ConnectionTracker
 import org.fenrirs.storage.DatabaseFactory
 import org.fenrirs.storage.statement.OperatorStoreImpl
@@ -24,13 +25,19 @@ data class DailyCountDto(val dayStart: Long, val count: Long)
 
 @Serdeable
 @Serializable
+data class ClientCountDto(val client: String, val count: Long)
+
+@Serdeable
+@Serializable
 data class RelayStatsResponse(
     val totalEvents: Long,
     val totalAuthors: Long,
+    val totalUsers: Long,
     val totalOperators: Int,
     val oldestEventAt: Long?,
     val kindCounts: List<KindCountDto>,
     val dailyCounts: List<DailyCountDto>,
+    val clientCounts: List<ClientCountDto>,
     val databaseMode: String,
     val databaseSizeBytes: Long,
     val activeConnections: Int,
@@ -53,10 +60,12 @@ class StatsService @Inject constructor(
         return RelayStatsResponse(
             totalEvents = stats.totalEvents,
             totalAuthors = stats.totalAuthors,
+            totalUsers = stats.totalUsers,
             totalOperators = OperatorStoreImpl.all().size,
             oldestEventAt = stats.oldestEventAt,
             kindCounts = stats.kindCounts.map { KindCountDto(it.kind, it.count) },
             dailyCounts = stats.dailyCounts.map { DailyCountDto(it.dayStart, it.count) },
+            clientCounts = stats.clientCounts.map { ClientCountDto(it.client, it.count) },
             databaseMode = DatabaseFactory.activeDatabaseMode(),
             databaseSizeBytes = DatabaseFactory.activeDatabaseSizeBytes(),
             activeConnections = connections.current(),
@@ -66,7 +75,6 @@ class StatsService @Inject constructor(
     }
 
     companion object {
-        // Keep in sync with RelayInformation.relayInfo()'s NIP-11 "supported_nips" list.
-        private val SUPPORTED_NIPS = listOf(1, 2, 4, 9, 11, 13, 15, 28, 42, 45, 50)
+        private val SUPPORTED_NIPS = RelayInfo.SUPPORTED_NIPS
     }
 }

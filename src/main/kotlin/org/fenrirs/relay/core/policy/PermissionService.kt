@@ -5,46 +5,35 @@ import jakarta.inject.Singleton
 
 import org.fenrirs.relay.web.admin.Role
 import org.fenrirs.storage.service.AccountPermissionStore
+import org.fenrirs.storage.service.OperatorStore
 import org.fenrirs.storage.service.OverrideState
 import org.fenrirs.storage.service.PermissionRole
 import org.fenrirs.storage.service.RolePermissionStore
 import org.fenrirs.storage.statement.AccountPermissionStoreImpl
+import org.fenrirs.storage.statement.OperatorStoreImpl
 import org.fenrirs.storage.statement.RolePermissionStoreImpl
 
-/** The three product-level roles this whole system evaluates against - not to be confused with
- * [Role] (the underlying OPERATOR/ADMIN/OWNER auth tier), which this class translates from. */
+
 enum class EffectiveRole { ADMIN, GENERAL, GUEST }
 
-/**
- * @param pubkey non-null for GENERAL (and, incidentally, ADMIN); always null for GUEST, since a
- *   Guest by definition has no registered identity to look an override up against.
- */
 data class PermissionSubject(val effectiveRole: EffectiveRole, val pubkey: String?)
 
-/**
- * The single centralized permission-evaluation mechanism - every REST controller and the
- * WebSocket read path ([PolicyRules]'s `FeatureAccessRule`) must go through [canAccess] rather
- * than re-implementing role/override precedence locally.
- */
 @Singleton
 class PermissionService(
     private val rolePermissions: RolePermissionStore,
-    private val accountOverrides: AccountPermissionStore
+    private val accountOverrides: AccountPermissionStore,
+    private val operators: OperatorStore,
+    private val policyConfig: PolicyConfig
 ) {
 
-    // Micronaut can't construct a bean whose target is a Kotlin `object` (its synthesized
-    // constructor is JVM-private) when injected via an interface type - this codebase has always
-    // sidestepped that by referencing such singletons (OperatorStoreImpl, KeyValueStoreImpl, ...)
-    // directly rather than through DI. This secondary constructor is the one Micronaut actually
-    // uses (see @Inject below); the primary constructor above stays available for direct,
-    // container-free construction in tests with fake stores.
-    @Inject constructor() : this(RolePermissionStoreImpl, AccountPermissionStoreImpl)
+    // RolePermissionStoreImpl/AccountPermissionStoreImpl/OperatorStoreImpl are Kotlin `object`s,
+    // which Micronaut can't constructor-inject as their interface types - hardcoded here instead.
+    // PolicyConfig (backed by NostrRelayConfig, a real bean) is injected normally.
+    @Inject constructor(policyConfig: PolicyConfig) : this(
+        RolePermissionStoreImpl, AccountPermissionStoreImpl, OperatorStoreImpl, policyConfig
+    )
 
-    /**
-     * Translates the existing OPERATOR/ADMIN/OWNER auth-tier string (as already threaded through
-     * [org.fenrirs.relay.web.AdminAuthFilter]/[Role]) into the product-level role this system
-     * understands. `authRole = null` (no session / no registered operator) always resolves to GUEST.
-     */
+
     fun resolveSubject(authRole: String?, pubkey: String?): PermissionSubject {
         val role = Role.from(authRole)
         return when {
@@ -55,9 +44,24 @@ class PermissionService(
     }
 
     /**
-     * Evaluation priority: Admin always allowed -> account override (GENERAL only) -> role default
-     * -> deny. Unknown feature ids fail closed.
+     * Resolves a subject purely from a pubkey, with no pre-resolved role string to hand it (e.g. a
+     * NIP-42-authenticated WebSocket connection, or an Admin Console login attempt that hasn't
+     * been assigned a session yet) - checks the operator table first (the relay's own OWNER, plus
+     * any legacy ADMIN/OPERATOR rows granted before operator self-service was locked down), then
+     * falls back to the auth whitelist for General, then Guest. Single source of truth for "who
+     * counts as General now" so [org.fenrirs.relay.web.auth.AuthController]'s login gate and
+     * [FeatureAccessRule]'s WebSocket-side REQ/COUNT gate can never diverge on the answer.
      */
+    fun resolveByPubkey(pubkey: String?): PermissionSubject {
+        val operatorRole = pubkey?.let { operators.find(it)?.role }
+        if (operatorRole != null) return resolveSubject(operatorRole, pubkey)
+        if (pubkey != null && policyConfig.isGeneralWhitelisted(pubkey)) {
+            return PermissionSubject(EffectiveRole.GENERAL, pubkey)
+        }
+        return PermissionSubject(EffectiveRole.GUEST, null)
+    }
+
+
     fun canAccess(subject: PermissionSubject, featureId: String): Boolean {
         val feature = FeatureRegistry.find(featureId) ?: return false
 
