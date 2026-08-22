@@ -65,100 +65,100 @@ jobs:
           if-no-files-found: error
 
 
-  build-native:
-    name: Native (${{ matrix.name }})
-    runs-on: ${{ matrix.os }}
-    needs: test
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            name: linux-amd64
-          - os: ubuntu-24.04-arm
-            name: linux-arm64
-          - os: windows-latest
-            name: windows-amd64
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: Fenrir-client/package-lock.json
-
-      - name: Install client dependencies
-        run: npm ci
-        working-directory: Fenrir-client
-
-      - name: Build client assets
-        shell: bash
-        run: |
-          npm run build --prefix Fenrir-client
-          rm -rf src/main/resources/public/assets
-          cp -r Fenrir-client/dist/. src/main/resources/public/
-
-      - uses: graalvm/setup-graalvm@v1
-        with:
-          distribution: graalvm-community
-          java-version: 25
-          components: native-image
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          cache: gradle
-
-      - name: Set up MSVC (Windows)
-        if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Install static zlib (Linux)
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y zlib1g-dev
-
-      - uses: gradle/actions/setup-gradle@v4
-
-      - name: Build native image
-        shell: bash
-        run: ./gradlew nativeOptimizedCompile -Dorg.gradle.java.home="$JAVA_HOME"
-
-      - name: Collect binary and shared libraries (Linux)
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          mkdir -p dist
-          binary=$(find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*-relay-*' ! -name '*.txt')
-          cp "$binary" build/native/nativeOptimizedCompile/build-output.json dist/
-          ldd "$binary" | while read -r line; do
-            if [[ "$line" == *"=>"* ]]; then
-              path=$(awk '{print $3}' <<< "$line")
-            else
-              path=$(awk '{print $1}' <<< "$line")
-            fi
-            [[ "$path" == /* ]] && cp -n "$path" dist/ || true
-          done
-          # native-image also drops JNI libs (e.g. netty-transport-native-epoll) straight into
-          # its output dir; these aren't linked deps of the binary, so ldd won't see them.
-          find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*.so*' -exec cp -n {} dist/ \;
-
-      - name: Collect binary and runtime DLLs (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path dist | Out-Null
-          $binary = Get-ChildItem -Path build/native/nativeOptimizedCompile -Filter '*-relay-*.exe' | Select-Object -First 1
-          Copy-Item $binary.FullName, build/native/nativeOptimizedCompile/build-output.json -Destination dist
-          foreach ($dll in 'vcruntime140.dll','vcruntime140_1.dll','msvcp140.dll','ucrtbase.dll') {
-            $src = Join-Path $env:WINDIR "System32\$dll"
-            if (Test-Path $src) { Copy-Item $src -Destination dist -Force }
-          }
-          # native-image also drops JNI libs straight into its output dir; grab any of those too.
-          Get-ChildItem -Path build/native/nativeOptimizedCompile -Filter '*.dll' | Copy-Item -Destination dist -Force
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Fenrir-s-native-${{ matrix.name }}
-          path: dist
-          if-no-files-found: error
+#  build-native:
+#    name: Native (${{ matrix.name }})
+#    runs-on: ${{ matrix.os }}
+#    needs: test
+#    strategy:
+#      fail-fast: false
+#      matrix:
+#        include:
+#          - os: ubuntu-latest
+#            name: linux-amd64
+#          - os: ubuntu-24.04-arm
+#            name: linux-arm64
+#          - os: windows-latest
+#            name: windows-amd64
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - uses: actions/setup-node@v4
+#        with:
+#          node-version: 22
+#          cache: npm
+#          cache-dependency-path: Fenrir-client/package-lock.json
+#
+#      - name: Install client dependencies
+#        run: npm ci
+#        working-directory: Fenrir-client
+#
+#      - name: Build client assets
+#        shell: bash
+#        run: |
+#          npm run build --prefix Fenrir-client
+#          rm -rf src/main/resources/public/assets
+#          cp -r Fenrir-client/dist/. src/main/resources/public/
+#
+#      - uses: graalvm/setup-graalvm@v1
+#        with:
+#          distribution: graalvm-community
+#          java-version: 25
+#          components: native-image
+#          github-token: ${{ secrets.GITHUB_TOKEN }}
+#          cache: gradle
+#
+#      - name: Set up MSVC (Windows)
+#        if: runner.os == 'Windows'
+#        uses: ilammy/msvc-dev-cmd@v1
+#
+#      - name: Install static zlib (Linux)
+#        if: runner.os == 'Linux'
+#        run: sudo apt-get update && sudo apt-get install -y zlib1g-dev
+#
+#      - uses: gradle/actions/setup-gradle@v4
+#
+#      - name: Build native image
+#        shell: bash
+#        run: ./gradlew nativeOptimizedCompile -Dorg.gradle.java.home="$JAVA_HOME"
+#
+#      - name: Collect binary and shared libraries (Linux)
+#        if: runner.os == 'Linux'
+#        shell: bash
+#        run: |
+#          mkdir -p dist
+#          binary=$(find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*-relay-*' ! -name '*.txt')
+#          cp "$binary" build/native/nativeOptimizedCompile/build-output.json dist/
+#          ldd "$binary" | while read -r line; do
+#            if [[ "$line" == *"=>"* ]]; then
+#              path=$(awk '{print $3}' <<< "$line")
+#            else
+#              path=$(awk '{print $1}' <<< "$line")
+#            fi
+#            [[ "$path" == /* ]] && cp -n "$path" dist/ || true
+#          done
+#          # native-image also drops JNI libs (e.g. netty-transport-native-epoll) straight into
+#          # its output dir; these aren't linked deps of the binary, so ldd won't see them.
+#          find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*.so*' -exec cp -n {} dist/ \;
+#
+#      - name: Collect binary and runtime DLLs (Windows)
+#        if: runner.os == 'Windows'
+#        shell: pwsh
+#        run: |
+#          New-Item -ItemType Directory -Force -Path dist | Out-Null
+#          $binary = Get-ChildItem -Path build/native/nativeOptimizedCompile -Filter '*-relay-*.exe' | Select-Object -First 1
+#          Copy-Item $binary.FullName, build/native/nativeOptimizedCompile/build-output.json -Destination dist
+#          foreach ($dll in 'vcruntime140.dll','vcruntime140_1.dll','msvcp140.dll','ucrtbase.dll') {
+#            $src = Join-Path $env:WINDIR "System32\$dll"
+#            if (Test-Path $src) { Copy-Item $src -Destination dist -Force }
+#          }
+#          # native-image also drops JNI libs straight into its output dir; grab any of those too.
+#          Get-ChildItem -Path build/native/nativeOptimizedCompile -Filter '*.dll' | Copy-Item -Destination dist -Force
+#
+#      - uses: actions/upload-artifact@v4
+#        with:
+#          name: Fenrir-s-native-${{ matrix.name }}
+#          path: dist
+#          if-no-files-found: error
 
 
   build-native-musl:
@@ -232,8 +232,6 @@ jobs:
           mkdir -p dist
           binary=$(find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*-relay-*' ! -name '*.txt')
           cp "$binary" build/native/nativeOptimizedCompile/build-output.json dist/
-          # the musl binary is static, but JNI libs (e.g. netty-transport-native-epoll) are
-          # still dropped next to it as separate loadable .so files.
           find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*.so*' -exec cp -n {} dist/ \;
 
       - uses: actions/upload-artifact@v4
