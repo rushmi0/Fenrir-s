@@ -65,104 +65,8 @@ jobs:
           if-no-files-found: error
 
 
-#  build-native:
-#    name: Native (${{ matrix.name }})
-#    runs-on: ${{ matrix.os }}
-#    needs: test
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        include:
-#          - os: ubuntu-latest
-#            name: linux-amd64
-#          - os: ubuntu-24.04-arm
-#            name: linux-arm64
-#          - os: windows-latest
-#            name: windows-amd64
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - uses: actions/setup-node@v4
-#        with:
-#          node-version: 22
-#          cache: npm
-#          cache-dependency-path: Fenrir-client/package-lock.json
-#
-#      - name: Install client dependencies
-#        run: npm ci
-#        working-directory: Fenrir-client
-#
-#      - name: Build client assets
-#        shell: bash
-#        run: |
-#          npm run build --prefix Fenrir-client
-#          rm -rf src/main/resources/public/assets
-#          cp -r Fenrir-client/dist/. src/main/resources/public/
-#
-#      - uses: graalvm/setup-graalvm@v1
-#        with:
-#          distribution: graalvm-community
-#          java-version: 25
-#          components: native-image
-#          github-token: ${{ secrets.GITHUB_TOKEN }}
-#          cache: gradle
-#
-#      - name: Set up MSVC (Windows)
-#        if: runner.os == 'Windows'
-#        uses: ilammy/msvc-dev-cmd@v1
-#
-#      - name: Install static zlib (Linux)
-#        if: runner.os == 'Linux'
-#        run: sudo apt-get update && sudo apt-get install -y zlib1g-dev
-#
-#      - uses: gradle/actions/setup-gradle@v4
-#
-#      - name: Build native image
-#        shell: bash
-#        run: ./gradlew nativeOptimizedCompile -Dorg.gradle.java.home="$JAVA_HOME"
-#
-#      - name: Collect binary and shared libraries (Linux)
-#        if: runner.os == 'Linux'
-#        shell: bash
-#        run: |
-#          mkdir -p dist
-#          binary=$(find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*-relay-*' ! -name '*.txt')
-#          cp "$binary" build/native/nativeOptimizedCompile/build-output.json dist/
-#          ldd "$binary" | while read -r line; do
-#            if [[ "$line" == *"=>"* ]]; then
-#              path=$(awk '{print $3}' <<< "$line")
-#            else
-#              path=$(awk '{print $1}' <<< "$line")
-#            fi
-#            [[ "$path" == /* ]] && cp -n "$path" dist/ || true
-#          done
-#          # native-image also drops JNI libs (e.g. netty-transport-native-epoll) straight into
-#          # its output dir; these aren't linked deps of the binary, so ldd won't see them.
-#          find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*.so*' -exec cp -n {} dist/ \;
-#
-#      - name: Collect binary and runtime DLLs (Windows)
-#        if: runner.os == 'Windows'
-#        shell: pwsh
-#        run: |
-#          New-Item -ItemType Directory -Force -Path dist | Out-Null
-#          $binary = Get-ChildItem -Path build/native/nativeOptimizedCompile -Filter '*-relay-*.exe' | Select-Object -First 1
-#          Copy-Item $binary.FullName, build/native/nativeOptimizedCompile/build-output.json -Destination dist
-#          foreach ($dll in 'vcruntime140.dll','vcruntime140_1.dll','msvcp140.dll','ucrtbase.dll') {
-#            $src = Join-Path $env:WINDIR "System32\$dll"
-#            if (Test-Path $src) { Copy-Item $src -Destination dist -Force }
-#          }
-#          # native-image also drops JNI libs straight into its output dir; grab any of those too.
-#          Get-ChildItem -Path build/native/nativeOptimizedCompile -Filter '*.dll' | Copy-Item -Destination dist -Force
-#
-#      - uses: actions/upload-artifact@v4
-#        with:
-#          name: Fenrir-s-native-${{ matrix.name }}
-#          path: dist
-#          if-no-files-found: error
-
-
-  build-native-musl:
-    name: Native musl (${{ matrix.name }})
+  build-native:
+    name: Native (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
     needs: test
     strategy:
@@ -171,11 +75,10 @@ jobs:
         include:
           - os: ubuntu-latest
             name: linux-amd64
-          # GraalVM native-image's `--static --libc=musl` is only supported on
-          # linux-amd64 - there's no musl static-linking support for aarch64
-          # (see https://github.com/oracle/graal/issues/10018), which is why
-          # this matrix leg was failing. Build arm64 via the mostly-static
-          # glibc path in `build-native` instead.
+          - os: ubuntu-24.04-arm
+            name: linux-arm64
+          - os: windows-latest
+            name: windows-amd64
     steps:
       - uses: actions/checkout@v4
 
@@ -200,6 +103,101 @@ jobs:
         with:
           distribution: graalvm-community
           java-version: 25
+          components: native-image
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: gradle
+
+      - name: Set up MSVC (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install static zlib (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y zlib1g-dev
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build native image
+        shell: bash
+        run: ./gradlew nativeOptimizedCompile -Dorg.gradle.java.home="$JAVA_HOME"
+
+      - name: Collect binary and shared libraries (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          mkdir -p dist
+          binary=$(find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*-relay-*' ! -name '*.txt')
+          cp "$binary" build/native/nativeOptimizedCompile/build-output.json dist/
+          ldd "$binary" | while read -r line; do
+            if [[ "$line" == *"=>"* ]]; then
+              path=$(awk '{print $3}' <<< "$line")
+            else
+              path=$(awk '{print $1}' <<< "$line")
+            fi
+            [[ "$path" == /* ]] && cp -n "$path" dist/ || true
+          done
+          # native-image also drops JNI libs (e.g. netty-transport-native-epoll) straight into
+          # its output dir; these aren't linked deps of the binary, so ldd won't see them.
+          find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*.so*' -exec cp -n {} dist/ \;
+
+      - name: Collect binary and runtime DLLs (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $binary = Get-ChildItem -Path build/native/nativeOptimizedCompile -Filter '*-relay-*.exe' | Select-Object -First 1
+          Copy-Item $binary.FullName, build/native/nativeOptimizedCompile/build-output.json -Destination dist
+          foreach ($dll in 'vcruntime140.dll','vcruntime140_1.dll','msvcp140.dll','ucrtbase.dll') {
+            $src = Join-Path $env:WINDIR "System32\$dll"
+            if (Test-Path $src) { Copy-Item $src -Destination dist -Force }
+          }
+          # native-image also drops JNI libs straight into its output dir; grab any of those too.
+          Get-ChildItem -Path build/native/nativeOptimizedCompile -Filter '*.dll' | Copy-Item -Destination dist -Force
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Fenrir-s-native-${{ matrix.name }}
+          path: dist
+          if-no-files-found: error
+
+
+  build-native-musl:
+    name: Native musl (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: linux-amd64
+#          - os: ubuntu-24.04-arm
+#            name: linux-arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Fenrir-client/package-lock.json
+
+      - name: Install client dependencies
+        run: npm ci
+        working-directory: Fenrir-client
+
+      - name: Build client assets
+        shell: bash
+        run: |
+          npm run build --prefix Fenrir-client
+          rm -rf src/main/resources/public/assets
+          cp -r Fenrir-client/dist/. src/main/resources/public/
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          distribution: graalvm-community
+          java-version: 25
+          components: native-image
           github-token: ${{ secrets.GITHUB_TOKEN }}
           cache: gradle
 
@@ -242,113 +240,3 @@ jobs:
           path: dist
           if-no-files-found: error
 
-
-  build-native-android:
-    name: Native Android (${{ matrix.name }})
-    runs-on: ubuntu-latest
-    needs: test
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: android-arm64
-            ndk_triple: aarch64-linux-android
-          - name: android-amd64
-            ndk_triple: x86_64-linux-android
-    env:
-      ANDROID_API: 24
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: Fenrir-client/package-lock.json
-
-      - name: Install client dependencies
-        run: npm ci
-        working-directory: Fenrir-client
-
-      - name: Build client assets
-        shell: bash
-        run: |
-          npm run build --prefix Fenrir-client
-          rm -rf src/main/resources/public/assets
-          cp -r Fenrir-client/dist/. src/main/resources/public/
-
-      - uses: graalvm/setup-graalvm@v1
-        with:
-          distribution: graalvm-community
-          java-version: 25
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          cache: gradle
-
-      - uses: nttld/setup-ndk@v1
-        id: setup-ndk
-        with:
-          ndk-version: r27c
-          local-cache: true
-
-      - name: Configure Android NDK toolchain
-        run: |
-          ndk_bin="${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin"
-          echo "NDK_BIN=$ndk_bin" >> "$GITHUB_ENV"
-          echo "CC=$ndk_bin/${{ matrix.ndk_triple }}${ANDROID_API}-clang" >> "$GITHUB_ENV"
-          echo "AR=$ndk_bin/llvm-ar" >> "$GITHUB_ENV"
-          echo "$ndk_bin" >> "$GITHUB_PATH"
-
-          # setup-ndk's zip extraction sometimes drops the unversioned `clang`/`clang++`
-          # symlinks (they normally point at a versioned binary like `clang-18`), which
-          # leaves the per-target wrapper scripts (e.g. aarch64-linux-android24-clang)
-          # pointing at a nonexistent `clang`. Regenerate them from the real binary if so.
-          for tool in clang clang++; do
-            if [ ! -x "$ndk_bin/$tool" ]; then
-              real=$(find "$ndk_bin" -maxdepth 1 -name "${tool}-[0-9]*" -type f | sort -V | tail -n1)
-              if [ -n "$real" ]; then
-                echo "Restoring missing $ndk_bin/$tool -> $real"
-                ln -sf "$(basename "$real")" "$ndk_bin/$tool"
-              fi
-            fi
-          done
-
-          # Fail here with a clear compiler diagnostic instead of letting a broken
-          # CC cascade into zlib's generic "Compiler error reporting is too harsh"
-          # message a few steps down the line.
-          echo "int main(void) { return 0; }" > /tmp/ndk-cc-check.c
-          "$ndk_bin/${{ matrix.ndk_triple }}${ANDROID_API}-clang" --version
-          "$ndk_bin/${{ matrix.ndk_triple }}${ANDROID_API}-clang" -c /tmp/ndk-cc-check.c -o /tmp/ndk-cc-check.o
-
-      - name: Build static zlib for Android
-        run: |
-          curl -fsSL https://zlib.net/fossils/zlib-1.3.1.tar.gz -o /tmp/zlib.tar.gz
-          mkdir -p /tmp/zlib
-          tar -xzf /tmp/zlib.tar.gz -C /tmp/zlib --strip-components=1
-          cd /tmp/zlib
-          CC="$CC" ./configure --static --prefix=/tmp/android-sysroot-extra
-          make -j"$(nproc)"
-          make install
-
-      - uses: gradle/actions/setup-gradle@v4
-
-      - name: Build native image for Android
-        shell: bash
-        run: |
-          ./gradlew nativeOptimizedCompile \
-            -PandroidTarget=true \
-            -PextraLibDir=/tmp/android-sysroot-extra/lib \
-            -Dorg.gradle.java.home="$JAVA_HOME"
-
-      - name: Collect binary
-        shell: bash
-        run: |
-          mkdir -p dist
-          binary=$(find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*-relay-*' ! -name '*.txt')
-          cp "$binary" build/native/nativeOptimizedCompile/build-output.json dist/
-          find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*.so*' -exec cp -n {} dist/ \;
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Fenrir-s-native-${{ matrix.name }}
-          path: dist
-          if-no-files-found: error
