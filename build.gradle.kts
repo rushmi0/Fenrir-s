@@ -178,18 +178,20 @@ graalvmNative {
                 vendor.set(JvmVendorSpec.GRAAL_VM)
             })
             verbose.set(true)
+
+            val plainJarFile = layout.buildDirectory.file("libs/${project.name}-${version}.jar").get().asFile
+            excludeConfig.put(plainJarFile, listOf("^/application\\.toml$"))
         }
     }
 }
 
-
+/*
 afterEvaluate {
     val plainJarName = "${project.name}-${version}.jar"
     graalvmNative.binaries.configureEach {
         classpath.setFrom(classpath.files.filterNot { it.name == plainJarName })
     }
-}
-
+}*/
 
 micronaut {
     runtime("netty")
