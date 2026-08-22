@@ -18,9 +18,6 @@ class SystemPreload(
 
     override fun onApplicationEvent(event: StartupEvent) {
         DatabaseFactory.ENV = config
-        // KeyValueStoreImpl.sync(config.envDefaults) now runs inside initialize() itself, right
-        // after configDb connects and before the business/primary pools are built - those pools
-        // read connection/pool settings from the KV store too, so the seed has to happen first.
         DatabaseFactory.initialize()
 
         SetupTokenIssuer.issueIfNeeded()

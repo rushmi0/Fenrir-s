@@ -91,7 +91,7 @@ class AdminStatsSocket @Inject constructor(
         }
         try {
             while (session.isOpen) {
-                delay(DELTA_FLUSH_MS)
+                delay(DELTA_FLUSH_MS.milliseconds)
                 if (buffer.isEmpty()) continue
                 val kinds = buffer.map { (kind, count) -> KindCountDto(kind, count) }
                 buffer.clear()

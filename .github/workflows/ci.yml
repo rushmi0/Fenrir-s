@@ -43,12 +43,24 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - uses: extractions/setup-just@v3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Fenrir-client/package-lock.json
+
+      - name: Install client dependencies
+        run: npm ci
+        working-directory: Fenrir-client
+
       - name: Build shadow jar
-        run: ./gradlew shadowJar -Dorg.gradle.java.home="$JAVA_HOME"
+        run: just build-client build-jvm
 
       - uses: actions/upload-artifact@v4
         with:
-          name: fenrir-jvm-jar
+          name: Fenrir-s-jvm-jar
           path: build/libs/*-jvm.jar
           if-no-files-found: error
 
@@ -70,6 +82,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: extractions/setup-just@v3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Fenrir-client/package-lock.json
+
+      - name: Install client dependencies
+        run: npm ci
+        working-directory: Fenrir-client
+
       - uses: graalvm/setup-graalvm@v1
         with:
           distribution: graalvm-community
@@ -90,13 +114,38 @@ jobs:
 
       - name: Build native image
         shell: bash
-        run: ./gradlew nativeOptimizedCompile -Dorg.gradle.java.home="$JAVA_HOME"
+        run: just build-native
+
+      - name: Collect binary and shared libraries (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          mkdir -p dist
+          binary=$(find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*-relay-*' ! -name '*.txt')
+          cp "$binary" build/native/nativeOptimizedCompile/build-output.json dist/
+          ldd "$binary" | while read -r line; do
+            if [[ "$line" == *"=>"* ]]; then
+              path=$(awk '{print $3}' <<< "$line")
+            else
+              path=$(awk '{print $1}' <<< "$line")
+            fi
+            [[ "$path" == /* ]] && cp -n "$path" dist/ || true
+          done
+
+      - name: Collect binary and runtime DLLs (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          $binary = Get-ChildItem -Path build/native/nativeOptimizedCompile -Filter '*-relay-*.exe' | Select-Object -First 1
+          Copy-Item $binary.FullName, build/native/nativeOptimizedCompile/build-output.json -Destination dist
+          foreach ($dll in 'vcruntime140.dll','vcruntime140_1.dll','msvcp140.dll','ucrtbase.dll') {
+            $src = Join-Path $env:WINDIR "System32\$dll"
+            if (Test-Path $src) { Copy-Item $src -Destination dist -Force }
+          }
 
       - uses: actions/upload-artifact@v4
         with:
-          name: fenrir-native-${{ matrix.name }}
-          path: |
-            build/native/nativeOptimizedCompile/*-relay-*
-            build/native/nativeOptimizedCompile/build-output.json
-            !build/native/nativeOptimizedCompile/*.txt
+          name: Fenrir-s-native-${{ matrix.name }}
+          path: dist
           if-no-files-found: error

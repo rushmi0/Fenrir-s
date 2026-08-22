@@ -60,20 +60,13 @@ class NostrRelayConfig : PolicyConfig {
         "DB_PG_TRANSACTION_ISOLATION" to (prop.getProperty("DB_PG_TRANSACTION_ISOLATION") ?: "TRANSACTION_REPEATABLE_READ")
     )
 
-
-    // Database settings - เก็บใน KV_STORE (relay-sys H2) เหมือนค่าอื่น ๆ ทั้งหมด ไม่ผูกกับ .env อีกต่อไป
-    // (ยกเว้น seed ค่าเริ่มต้นครั้งแรกผ่าน envDefaults ด้านบน) - แก้ผ่าน Admin API ได้ มีผลตอน restart ถัดไป
-    val DATABASE_URL: String get() = KeyValueStoreImpl.get("DATABASE_URL") ?: ""
-    val DATABASE_NAME: String get() = KeyValueStoreImpl.get("DATABASE_NAME") ?: ""
-    val DATABASE_USERNAME: String get() = KeyValueStoreImpl.get("DATABASE_USERNAME") ?: ""
-    val DATABASE_PASSWORD: String get() = KeyValueStoreImpl.get("DATABASE_PASSWORD") ?: ""
+    val DATABASE_URL: String get() = KeyValueStoreImpl.get("DATABASE_URL") ?: "postgresql://localhost:5432"
+    val DATABASE_NAME: String get() = KeyValueStoreImpl.get("DATABASE_NAME") ?: "nostr"
+    val DATABASE_USERNAME: String get() = KeyValueStoreImpl.get("DATABASE_USERNAME") ?: "lnwza007"
+    val DATABASE_PASSWORD: String get() = KeyValueStoreImpl.get("DATABASE_PASSWORD") ?: "Sql@min456RTYfgh"
     val PRIMARY_DATABASE_ENABLED: Boolean get() = KeyValueStoreImpl.get("PRIMARY_DATABASE_ENABLED")?.toBoolean() ?: false
 
-    // H2 business-mode (relay-biz, MODE=PostgreSQL) pool settings - kept below the original
-    // server-sized default (20) since this is a phone with few cores, but with headroom for
-    // filterList's queryTask/asyncTask, which allows up to 32 concurrent virtual-thread tasks:
-    // an 8-connection cap measurably starved that under heavy REQ churn (HikariCP's leak detector
-    // firing on connections held >30s while queued for a free slot, not actually stuck).
+
     val DB_H2_MIN_IDLE: Int get() = KeyValueStoreImpl.get("DB_H2_MIN_IDLE")?.toIntOrNull() ?: 1
     val DB_H2_MAX_POOL_SIZE: Int get() = KeyValueStoreImpl.get("DB_H2_MAX_POOL_SIZE")?.toIntOrNull() ?: 12
     val DB_H2_LEAK_DETECTION_THRESHOLD: Int
