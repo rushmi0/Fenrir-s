@@ -171,10 +171,8 @@ jobs:
         include:
           - os: ubuntu-latest
             name: linux-amd64
-            musl_target: x86_64-linux-musl
           - os: ubuntu-24.04-arm
             name: linux-arm64
-            musl_target: aarch64-linux-musl
     steps:
       - uses: actions/checkout@v4
 
@@ -204,13 +202,7 @@ jobs:
           cache: gradle
 
       - name: Install musl toolchain
-        run: |
-          curl -fsSL "https://musl.cc/${{ matrix.musl_target }}-native.tgz" -o /tmp/musl-toolchain.tgz
-          mkdir -p /tmp/musl-toolchain
-          tar -xzf /tmp/musl-toolchain.tgz -C /tmp/musl-toolchain --strip-components=1
-          echo "TOOLCHAIN_DIR=/tmp/musl-toolchain" >> "$GITHUB_ENV"
-          echo "CC=/tmp/musl-toolchain/bin/${{ matrix.musl_target }}-gcc" >> "$GITHUB_ENV"
-          echo "/tmp/musl-toolchain/bin" >> "$GITHUB_PATH"
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
 
       - name: Build static zlib for musl
         run: |
@@ -218,7 +210,7 @@ jobs:
           mkdir -p /tmp/zlib
           tar -xzf /tmp/zlib.tar.gz -C /tmp/zlib --strip-components=1
           cd /tmp/zlib
-          ./configure --static --prefix="$TOOLCHAIN_DIR"
+          CC=musl-gcc ./configure --static --prefix=/tmp/musl-extra
           make -j"$(nproc)"
           make install
 
@@ -226,7 +218,13 @@ jobs:
 
       - name: Build musl-static native image
         shell: bash
-        run: ./gradlew nativeOptimizedCompile -PmuslStatic=true -Dorg.gradle.java.home="$JAVA_HOME"
+        run: |
+          ./gradlew nativeOptimizedCompile \
+            -PmuslStatic=true \
+            -PextraLibDir=/tmp/musl-extra/lib \
+            -Dorg.gradle.java.home="$JAVA_HOME"
+        env:
+          CC: musl-gcc
 
       - name: Collect binary
         shell: bash
@@ -318,7 +316,7 @@ jobs:
         run: |
           ./gradlew nativeOptimizedCompile \
             -PandroidTarget=true \
-            -PandroidExtraLibDir=/tmp/android-sysroot-extra/lib \
+            -PextraLibDir=/tmp/android-sysroot-extra/lib \
             -Dorg.gradle.java.home="$JAVA_HOME"
 
       - name: Collect binary
