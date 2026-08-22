@@ -19,3 +19,4 @@ local.properties
 Fenrir-client/node_modules
 Fenrir-client/dist
 .kotlin
+gradle.properties
