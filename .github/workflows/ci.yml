@@ -45,15 +45,15 @@ jobs:
 
       - uses: extractions/setup-just@v3
 
-#      - uses: actions/setup-node@v4
-#        with:
-#          node-version: 22
-#          cache: npm
-#          cache-dependency-path: Fenrir-client/package-lock.json
-#
-#      - name: Install client dependencies
-#        run: npm ci
-#        working-directory: Fenrir-client
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Fenrir-client/package-lock.json
+
+      - name: Install client dependencies
+        run: npm ci
+        working-directory: Fenrir-client
 
       - name: Build shadow jar
         run: just build-client build-jvm
