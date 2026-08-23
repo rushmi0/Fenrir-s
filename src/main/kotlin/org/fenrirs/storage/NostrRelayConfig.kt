@@ -70,9 +70,7 @@ class NostrRelayConfig : PolicyConfig {
     val DB_PG_TRANSACTION_ISOLATION: String
         get() = KeyValueStoreImpl.get("DB_PG_TRANSACTION_ISOLATION") ?: "TRANSACTION_REPEATABLE_READ"
 
-    // Relay info
-    // ค่าด้านล่างนี้อ่านจาก KeyValueStoreImpl สด ๆ ทุกครั้งที่เข้าถึง (ไม่ใช้ `by lazy`) เพราะแอดมินแก้ค่าผ่าน
-    // ConfigController/SecurityPolicyController ได้ตลอดเวลาที่ relay รันอยู่ - ต้องเห็นผลทันทีโดยไม่ต้อง restart
+
     override val RELAY_OWNER: String
         get() {
             val relayNpub = KeyValueStoreImpl.get("NPUB")
@@ -83,7 +81,6 @@ class NostrRelayConfig : PolicyConfig {
     val RELAY_NAME: String get() = KeyValueStoreImpl.get("NAME") ?: ""
     val RELAY_DESCRIPTION: String get() = KeyValueStoreImpl.get("DESCRIPTION") ?: ""
     val RELAY_CONTACT: String get() = KeyValueStoreImpl.get("CONTACT") ?: ""
-    // ที่อยู่ของ relay นี้เอง (เช่น wss://relay.example.com/) ใช้ตรวจสอบ "relay" tag ใน NIP-42 AUTH event
     val RELAY_URL: String get() = KeyValueStoreImpl.get("RELAY_URL") ?: ""
 
     // Policy settings
@@ -99,7 +96,6 @@ class NostrRelayConfig : PolicyConfig {
     val MAX_LIMIT: Int get() = KeyValueStoreImpl.get("MAX_LIMIT")?.toIntOrNull() ?: 500
     val PAYMENT_REQ: Boolean = false
 
-    // ต้องยืนยันตัวตนตาม NIP-42 ก่อนถึงจะ REQ/COUNT/EVENT ได้หรือไม่ - บังคับใช้จริงใน AuthenticationRule (policy package)
     override val AUTH_ENABLED: Boolean get() = KeyValueStoreImpl.get("AUTH_ENABLED")?.toBoolean() ?: false
 
 

@@ -140,11 +140,11 @@ jobs:
           # its output dir; these aren't linked deps of the binary, so ldd won't see them.
           find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*.so*' -exec cp -n {} dist/ \;
 
-      - name: Add Termux launcher (linux-arm64)
+      - name: Add Termux scripts (linux-arm64)
         if: matrix.name == 'linux-arm64'
         run: |
-          cp run_app.sh dist/
-          chmod +x dist/run_app.sh
+          cp termux/*.sh dist/
+          chmod +x dist/*.sh
 
       - name: Collect binary and runtime DLLs (Windows)
         if: runner.os == 'Windows'
