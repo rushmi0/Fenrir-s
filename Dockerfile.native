@@ -1,9 +1,22 @@
+FROM node:22-slim AS client-build
+WORKDIR /client
+
+COPY Fenrir-client/package.json Fenrir-client/package-lock.json ./
+RUN npm i
+
+COPY Fenrir-client ./
+RUN npm run build
+
+
 FROM ghcr.io/graalvm/graalvm-community:25.0.2 AS build
 WORKDIR /builder
 
 COPY gradlew build.gradle.kts settings.gradle.kts gradle.properties ./
 COPY src ./src
 COPY gradle ./gradle
+
+RUN rm -rf src/main/resources/public/assets
+COPY --from=client-build /client/dist/. ./src/main/resources/public/
 
 RUN sed -i 's/\r$//' gradlew
 RUN chmod +x ./gradlew
