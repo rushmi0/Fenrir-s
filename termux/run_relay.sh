@@ -6,17 +6,10 @@ DISTRO="ubuntu"
 APP_USER="nostr"
 CONTAINER_APP_DIR="/opt/fenrir-s"
 
-BINARY="$(
-    find "${CONTAINER_APP_DIR}" \
-        -maxdepth 1 \
-        -name 'Fenrir-s-relay-*-linux-arm64-glibc' \
-        -type f \
-        -printf '%f\n' \
-        | head -1
-)"
+echo "[run] Checking relay environment..."
 
-if [ -z "${BINARY}" ]; then
-    echo "[run] ERROR: Fenrir relay binary not found." >&2
+if ! command -v proot-distro >/dev/null 2>&1; then
+    echo "[run] ERROR: proot-distro is not installed." >&2
     echo "[run] Please run ./install.sh first." >&2
     exit 1
 fi
@@ -29,10 +22,30 @@ if ! proot-distro login "${DISTRO}" -- \
     exit 1
 fi
 
+BINARY="$(
+    proot-distro login "${DISTRO}" --user "${APP_USER}" -- \
+        bash -c "
+            find '${CONTAINER_APP_DIR}' \
+                -maxdepth 1 \
+                -name 'Fenrir-s-relay-*-linux-arm64-glibc' \
+                -type f \
+                -printf '%f\n' \
+                | head -1
+        "
+)"
+
+if [ -z "${BINARY}" ]; then
+    echo "[run] ERROR: Fenrir relay binary not found." >&2
+    echo "[run] Expected directory: ${CONTAINER_APP_DIR}" >&2
+    echo "[run] Please run ./install.sh first." >&2
+    exit 1
+fi
+
 if ! proot-distro login "${DISTRO}" --user "${APP_USER}" -- \
     test -x "${CONTAINER_APP_DIR}/${BINARY}"; then
 
-    echo "[run] ERROR: relay binary is not installed or executable." >&2
+    echo "[run] ERROR: relay binary is not executable." >&2
+    echo "[run] Binary: ${CONTAINER_APP_DIR}/${BINARY}" >&2
     echo "[run] Please run ./install.sh first." >&2
     exit 1
 fi
@@ -45,5 +58,8 @@ echo "[run] Binary    : ${BINARY}"
 exec proot-distro login "${DISTRO}" \
     --user "${APP_USER}" \
     -- \
-    bash -c "cd '${CONTAINER_APP_DIR}' && exec './${BINARY}' \"\$@\"" \
+    bash -c "
+        cd '${CONTAINER_APP_DIR}'
+        exec './${BINARY}' \"\$@\"
+    " \
     -- "$@"

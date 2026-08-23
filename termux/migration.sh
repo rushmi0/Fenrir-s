@@ -52,7 +52,6 @@ if proot-distro login "${DISTRO}" -- \
     echo "             ${CONTAINER_DATA_DIR}"
     echo
     echo "[migration] Migration skipped."
-    echo
     echo "[migration] Existing container data will NOT be overwritten."
 
     exit 0
@@ -65,7 +64,7 @@ proot-distro login "${DISTRO}" -- \
 
 echo "[migration] Copying data..."
 
-proot-distro copy \
+proot-distro copy --recursive \
     "${SOURCE_DATA_DIR}" \
     "${DISTRO}:${CONTAINER_DATA_DIR}"
 

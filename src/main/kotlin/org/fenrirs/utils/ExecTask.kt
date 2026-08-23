@@ -41,11 +41,11 @@ object ExecTask {
      * ฟังก์ชันนี้จะรันโค้ด suspend บน Virtual Threads Executor โดยใช้ Coroutine Dispatcher
      * พร้อมจำกัดจำนวนงานที่สามารถรันพร้อมกันตามค่า `parallelism`
      *
-     * @param parallelism จำนวนสูงสุดของ Coroutine ที่สามารถรันพร้อมกันได้ (ค่าเริ่มต้นคือ 32)
+     * @param parallelism จำนวนสูงสุดของ Coroutine ที่สามารถรันพร้อมกันได้ (ค่าเริ่มต้นคือ 128)
      * @param block โค้ด suspend ที่จะถูกรันภายใต้ Virtual Threads Executor
      * @return ผลลัพธ์จากการทำงานของโค้ด block
      */
-    suspend inline fun <T> asyncTask(parallelism: Int = 32, crossinline block: suspend () -> T): T {
+    suspend inline fun <T> asyncTask(parallelism: Int = 128, crossinline block: suspend () -> T): T {
         return withContext(execService.asCoroutineDispatcher().limitedParallelism(parallelism)) {
             block()
         }

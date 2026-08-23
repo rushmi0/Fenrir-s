@@ -5,6 +5,7 @@ import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Consumes
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
+import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Produces
 import io.micronaut.http.annotation.QueryValue
 import io.micronaut.http.annotation.RequestAttribute
@@ -12,6 +13,7 @@ import io.micronaut.http.hateoas.JsonError
 import io.micronaut.serde.annotation.Serdeable
 import jakarta.inject.Inject
 
+import org.fenrirs.relay.core.backup.ProfileBackfillService
 import org.fenrirs.relay.web.AdminAuthFilter
 import org.fenrirs.storage.statement.StoredServiceImpl
 
@@ -24,6 +26,9 @@ data class AccountStatsResponse(
     val dailyCounts: List<DailyCountDto>
 )
 
+@Serdeable
+data class BackfillProfilesResponse(val stored: Int)
+
 /**
  * Per-account event-creation history for the Accounts page's "Activity" tab - [KindCountDto]/
  * [DailyCountDto] are the same DTOs the relay-wide Dashboard uses (see StatsService), just scoped
@@ -34,6 +39,7 @@ data class AccountStatsResponse(
 @Consumes(MediaType.ALL)
 class AccountStatsController @Inject constructor(
     private val sqlExec: StoredServiceImpl,
+    private val profileBackfillService: ProfileBackfillService,
 ) {
 
     @Get("/{pubkey}/stats")
@@ -59,6 +65,22 @@ class AccountStatsController @Inject constructor(
                 dailyCounts = stats.dailyCounts.map { DailyCountDto(it.dayStart, it.count) }
             )
         )
+    }
+
+    /**
+     * On-demand re-run of [ProfileBackfillService] (which also runs once automatically at
+     * startup - see `SystemPreload`) - the relay itself reaches out to the configured backup-sync
+     * relays for every operator/whitelisted account still missing a local kind-0 and stores
+     * whatever it finds. Useful right after whitelisting a new npub, since that account wasn't a
+     * backfill candidate yet the last time this ran.
+     */
+    @Post("/backfill-profiles")
+    suspend fun backfillProfiles(
+        @RequestAttribute(AdminAuthFilter.ROLE_ATTRIBUTE) role: String,
+    ): HttpResponse<*> {
+        if (!RoleGuard.canAccessConsole(role)) return RoleGuard.forbidden("general users cannot access the Admin Console")
+        val stored = profileBackfillService.run()
+        return HttpResponse.ok(BackfillProfilesResponse(stored))
     }
 
     companion object {

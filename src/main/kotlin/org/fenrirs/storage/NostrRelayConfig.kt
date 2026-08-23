@@ -114,10 +114,13 @@ class NostrRelayConfig : PolicyConfig {
         get() {
             val defaultBackupSync = listOf(
                 "wss://relay.notoshi.win",
-                "wss://relay.siamstr.com",
                 "wss://relay.damus.io",
                 "wss://nostr-01.yakihonne.com",
+                "wss://relay.snort.social",
+                "wss://yabu.me",
+                "wss://relay.nostr.wirednet.jp",
                 "wss://nos.lol",
+                "wss://frens.nostr1.com",
                 "wss://purplerelay.com"
             )
 
@@ -126,7 +129,7 @@ class NostrRelayConfig : PolicyConfig {
                 ?.map { it.trim() }
                 ?.filter { it.isNotEmpty() }
                 ?: emptyList()
-            return defaultBackupSync + syncValue
+            return (defaultBackupSync + syncValue).distinct()
         }
 
     companion object {

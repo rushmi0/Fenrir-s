@@ -9,6 +9,7 @@ import org.fenrirs.storage.table.KV_STORE
 import org.fenrirs.storage.table.OPERATOR
 import org.fenrirs.storage.table.ROLE_PERMISSION
 import org.fenrirs.storage.table.ACCOUNT_PERMISSION_OVERRIDE
+import org.fenrirs.storage.table.WHITELIST_ACCOUNT
 
 import org.fenrirs.storage.table.EVENT
 import org.fenrirs.storage.table.EVENT_TAGS
@@ -17,11 +18,14 @@ import org.jetbrains.exposed.v1.core.StdOutSqlLogger
 
 import org.fenrirs.storage.statement.KeyValueStoreImpl
 import org.fenrirs.relay.core.policy.PermissionSeeder
+import org.fenrirs.relay.core.policy.WhitelistAccountSeeder
 
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.slf4j.LoggerFactory
 import java.io.File
+import java.sql.SQLException
 
 
 internal object StoragePaths {
@@ -62,10 +66,12 @@ object DatabaseFactory {
             SchemaUtils.create(OPERATOR)
             SchemaUtils.create(ROLE_PERMISSION)
             SchemaUtils.create(ACCOUNT_PERMISSION_OVERRIDE)
+            SchemaUtils.create(WHITELIST_ACCOUNT)
         }
 
         KeyValueStoreImpl.sync(CFG.envDefaults)
         PermissionSeeder.seed()
+        WhitelistAccountSeeder.seedFromLegacyCsv(CFG)
 
         secondaryDb = Database.connect(businessH2Hikari())
         transaction(secondaryDb) {
@@ -120,7 +126,7 @@ object DatabaseFactory {
 
             driverClassName = "org.h2.Driver"
 
-            jdbcUrl = "jdbc:h2:file:${dbFile.absolutePath};MODE=PostgreSQL;DB_CLOSE_ON_EXIT=TRUE"
+            jdbcUrl = "jdbc:h2:file:${dbFile.absolutePath};MODE=PostgreSQL;DB_CLOSE_ON_EXIT=TRUE;DB_CLOSE_DELAY=-1"
             username = "sa"
             password = ""
 
@@ -145,7 +151,7 @@ object DatabaseFactory {
 
             driverClassName = "org.h2.Driver"
 
-            jdbcUrl = "jdbc:h2:file:${dbFile.absolutePath};DB_CLOSE_ON_EXIT=TRUE"
+            jdbcUrl = "jdbc:h2:file:${dbFile.absolutePath};DB_CLOSE_ON_EXIT=TRUE;DB_CLOSE_DELAY=-1"
             username = "sa"
             password = ""
 
@@ -164,16 +170,79 @@ object DatabaseFactory {
 
 
     suspend fun <T> queryTask(block: () -> T): T = asyncTask {
-        transaction(activeDb) {
-            //addLogger(StdOutSqlLogger)
-            block()
+        val db = activeDb
+        try {
+            transaction(db) {
+                //addLogger(StdOutSqlLogger)
+                block()
+            }
+        } catch (e: Throwable) {
+            if (!isDatabaseClosedError(e) || db !== secondaryDb) throw e
+            LOG.warn("[DATABASE] business database connection was closed unexpectedly - reconnecting and retrying")
+            transaction(reconnectSecondaryDb(db)) { block() }
         }
     }
 
-    fun <T> configTask(block: () -> T): T = transaction(configDb) {
-        //addLogger(StdOutSqlLogger)
-        block()
+    fun <T> configTask(block: () -> T): T {
+        val db = configDb
+        return try {
+            transaction(db) {
+                //addLogger(StdOutSqlLogger)
+                block()
+            }
+        } catch (e: Throwable) {
+            if (!isDatabaseClosedError(e)) throw e
+            LOG.warn("[DATABASE] config database connection was closed unexpectedly - reconnecting and retrying")
+            transaction(reconnectConfigDb(db)) { block() }
+        }
     }
+
+    /**
+     * Rebuilds [secondaryDb] (and repoints [activeDb] at it, if that's what was active) with a
+     * fresh Hikari pool - the escape hatch for H2 error code 90098 ("the database has been
+     * closed"), which [queryTask]/[configTask] catch and retry through exactly once. Guarded so
+     * that under a burst of concurrent failures only the first caller actually reconnects; every
+     * other caller just observes [secondaryDb] already replaced (`staleDb` no longer matches) and
+     * reuses that.
+     */
+    @Synchronized
+    private fun reconnectSecondaryDb(staleDb: Database): Database {
+        if (secondaryDb !== staleDb) return secondaryDb
+        val fresh = Database.connect(businessH2Hikari())
+        val wasActive = ::activeDb.isInitialized && activeDb === staleDb
+        secondaryDb = fresh
+        if (wasActive) activeDb = fresh
+        return fresh
+    }
+
+    /** Same idea as [reconnectSecondaryDb], for [configDb]. */
+    @Synchronized
+    private fun reconnectConfigDb(staleDb: Database): Database {
+        if (configDb !== staleDb) return configDb
+        configDb = Database.connect(configH2Hikari())
+        return configDb
+    }
+
+    /**
+     * True when [e] (or anything in its cause chain) is H2 error code 90098, "the database has
+     * been closed" - an embedded H2 file database can hit this even with `DB_CLOSE_DELAY=-1` set
+     * (only guaranteed to rule out closing on last-connection-out, not every path that can shut
+     * the engine down) - checked via the standard `java.sql.SQLException.errorCode` rather than
+     * H2's own exception type, since the H2 driver is only a runtime dependency of this project
+     * (not visible at compile time - see build.gradle.kts).
+     */
+    private fun isDatabaseClosedError(e: Throwable): Boolean {
+        var cause: Throwable? = e
+        while (cause != null) {
+            if (cause is SQLException && cause.errorCode == H2_DATABASE_CLOSED_ERROR_CODE) return true
+            cause = cause.cause
+        }
+        return false
+    }
+
+    private const val H2_DATABASE_CLOSED_ERROR_CODE = 90098
+
+    private val LOG = LoggerFactory.getLogger(DatabaseFactory::class.java)
 
     /** Which engine the business (event store) database is actually running on right now -
      * reflects [DatabaseFailover]'s current state, not just what's configured. */

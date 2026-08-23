@@ -68,13 +68,13 @@ class RelayInformation @Inject constructor(
         pubkey = cfg.RELAY_OWNER,
         contact = cfg.RELAY_CONTACT,
         supportedNips = RelayInfo.SUPPORTED_NIPS,
-        icon = "https://i.imgur.com/dwLPgio.png",
+        icon = "https://files.catbox.moe/h1g3ww.png",
         software = "https://github.com/rushmi0/Fenrir-s",
         version = "2.0",
         limitation = RelayLimitation(
             maxFilters = cfg.MAX_FILTERS,
             maxLimit = cfg.MAX_LIMIT,
-            minPowDifficulty = if (cfg.PROOF_OF_WORK_ENABLED) cfg.PROOF_OF_WORK_DIFFICULTY else null,
+            minPowDifficulty = if (cfg.PROOF_OF_WORK_ENABLED) cfg.PROOF_OF_WORK_DIFFICULTY else 0,
             maxMessageLength = 524288,
             paymentRequired = cfg.PAYMENT_REQ,
             authRequired = cfg.AUTH_ENABLED
