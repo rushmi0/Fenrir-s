@@ -34,7 +34,7 @@ class NostrRelayConfig : PolicyConfig {
         "PRIMARY_DATABASE_ENABLED" to (KeyValueStoreImpl.get("PRIMARY_DATABASE_ENABLED") ?: "false"),
         "DB_H2_MIN_IDLE" to (KeyValueStoreImpl.get("DB_H2_MIN_IDLE") ?: "1"),
         "DB_H2_MAX_POOL_SIZE" to (KeyValueStoreImpl.get("DB_H2_MAX_POOL_SIZE") ?: "12"),
-        "DB_H2_LEAK_DETECTION_THRESHOLD" to (KeyValueStoreImpl.get("DB_H2_LEAK_DETECTION_THRESHOLD") ?: "30000"),
+        "DB_H2_LEAK_DETECTION_THRESHOLD" to (KeyValueStoreImpl.get("DB_H2_LEAK_DETECTION_THRESHOLD") ?: "60000"),
         "DB_PG_MIN_IDLE" to (KeyValueStoreImpl.get("DB_PG_MIN_IDLE") ?: "10"),
         "DB_PG_MAX_POOL_SIZE" to (KeyValueStoreImpl.get("DB_PG_MAX_POOL_SIZE") ?: "64"),
         "DB_PG_IDLE_TIMEOUT" to (KeyValueStoreImpl.get("DB_PG_IDLE_TIMEOUT") ?: "60000"),
@@ -56,7 +56,7 @@ class NostrRelayConfig : PolicyConfig {
     val DB_H2_MIN_IDLE: Int get() = KeyValueStoreImpl.get("DB_H2_MIN_IDLE")?.toIntOrNull() ?: 1
     val DB_H2_MAX_POOL_SIZE: Int get() = KeyValueStoreImpl.get("DB_H2_MAX_POOL_SIZE")?.toIntOrNull() ?: 12
     val DB_H2_LEAK_DETECTION_THRESHOLD: Int
-        get() = KeyValueStoreImpl.get("DB_H2_LEAK_DETECTION_THRESHOLD")?.toIntOrNull() ?: 30_000
+        get() = KeyValueStoreImpl.get("DB_H2_LEAK_DETECTION_THRESHOLD")?.toIntOrNull() ?: 160_000
 
     // PostgreSQL (primary) pool settings
     val DB_PG_MIN_IDLE: Int get() = KeyValueStoreImpl.get("DB_PG_MIN_IDLE")?.toIntOrNull() ?: 10
