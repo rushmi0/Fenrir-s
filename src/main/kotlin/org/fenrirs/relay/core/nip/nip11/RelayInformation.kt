@@ -16,12 +16,25 @@ import org.fenrirs.storage.NostrRelayConfig
 
 @Serdeable
 data class RelayLimitation(
-    @JsonProperty("max_filters") val maxFilters: Int,
-    @JsonProperty("max_limit") val maxLimit: Int,
-    @JsonProperty("min_pow_difficulty") val minPowDifficulty: Int?,
-    @JsonProperty("max_message_length") val maxMessageLength: Int,
-    @JsonProperty("payment_required") val paymentRequired: Boolean,
-    @JsonProperty("auth_required") val authRequired: Boolean
+
+    @JsonProperty("max_filters")
+    val maxFilters: Int,
+
+    @JsonProperty("max_limit")
+    val maxLimit: Int,
+
+    @JsonProperty("min_pow_difficulty")
+    val minPowDifficulty: Int?,
+
+    @JsonProperty("max_message_length")
+    val maxMessageLength: Int,
+
+    @JsonProperty("payment_required")
+    val paymentRequired: Boolean,
+
+    @JsonProperty("auth_required")
+    val authRequired: Boolean
+
 )
 
 @Serdeable
@@ -43,28 +56,28 @@ data class RelayInfo(
 
 @Singleton
 class RelayInformation @Inject constructor(
-    private val env: NostrRelayConfig,
+    private val cfg: NostrRelayConfig,
     private val objectMapper: ObjectMapper
 ) {
 
     fun loadRelayInfo(contentType: String): String = loadContent(contentType)
 
     fun buildRelayInfo(): RelayInfo = RelayInfo(
-        name = env.RELAY_NAME,
-        description = env.RELAY_DESCRIPTION,
-        pubkey = env.RELAY_OWNER,
-        contact = env.RELAY_CONTACT,
+        name = cfg.RELAY_NAME,
+        description = cfg.RELAY_DESCRIPTION,
+        pubkey = cfg.RELAY_OWNER,
+        contact = cfg.RELAY_CONTACT,
         supportedNips = RelayInfo.SUPPORTED_NIPS,
         icon = "https://i.imgur.com/dwLPgio.png",
         software = "https://github.com/rushmi0/Fenrir-s",
         version = "2.0",
         limitation = RelayLimitation(
-            maxFilters = env.MAX_FILTERS,
-            maxLimit = env.MAX_LIMIT,
-            minPowDifficulty = if (env.PROOF_OF_WORK_ENABLED) env.PROOF_OF_WORK_DIFFICULTY else null,
+            maxFilters = cfg.MAX_FILTERS,
+            maxLimit = cfg.MAX_LIMIT,
+            minPowDifficulty = if (cfg.PROOF_OF_WORK_ENABLED) cfg.PROOF_OF_WORK_DIFFICULTY else null,
             maxMessageLength = 524288,
-            paymentRequired = env.PAYMENT_REQ,
-            authRequired = env.AUTH_ENABLED
+            paymentRequired = cfg.PAYMENT_REQ,
+            authRequired = cfg.AUTH_ENABLED
         )
     )
 

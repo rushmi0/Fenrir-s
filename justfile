@@ -35,7 +35,7 @@ run-jvm-app: clean build-client build-jvm
     java -Xmx512m --sun-misc-unsafe-memory-access=allow -jar {{artifact}}
 
 # Build a native executable (fast, non-optimized) for local iteration
-native-dev:
+native-dev: clean build-client
     {{gradlew}} nativeCompile
 
 # Build the optimized native executable (matches CI / release builds)

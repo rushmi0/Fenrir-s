@@ -37,7 +37,7 @@ internal object StoragePaths {
 object DatabaseFactory {
 
     @Inject
-    lateinit var ENV: NostrRelayConfig
+    lateinit var CFG: NostrRelayConfig
 
     internal lateinit var primaryDb: Database
 
@@ -52,8 +52,8 @@ object DatabaseFactory {
     @JvmStatic
     fun initialize() {
 
-        if (!::ENV.isInitialized) {
-            throw IllegalStateException("ENV has not been initialized")
+        if (!::CFG.isInitialized) {
+            throw IllegalStateException("CFG has not been initialized")
         }
 
         configDb = Database.connect(configH2Hikari())
@@ -64,7 +64,7 @@ object DatabaseFactory {
             SchemaUtils.create(ACCOUNT_PERMISSION_OVERRIDE)
         }
 
-        KeyValueStoreImpl.sync(ENV.envDefaults)
+        KeyValueStoreImpl.sync(CFG.envDefaults)
         PermissionSeeder.seed()
 
         secondaryDb = Database.connect(businessH2Hikari())
@@ -73,7 +73,7 @@ object DatabaseFactory {
             SchemaUtils.create(EVENT_TAGS)
         }
 
-        if (ENV.PRIMARY_DATABASE_ENABLED) {
+        if (CFG.PRIMARY_DATABASE_ENABLED) {
             primaryDb = Database.connect(postgresHikari())
             DatabaseFailover.start()
         } else {
@@ -87,22 +87,22 @@ object DatabaseFactory {
 
             driverClassName = "org.postgresql.Driver"
 
-            jdbcUrl = "${ENV.DATABASE_URL}/${ENV.DATABASE_NAME}"
-            username = ENV.DATABASE_USERNAME
-            password = ENV.DATABASE_PASSWORD
+            jdbcUrl = "${CFG.DATABASE_URL}/${CFG.DATABASE_NAME}"
+            username = CFG.DATABASE_USERNAME
+            password = CFG.DATABASE_PASSWORD
 
-            minimumIdle = ENV.DB_PG_MIN_IDLE
-            maximumPoolSize = ENV.DB_PG_MAX_POOL_SIZE
+            minimumIdle = CFG.DB_PG_MIN_IDLE
+            maximumPoolSize = CFG.DB_PG_MAX_POOL_SIZE
 
             isAutoCommit = false
 
-            idleTimeout = ENV.DB_PG_IDLE_TIMEOUT.toLong()
-            keepaliveTime = ENV.DB_PG_KEEPALIVE_TIME.toLong()
-            maxLifetime = ENV.DB_PG_MAX_LIFETIME.toLong()
-            leakDetectionThreshold = ENV.DB_PG_LEAK_DETECTION_THRESHOLD.toLong()
-            validationTimeout = ENV.DB_PG_VALIDATION_TIMEOUT.toLong()
+            idleTimeout = CFG.DB_PG_IDLE_TIMEOUT.toLong()
+            keepaliveTime = CFG.DB_PG_KEEPALIVE_TIME.toLong()
+            maxLifetime = CFG.DB_PG_MAX_LIFETIME.toLong()
+            leakDetectionThreshold = CFG.DB_PG_LEAK_DETECTION_THRESHOLD.toLong()
+            validationTimeout = CFG.DB_PG_VALIDATION_TIMEOUT.toLong()
 
-            transactionIsolation = ENV.DB_PG_TRANSACTION_ISOLATION
+            transactionIsolation = CFG.DB_PG_TRANSACTION_ISOLATION
 
             initializationFailTimeout = -1
 
@@ -124,12 +124,12 @@ object DatabaseFactory {
             username = "sa"
             password = ""
 
-            minimumIdle = ENV.DB_H2_MIN_IDLE
-            maximumPoolSize = ENV.DB_H2_MAX_POOL_SIZE
+            minimumIdle = CFG.DB_H2_MIN_IDLE
+            maximumPoolSize = CFG.DB_H2_MAX_POOL_SIZE
 
             isAutoCommit = false
 
-            leakDetectionThreshold = ENV.DB_H2_LEAK_DETECTION_THRESHOLD.toLong()
+            leakDetectionThreshold = CFG.DB_H2_LEAK_DETECTION_THRESHOLD.toLong()
 
             validate()
         }
@@ -149,8 +149,6 @@ object DatabaseFactory {
             username = "sa"
             password = ""
 
-            // KV_STORE/OPERATOR only see admin-console traffic, not the REQ/EVENT hot path -
-            // a handful of connections is more than enough on a phone-class device.
             minimumIdle = 1
             maximumPoolSize = 4
 

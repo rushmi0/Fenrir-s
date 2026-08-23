@@ -7,58 +7,44 @@ import org.fenrirs.storage.statement.KeyValueStoreImpl
 import org.fenrirs.utils.Bech32
 import org.fenrirs.utils.ShiftTo.toHex
 
-import java.io.FileInputStream
-import java.io.InputStreamReader
-import java.nio.charset.StandardCharsets
-import java.util.Properties
-
 @Context
 class NostrRelayConfig : PolicyConfig {
 
-    private val prop: Properties = Properties()
-
-    init {
-        runCatching {
-            InputStreamReader(FileInputStream(".env"), StandardCharsets.UTF_8).use { reader ->
-                prop.load(reader)
-            }
-        }.getOrElse { e -> throw RuntimeException("Failed to load .env file", e) }
+    val envDefaults: Map<String, String> by lazy {
+        mapOf(
+        "NAME" to (KeyValueStoreImpl.get("NAME") ?: ""),
+        "DESCRIPTION" to (KeyValueStoreImpl.get("DESCRIPTION") ?: ""),
+        "NPUB" to (KeyValueStoreImpl.get("NPUB") ?: ""),
+        "CONTACT" to (KeyValueStoreImpl.get("CONTACT") ?: ""),
+        "RELAY_URL" to (KeyValueStoreImpl.get("RELAY_URL") ?: ""),
+        "ALL_PASS" to (KeyValueStoreImpl.get("ALL_PASS") ?: "false"),
+        "FOLLOWS_PASS" to (KeyValueStoreImpl.get("FOLLOWS_PASS") ?: "false"),
+        "POW_ENABLED" to (KeyValueStoreImpl.get("POW_ENABLED") ?: "false"),
+        "MIN_DIFFICULTY" to (KeyValueStoreImpl.get("MIN_DIFFICULTY") ?: "4"),
+        "MAX_FILTERS" to (KeyValueStoreImpl.get("MAX_FILTERS") ?: "5"),
+        "MAX_LIMIT" to (KeyValueStoreImpl.get("MAX_LIMIT") ?: "500"),
+        "AUTH_ENABLED" to (KeyValueStoreImpl.get("AUTH_ENABLED") ?: "false"),
+        "AUTH_WHITELIST_PUBKEYS" to (KeyValueStoreImpl.get("AUTH_WHITELIST_PUBKEYS") ?: ""),
+        "BACKUP_ENABLED" to (KeyValueStoreImpl.get("BACKUP_ENABLED") ?: "false"),
+        "SYNC" to (KeyValueStoreImpl.get("SYNC") ?: ""),
+        "DATABASE_URL" to (KeyValueStoreImpl.get("DATABASE_URL") ?: ""),
+        "DATABASE_NAME" to (KeyValueStoreImpl.get("DATABASE_NAME") ?: ""),
+        "DATABASE_USERNAME" to (KeyValueStoreImpl.get("DATABASE_USERNAME") ?: ""),
+        "DATABASE_PASSWORD" to (KeyValueStoreImpl.get("DATABASE_PASSWORD") ?: ""),
+        "PRIMARY_DATABASE_ENABLED" to (KeyValueStoreImpl.get("PRIMARY_DATABASE_ENABLED") ?: "false"),
+        "DB_H2_MIN_IDLE" to (KeyValueStoreImpl.get("DB_H2_MIN_IDLE") ?: "1"),
+        "DB_H2_MAX_POOL_SIZE" to (KeyValueStoreImpl.get("DB_H2_MAX_POOL_SIZE") ?: "12"),
+        "DB_H2_LEAK_DETECTION_THRESHOLD" to (KeyValueStoreImpl.get("DB_H2_LEAK_DETECTION_THRESHOLD") ?: "30000"),
+        "DB_PG_MIN_IDLE" to (KeyValueStoreImpl.get("DB_PG_MIN_IDLE") ?: "10"),
+        "DB_PG_MAX_POOL_SIZE" to (KeyValueStoreImpl.get("DB_PG_MAX_POOL_SIZE") ?: "64"),
+        "DB_PG_IDLE_TIMEOUT" to (KeyValueStoreImpl.get("DB_PG_IDLE_TIMEOUT") ?: "60000"),
+        "DB_PG_KEEPALIVE_TIME" to (KeyValueStoreImpl.get("DB_PG_KEEPALIVE_TIME") ?: "600000"),
+        "DB_PG_MAX_LIFETIME" to (KeyValueStoreImpl.get("DB_PG_MAX_LIFETIME") ?: "2000000"),
+        "DB_PG_LEAK_DETECTION_THRESHOLD" to (KeyValueStoreImpl.get("DB_PG_LEAK_DETECTION_THRESHOLD") ?: "30000"),
+        "DB_PG_VALIDATION_TIMEOUT" to (KeyValueStoreImpl.get("DB_PG_VALIDATION_TIMEOUT") ?: "3000"),
+        "DB_PG_TRANSACTION_ISOLATION" to (KeyValueStoreImpl.get("DB_PG_TRANSACTION_ISOLATION") ?: "TRANSACTION_REPEATABLE_READ")
+        )
     }
-
-
-    val envDefaults: Map<String, String> = mapOf(
-        "NAME" to (prop.getProperty("NAME") ?: ""),
-        "DESCRIPTION" to (prop.getProperty("DESCRIPTION") ?: ""),
-        "NPUB" to (prop.getProperty("NPUB") ?: ""),
-        "CONTACT" to (prop.getProperty("CONTACT") ?: ""),
-        "RELAY_URL" to (prop.getProperty("RELAY_URL") ?: ""),
-        "ALL_PASS" to (prop.getProperty("ALL_PASS") ?: "false"),
-        "FOLLOWS_PASS" to (prop.getProperty("FOLLOWS_PASS") ?: "false"),
-        "POW_ENABLED" to (prop.getProperty("POW_ENABLED") ?: "false"),
-        "MIN_DIFFICULTY" to (prop.getProperty("MIN_DIFFICULTY") ?: "4"),
-        "MAX_FILTERS" to (prop.getProperty("MAX_FILTERS") ?: "5"),
-        "MAX_LIMIT" to (prop.getProperty("MAX_LIMIT") ?: "500"),
-        "AUTH_ENABLED" to (prop.getProperty("AUTH_ENABLED") ?: "false"),
-        "AUTH_WHITELIST_PUBKEYS" to (prop.getProperty("AUTH_WHITELIST_PUBKEYS") ?: ""),
-        "BACKUP_ENABLED" to (prop.getProperty("BACKUP_ENABLED") ?: "false"),
-        "SYNC" to (prop.getProperty("SYNC") ?: ""),
-        "DATABASE_URL" to (prop.getProperty("DATABASE_URL") ?: ""),
-        "DATABASE_NAME" to (prop.getProperty("DATABASE_NAME") ?: ""),
-        "DATABASE_USERNAME" to (prop.getProperty("DATABASE_USERNAME") ?: ""),
-        "DATABASE_PASSWORD" to (prop.getProperty("DATABASE_PASSWORD") ?: ""),
-        "PRIMARY_DATABASE_ENABLED" to (prop.getProperty("PRIMARY_DATABASE_ENABLED") ?: "false"),
-        "DB_H2_MIN_IDLE" to (prop.getProperty("DB_H2_MIN_IDLE") ?: "1"),
-        "DB_H2_MAX_POOL_SIZE" to (prop.getProperty("DB_H2_MAX_POOL_SIZE") ?: "12"),
-        "DB_H2_LEAK_DETECTION_THRESHOLD" to (prop.getProperty("DB_H2_LEAK_DETECTION_THRESHOLD") ?: "30000"),
-        "DB_PG_MIN_IDLE" to (prop.getProperty("DB_PG_MIN_IDLE") ?: "10"),
-        "DB_PG_MAX_POOL_SIZE" to (prop.getProperty("DB_PG_MAX_POOL_SIZE") ?: "64"),
-        "DB_PG_IDLE_TIMEOUT" to (prop.getProperty("DB_PG_IDLE_TIMEOUT") ?: "60000"),
-        "DB_PG_KEEPALIVE_TIME" to (prop.getProperty("DB_PG_KEEPALIVE_TIME") ?: "600000"),
-        "DB_PG_MAX_LIFETIME" to (prop.getProperty("DB_PG_MAX_LIFETIME") ?: "2000000"),
-        "DB_PG_LEAK_DETECTION_THRESHOLD" to (prop.getProperty("DB_PG_LEAK_DETECTION_THRESHOLD") ?: "30000"),
-        "DB_PG_VALIDATION_TIMEOUT" to (prop.getProperty("DB_PG_VALIDATION_TIMEOUT") ?: "3000"),
-        "DB_PG_TRANSACTION_ISOLATION" to (prop.getProperty("DB_PG_TRANSACTION_ISOLATION") ?: "TRANSACTION_REPEATABLE_READ")
-    )
 
     val DATABASE_URL: String get() = KeyValueStoreImpl.get("DATABASE_URL") ?: "postgresql://localhost:5432"
     val DATABASE_NAME: String get() = KeyValueStoreImpl.get("DATABASE_NAME") ?: "nostr"

@@ -1,6 +1,7 @@
 //import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.internal.os.OperatingSystem
 import java.util.Locale
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.jetbrains.kotlin.jvm") version "2.3.21"
@@ -219,5 +220,7 @@ tasks.withType<AbstractTestTask>().configureEach {
 }
 
 
-
-
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.compilerOptions {
+    freeCompilerArgs.set(listOf("-Xannotation-default-target=param-property"))
+}

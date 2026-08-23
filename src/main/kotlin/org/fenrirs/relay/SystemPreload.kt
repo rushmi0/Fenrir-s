@@ -17,7 +17,7 @@ class SystemPreload(
 ) : ApplicationEventListener<StartupEvent> {
 
     override fun onApplicationEvent(event: StartupEvent) {
-        DatabaseFactory.ENV = config
+        DatabaseFactory.CFG = config
         DatabaseFactory.initialize()
 
         SetupTokenIssuer.issueIfNeeded()
