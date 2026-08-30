@@ -333,29 +333,55 @@ jobs:
           add-to-path: false
 
       # Optional: set the ANDROID_BIONIC_STATIC_LIBS_URL repo secret to a .tar.gz of a bionic
-      # static-libs bundle once one exists (see the job comment above) - this step is a no-op
-      # until then, and the build step below stays gated on whether it actually produced anything.
+      # static-libs bundle once one exists (e.g. built from openjdk/mobile via
+      # `make static-libs-image` for an aarch64-bionic target - as of writing, GraalVM's own
+      # labs-openjdk releases (https://github.com/graalvm/labs-openjdk/releases) ship no bionic
+      # asset at all, only amd64/amd64_musl/aarch64/riscv64/darwin/windows).
+      #
+      # native-image looks for these JDK-internal static libs (libjava.a, libnio.a, libnet.a)
+      # inside the GraalVM install itself, at lib/static/<arch>/<libc> - NOT via -H:CLibraryPath
+      # (that flag only locates target *C* libraries like libc.so/libm.so, which is a separate
+      # requirement). So the bundle's .a files are copied straight into that exact directory;
+      # anything left over (e.g. a static zlib) is still handed to CLibraryPath.
       - name: Fetch bionic static JDK libs (if available)
+        id: fetch-bionic-libs
         if: env.ANDROID_BIONIC_STATIC_LIBS_URL != ''
+        shell: bash
         run: |
           mkdir -p /tmp/bionic-static-libs
           curl -fsSL "$ANDROID_BIONIC_STATIC_LIBS_URL" -o /tmp/bionic-libs.tar.gz
           tar -xzf /tmp/bionic-libs.tar.gz -C /tmp/bionic-static-libs
 
+          target="$JAVA_HOME/lib/static/linux-amd64/bionic"
+          mkdir -p "$target"
+          find /tmp/bionic-static-libs -name 'lib*.a' -exec cp -n {} "$target/" \;
+
+          if [ -f "$target/libjava.a" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::ANDROID_BIONIC_STATIC_LIBS_URL bundle is missing libjava.a - native-image requires it for --libc=bionic. Skipping the bionic build."
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build bionic native image
+        if: steps.fetch-bionic-libs.outputs.available == 'true'
         shell: bash
         run: |
-          args=(nativeAndroidBuild
-            -PandroidNdkHome="${{ steps.setup-ndk.outputs.ndk-path }}"
-            -Dorg.gradle.java.home="$JAVA_HOME")
-          if [ -d /tmp/bionic-static-libs ]; then
-            args+=(-PextraLibDir=/tmp/bionic-static-libs)
-          fi
-          ./gradlew "${args[@]}"
+          ./gradlew nativeAndroidBuild \
+            -PandroidNdkHome="${{ steps.setup-ndk.outputs.ndk-path }}" \
+            -PextraLibDir=/tmp/bionic-static-libs \
+            -Dorg.gradle.java.home="$JAVA_HOME"
+
+      - name: Skip bionic build (static JDK libs unavailable)
+        if: steps.fetch-bionic-libs.outputs.available != 'true'
+        shell: bash
+        run: |
+          echo "::notice::Skipping native Bionic build - GraalVM publishes no static JDK libraries (libjava/libnio/libnet) for the bionic libc target yet, and ANDROID_BIONIC_STATIC_LIBS_URL is not set (or its bundle is incomplete). Build one from openjdk/mobile ('make static-libs-image' targeting aarch64-bionic) and point that secret at it to enable this job."
 
       - name: Collect binary
+        if: steps.fetch-bionic-libs.outputs.available == 'true'
         shell: bash
         run: |
           mkdir -p dist
@@ -364,6 +390,7 @@ jobs:
           find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*.so*' -exec cp -n {} dist/ \;
 
       - uses: actions/upload-artifact@v4
+        if: steps.fetch-bionic-libs.outputs.available == 'true'
         with:
           name: Fenrir-s-native-bionic-${{ matrix.name }}
           path: dist
