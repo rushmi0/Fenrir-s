@@ -46,6 +46,14 @@ build-native: clean build-client
 build-native-musl: clean build-client
     {{gradlew}} nativeOptimizedCompile -PmuslStatic=true
 
+# CI: build the optimized native executable using the prebuilt/committed web client (no npm build)
+build-native-ci *args:
+    {{gradlew}} nativeOptimizedCompile {{args}}
+
+# CI: build a statically linked musl native executable using the prebuilt/committed web client (no npm build)
+build-native-musl-ci *args:
+    {{gradlew}} nativeOptimizedCompile -PmuslStatic=true {{args}}
+
 # Run the optimized native binary via Gradle
 run-native: clean build-client
     {{gradlew}} nativeOptimizedRun

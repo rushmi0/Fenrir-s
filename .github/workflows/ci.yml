@@ -109,9 +109,11 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - uses: extractions/setup-just@v3
+
       - name: Build native image
         shell: bash
-        run: ./gradlew nativeOptimizedCompile -Dorg.gradle.java.home="$JAVA_HOME"
+        run: just build-native-ci -Dorg.gradle.java.home="$JAVA_HOME"
 
       - name: Collect binary and shared libraries (Linux)
         if: runner.os == 'Linux'
@@ -204,11 +206,12 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
+      - uses: extractions/setup-just@v3
+
       - name: Build musl-static native image
         shell: bash
         run: |
-          ./gradlew nativeOptimizedCompile \
-            -PmuslStatic=true \
+          just build-native-musl-ci \
             -PextraLibDir=/tmp/musl-extra/lib \
             -Dorg.gradle.java.home="$JAVA_HOME"
         env:
