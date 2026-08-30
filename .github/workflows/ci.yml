@@ -274,8 +274,7 @@ jobs:
 
 
   build-native-bionic:
-    name: Native Bionic (Android, ${{ matrix.name }}) [experimental]
-    if: github.event_name == 'workflow_dispatch'
+    name: Native Bionic
     runs-on: ${{ matrix.os }}
     needs: test
     continue-on-error: true
