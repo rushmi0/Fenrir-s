@@ -154,18 +154,15 @@ val androidNdkHostTag = when (currentOsType.name) {
     else -> "linux-x86_64"
 }
 
-val androidTriple = when (currentOsType.arch) {
-    OsArch.ARM64 -> "aarch64"
-    OsArch.X86_64 -> "x86_64"
-    else -> null
-}
+// Target triple for the Android device (always aarch64 - Termux/phones are arm64, not the
+// build host's own architecture). The NDK toolchain under androidNdkHostTag is a cross
+// compiler: it runs on the build host and emits code for this target.
+val androidTriple = "aarch64"
 
 val androidClangPath: String? = if (bionicTarget) {
     val ndk = androidNdkHome
         ?: error("bionicTarget=true requires the Android NDK - set -PandroidNdkHome=<path> or the ANDROID_NDK_HOME/ANDROID_NDK_ROOT environment variable.")
-    val triple = androidTriple
-        ?: error("bionicTarget=true is only supported when building on an aarch64 or x86_64 host (got ${currentOsType.arch}).")
-    "$ndk/toolchains/llvm/prebuilt/$androidNdkHostTag/bin/$triple-linux-android$androidApiLevel-clang"
+    "$ndk/toolchains/llvm/prebuilt/$androidNdkHostTag/bin/$androidTriple-linux-android$androidApiLevel-clang"
 } else null
 
 val libcName: String? = if (currentOsType.name == OsName.LINUX) {

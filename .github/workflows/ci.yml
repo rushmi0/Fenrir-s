@@ -284,7 +284,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-24.04-arm
+          # nttld/setup-ndk only ships host binaries for linux-x64, win32-x64,
+          # darwin-arm64, darwin-x64 (Google doesn't publish a linux-aarch64 NDK
+          # host toolchain), so this must run on an x86_64 runner. The NDK's
+          # cross-compiler still targets arm64 Android from here.
+          - os: ubuntu-latest
             name: linux-arm64
     steps:
       - uses: actions/checkout@v4
