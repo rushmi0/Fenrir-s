@@ -1,4 +1,3 @@
-//import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.internal.os.OperatingSystem
 import java.util.Locale
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -121,33 +120,57 @@ tasks.shadowJar {
     archiveFileName.set("${project.name}-${version}-jvm.jar")
 }
 
-// graalvmNative.toolchainDetection = false
-/*graalvmNative {
-    binaries {
-        all {
-            buildArgs.add("-H:+SharedArenaSupport")
-            //buildArgs.add("-H:+PrintAnalysisCallTree")
-            buildArgs.add("-H:+UnlockExperimentalVMOptions")
-
-            buildArgs.add("-H:+StaticExecutableWithDynamicLibC")
-            buildArgs.add("-march=compatibility")
-            imageName.set("${project.name}-relay-${version}-${nativeImageSuffix}")
-            javaLauncher.set(javaToolchains.launcherFor {
-                languageVersion.set(JavaLanguageVersion.of(25))
-                vendor.set(JvmVendorSpec.GRAAL_VM)
-            })
-            verbose.set(true)
-        }
-    }
-
-}*/
-
 val muslStatic = providers.gradleProperty("muslStatic")
     .map(String::toBoolean).getOrElse(false)
 
 val extraLibDir = providers.gradleProperty("extraLibDir").orNull
+
+val bionicTarget = providers.gradleProperty("bionicTarget").map(String::toBoolean).getOrElse(false) ||
+        gradle.startParameter.taskNames.any { it.substringAfterLast(":") == "nativeAndroidBuild" }
+
+val androidApiLevel = providers.gradleProperty("androidApiLevel").getOrElse("24")
+
+val androidSdkDir = File(System.getProperty("user.home"), "Android/Sdk")
+
+// Highest-versioned subdirectory of <sdk>/ndk/ - same directory Android Studio itself picks when
+// no exact NDK version is pinned.
+fun latestNdkDir(sdkDir: File): File? {
+    fun version(dir: File) = dir.name.split(".").map { it.toIntOrNull() ?: 0 }
+    val versionDirs = File(sdkDir, "ndk").listFiles { f -> f.isDirectory } ?: return null
+    return versionDirs.maxWithOrNull { a, b ->
+        version(a).zip(version(b)) { x, y -> x.compareTo(y) }.firstOrNull { it != 0 } ?: 0
+    }
+}
+
+val androidNdkHome = providers.gradleProperty("androidNdkHome")
+    .orElse(providers.environmentVariable("ANDROID_NDK_HOME"))
+    .orElse(providers.environmentVariable("ANDROID_NDK_ROOT"))
+    .orNull
+    ?: latestNdkDir(androidSdkDir)?.absolutePath
+
+val androidNdkHostTag = when (currentOsType.name) {
+    OsName.MAC -> "darwin-x86_64"
+    OsName.WINDOWS -> "windows-x86_64"
+    else -> "linux-x86_64"
+}
+
+val androidTriple = when (currentOsType.arch) {
+    OsArch.ARM64 -> "aarch64"
+    OsArch.X86_64 -> "x86_64"
+    else -> null
+}
+
+val androidClangPath: String? = if (bionicTarget) {
+    val ndk = androidNdkHome
+        ?: error("bionicTarget=true requires the Android NDK - set -PandroidNdkHome=<path> or the ANDROID_NDK_HOME/ANDROID_NDK_ROOT environment variable.")
+    val triple = androidTriple
+        ?: error("bionicTarget=true is only supported when building on an aarch64 or x86_64 host (got ${currentOsType.arch}).")
+    "$ndk/toolchains/llvm/prebuilt/$androidNdkHostTag/bin/$triple-linux-android$androidApiLevel-clang"
+} else null
+
 val libcName: String? = if (currentOsType.name == OsName.LINUX) {
     when {
+        bionicTarget -> "bionic"
         muslStatic -> "musl"
         else -> "glibc"
     }
@@ -159,13 +182,22 @@ graalvmNative {
             buildArgs.add("-H:-SharedArenaSupport")
             buildArgs.add("-H:+UnlockExperimentalVMOptions")
 
-            if (muslStatic) {
-                buildArgs.add("--static")
-                buildArgs.add("--libc=musl")
-                buildArgs.add("-H:-CheckToolchain")
-                extraLibDir?.let { buildArgs.add("-H:CLibraryPath=$it") }
-            }  else {
-                buildArgs.add("-H:+StaticExecutableWithDynamicLibC")
+            when {
+                muslStatic -> {
+                    buildArgs.add("--static")
+                    buildArgs.add("--libc=musl")
+                    buildArgs.add("-H:-CheckToolchain")
+                    extraLibDir?.let { buildArgs.add("-H:CLibraryPath=$it") }
+                }
+                bionicTarget -> {
+                    buildArgs.add("--libc=bionic")
+                    buildArgs.add("-H:-CheckToolchain")
+                    buildArgs.add("--native-compiler-path=$androidClangPath")
+                    extraLibDir?.let { buildArgs.add("-H:CLibraryPath=$it") }
+                }
+                else -> {
+                    buildArgs.add("--static-nolibc")
+                }
             }
 
             buildArgs.add("-march=compatibility")
@@ -181,6 +213,14 @@ graalvmNative {
             verbose.set(true)
         }
     }
+}
+
+tasks.register("nativeAndroidBuild") {
+    group = "build"
+    description = "Builds a Bionic-libc native image (--libc=bionic) that runs directly under " +
+            "Termux on Android, no proot-distro container needed. Requires the Android NDK " +
+            "(ANDROID_NDK_HOME/ANDROID_NDK_ROOT, or -PandroidNdkHome=<path>)."
+    dependsOn("nativeOptimizedCompile")
 }
 
 

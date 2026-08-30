@@ -19,16 +19,16 @@ object Transform : VerificationFactory() {
     }
 
     private fun convertToFiltersXObject(field: Map<String, JsonElement>): FiltersX {
-        return FiltersX(
-            ids = field["ids"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }?.toSet() ?: emptySet(),
-            authors = field["authors"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }?.toSet() ?: emptySet(),
-            kinds = field["kinds"]?.jsonArray?.mapNotNull { it.jsonPrimitive.long }?.toSet() ?: emptySet(),
-            tags = field.toTagMap(),
-            since = field["since"]?.jsonPrimitive?.longOrNull,
-            until = field["until"]?.jsonPrimitive?.longOrNull,
-            limit = field["limit"]?.jsonPrimitive?.longOrNull,
+        return FiltersX {
+            ids = field["ids"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }?.toSet() ?: emptySet()
+            authors = field["authors"]?.jsonArray?.mapNotNull { it.jsonPrimitive.contentOrNull }?.toSet() ?: emptySet()
+            kinds = field["kinds"]?.jsonArray?.mapNotNull { it.jsonPrimitive.long }?.toSet() ?: emptySet()
+            tags = field.toTagMap()
+            since = field["since"]?.jsonPrimitive?.longOrNull
+            until = field["until"]?.jsonPrimitive?.longOrNull
+            limit = field["limit"]?.jsonPrimitive?.longOrNull
             search = field["search"]?.jsonPrimitive?.contentOrNull
-        )
+        }
     }
 
 

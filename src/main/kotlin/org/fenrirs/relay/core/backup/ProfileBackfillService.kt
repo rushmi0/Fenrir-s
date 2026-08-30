@@ -46,10 +46,10 @@ class ProfileBackfillService @Inject constructor(
 
         val alreadyPresent = (
                 sqlExec.filterList(
-                    FiltersX(
-                        kinds = setOf(0L),
+                    FiltersX {
+                        kinds = setOf(0L)
                         authors = candidates
-                    )
+                    }
                 ) ?: emptyList())
             .mapNotNull { it.pubkey }
             .toSet()

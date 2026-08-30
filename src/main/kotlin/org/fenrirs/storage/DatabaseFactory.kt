@@ -13,8 +13,12 @@ import org.fenrirs.storage.table.WHITELIST_ACCOUNT
 
 import org.fenrirs.storage.table.EVENT
 import org.fenrirs.storage.table.EVENT_TAGS
+import org.fenrirs.storage.table.EVENT_JSON_CACHE
 import org.fenrirs.utils.ExecTask.asyncTask
 import org.jetbrains.exposed.v1.core.StdOutSqlLogger
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.less
 
 import org.fenrirs.storage.statement.KeyValueStoreImpl
 import org.fenrirs.relay.core.policy.PermissionSeeder
@@ -22,6 +26,9 @@ import org.fenrirs.relay.core.policy.WhitelistAccountSeeder
 
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.upsert
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -48,6 +55,8 @@ object DatabaseFactory {
     internal lateinit var secondaryDb: Database
 
     internal lateinit var configDb: Database
+
+    private lateinit var eventJsonCacheDb: Database
 
     @Volatile
     internal lateinit var activeDb: Database
@@ -77,6 +86,11 @@ object DatabaseFactory {
         transaction(secondaryDb) {
             SchemaUtils.create(EVENT)
             SchemaUtils.create(EVENT_TAGS)
+        }
+
+        eventJsonCacheDb = Database.connect(eventJsonCacheH2Hikari())
+        transaction(eventJsonCacheDb) {
+            SchemaUtils.create(EVENT_JSON_CACHE)
         }
 
         if (CFG.PRIMARY_DATABASE_ENABLED) {
@@ -168,6 +182,32 @@ object DatabaseFactory {
         return HikariDataSource(config)
     }
 
+    /**
+     * `mem:` (RAM-only, no file I/O) H2, backing [eventJsonCacheDb] - a pure cache table with
+     * no durable state, so unlike [businessH2Hikari]/[configH2Hikari] it has nothing to persist
+     * to disk and nothing for [DatabaseFailover]/backup logic to ever see.
+     */
+    private fun eventJsonCacheH2Hikari(): HikariDataSource {
+
+        val config = HikariConfig().apply {
+
+            driverClassName = "org.h2.Driver"
+
+            jdbcUrl = "jdbc:h2:mem:event-json-cache;DB_CLOSE_DELAY=-1"
+            username = "sa"
+            password = ""
+
+            minimumIdle = 32
+            maximumPoolSize = 256
+            isAutoCommit = true
+            poolName = "event-json-cache"
+
+            validate()
+        }
+
+        return HikariDataSource(config)
+    }
+
 
     suspend fun <T> queryTask(block: () -> T): T = asyncTask {
         val db = activeDb
@@ -194,6 +234,46 @@ object DatabaseFactory {
             if (!isDatabaseClosedError(e)) throw e
             LOG.warn("[DATABASE] config database connection was closed unexpectedly - reconnecting and retrying")
             transaction(reconnectConfigDb(db)) { block() }
+        }
+    }
+
+    /**
+     * Runs [block] against [eventJsonCacheDb] on the virtual-thread dispatcher, same as
+     * [queryTask]/[configTask] - keeps the blocking JDBC call off whatever thread called in,
+     * which matters here since callers sit on the per-subscriber event fan-out hot path.
+     * No reconnect-on-closed handling: unlike the file-backed H2 databases above, this `mem:`
+     * database only ever goes away on JVM shutdown, so a closed-connection error here is a
+     * real bug, not a transient failover condition.
+     */
+    private suspend fun <T> eventJsonCacheTask(block: () -> T): T = asyncTask {
+        transaction(eventJsonCacheDb) { block() }
+    }
+
+    /** L2 read for `EventJsonCache` - null on a miss. */
+    suspend fun getCachedEventJson(id: String): String? = eventJsonCacheTask {
+        EVENT_JSON_CACHE.selectAll().where { EVENT_JSON_CACHE.ID eq id }.firstOrNull()?.get(EVENT_JSON_CACHE.BODY)
+    }
+
+    /** L2 upsert for `EventJsonCache` - idempotent, so concurrent misses on the same id race harmlessly. */
+    suspend fun putCachedEventJson(id: String, body: String): Unit = eventJsonCacheTask {
+        EVENT_JSON_CACHE.upsert {
+            it[ID] = id
+            it[BODY] = body
+        }
+    }
+
+    /** Trims the L2 table down to its [keep] most recently inserted rows (FIFO by [EVENT_JSON_CACHE.SEQ]). */
+    suspend fun trimCachedEventJson(keep: Int): Unit = eventJsonCacheTask {
+        val cutoff = EVENT_JSON_CACHE
+            .selectAll()
+            .orderBy(EVENT_JSON_CACHE.SEQ, SortOrder.DESC)
+            .limit(1)
+            .offset((keep - 1).toLong())
+            .firstOrNull()
+            ?.get(EVENT_JSON_CACHE.SEQ)
+
+        if (cutoff != null) {
+            EVENT_JSON_CACHE.deleteWhere { SEQ less cutoff }
         }
     }
 

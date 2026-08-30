@@ -8,6 +8,7 @@ import io.micronaut.websocket.annotation.OnOpen
 import io.micronaut.websocket.annotation.ServerWebSocket
 
 import jakarta.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -73,7 +74,14 @@ class AdminStatsSocket @Inject constructor(
         while (session.isOpen) {
             runCatching { statsService.assemble(SNAPSHOT_DAYS) }
                 .onSuccess { session.sendAsync(Json.encodeToString(SnapshotMessage(type = "snapshot", data = it))) }
-                .onFailure { e -> LOG.error("[DASHBOARD-WS] Failed to assemble snapshot", e) }
+                .onFailure { e ->
+                    // A session closing mid-assemble cancels this coroutine (see onClose), which
+                    // surfaces here as a CancellationException - not a real failure, and must be
+                    // rethrown rather than swallowed so the coroutine actually finishes cancelling
+                    // instead of looping again on a session that's already gone.
+                    if (e is CancellationException) throw e
+                    LOG.error("[DASHBOARD-WS] Failed to assemble snapshot", e)
+                }
             delay(SNAPSHOT_INTERVAL_MS.milliseconds)
         }
     }

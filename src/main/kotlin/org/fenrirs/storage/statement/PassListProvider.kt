@@ -12,7 +12,10 @@ class PassListProvider @Inject constructor(
 ) : PassListProvider {
 
     override suspend fun followedPubkeys(ownerPubkey: String): Set<String> =
-        sqlExec.filterList(FiltersX(authors = setOf(ownerPubkey), kinds = setOf(3)))
+        sqlExec.filterList(FiltersX {
+            authors = setOf(ownerPubkey)
+            kinds = setOf(3)
+        })
             ?.firstOrNull()
             ?.tags
             ?.filter { it.isNotEmpty() && it[0] == "p" && it.size > 1 }

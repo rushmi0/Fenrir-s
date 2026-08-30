@@ -4,8 +4,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 import org.fenrirs.relay.models.Event
+import org.fenrirs.storage.DatabaseFactory
 
-import java.util.Collections
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * Caches the serialized JSON body of an [Event], keyed by event id.
@@ -16,22 +17,34 @@ import java.util.Collections
  * reappear across overlapping REQ backfills. Nostr events are immutable once signed, so
  * the JSON body for a given id never changes - safe to compute once and reuse verbatim.
  *
- * Bounded + LRU: this only needs to cover the "currently fanning out / recently
- * backfilled" working set, not the relay's entire history, so it's capped well below
- * what would matter on a ~1.5 GB heap.
+ * Backed entirely by [DatabaseFactory]'s `mem:` H2 cache table, reached only through its
+ * suspend API ([DatabaseFactory.getCachedEventJson] / `putCachedEventJson` /
+ * `trimCachedEventJson`) so the blocking JDBC work runs on the virtual-thread dispatcher
+ * instead of whatever coroutine/event-loop thread called in here - same discipline as
+ * every other DB access in this codebase.
+ *
+ * Bounded well below what would matter on a ~1.5 GB heap, so this only needs to cover the
+ * "currently fanning out / recently backfilled" working set, not the relay's entire history.
  */
 internal object EventJsonCache {
 
     private const val MAX_ENTRIES = 4096
 
-    private val cache: MutableMap<String, String> =
-        Collections.synchronizedMap(object : LinkedHashMap<String, String>(256, 0.75f, true) {
-            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>?): Boolean =
-                size > MAX_ENTRIES
-        })
+    /** Trim only every Nth write so the DELETE cost is amortized, not paid per write. */
+    private const val EVICT_EVERY = 256
 
-    fun jsonFor(event: Event): String {
+    private val writeCount = AtomicLong(0)
+
+    suspend fun jsonFor(event: Event): String {
         val id = event.id ?: return Json.encodeToString(event)
-        return cache.getOrPut(id) { Json.encodeToString(event) }
+
+        DatabaseFactory.getCachedEventJson(id)?.let { return it }
+
+        val body = Json.encodeToString(event)
+        DatabaseFactory.putCachedEventJson(id, body)
+        if (writeCount.incrementAndGet() % EVICT_EVERY == 0L) {
+            DatabaseFactory.trimCachedEventJson(MAX_ENTRIES)
+        }
+        return body
     }
 }

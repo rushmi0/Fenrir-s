@@ -4,6 +4,7 @@ import io.micronaut.websocket.WebSocketSession
 
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -78,7 +79,7 @@ class BasicProtocolFlow @Inject constructor(
      * @param event เหตุการณ์ที่มี ID ซ้ำ
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับSF
      */
-    private fun handleDuplicateEvent(event: Event, session: WebSocketSession) {
+    private suspend fun handleDuplicateEvent(event: Event, session: WebSocketSession) {
         LOG.warn("[EVENT] Duplicate id={} kind={}", event.id, event.kind)
         RelayResponse.OK(event.id!!, false, "duplicate: already have this event").toClient(session)
     }
@@ -139,6 +140,10 @@ class BasicProtocolFlow @Inject constructor(
                 }
             }
             .onFailure { e ->
+                // action() suspends (DB save) - a session/connection going away mid-save cancels
+                // this coroutine, which surfaces here as a CancellationException. Rethrow it
+                // instead of logging a bogus error and trying to notify a session that's gone.
+                if (e is CancellationException) throw e
                 LOG.error("[EVENT] Failed to handle id={}", event.id, e)
                 RelayResponse.NOTICE("error: ${e.message}").toClient(session)
             }
@@ -397,7 +402,7 @@ class BasicProtocolFlow @Inject constructor(
      *
      * @param session เซสชัน WebSocket ที่ใช้ในการตอบกลับ
      */
-    fun onUnknown(session: WebSocketSession) {
+    suspend fun onUnknown(session: WebSocketSession) {
         LOG.warn("[COMMAND] Unknown command session={}", session.id)
         RelayResponse.NOTICE("Unknown command").toClient(session); session.close()
     }

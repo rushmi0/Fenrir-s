@@ -2,17 +2,16 @@ package org.fenrirs.relay.core.backup
 
 import jakarta.inject.Singleton
 
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.buildJsonArray
-import kotlinx.serialization.json.putJsonArray
-import kotlinx.serialization.json.addJsonObject
-import kotlinx.serialization.json.add
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.decodeFromJsonElement
 
 import org.fenrirs.relay.models.Event
+import org.fenrirs.relay.models.FiltersX
+import org.fenrirs.relay.models.toJson
 import org.fenrirs.utils.ExecTask
 
 import org.slf4j.LoggerFactory
@@ -79,14 +78,11 @@ class BackupRelayClient {
 
     private fun fetchFromRelay(url: String, pubkeys: Set<String>): List<Event> {
         val subId = "backfill-${UUID.randomUUID().toString().take(8)}"
-        val reqJson = buildJsonArray {
-            add("REQ")
-            add(subId)
-            addJsonObject {
-                putJsonArray("kinds") { add(0) }
-                putJsonArray("authors") { pubkeys.forEach { add(it) } }
-            }
-        }.toString()
+        val filters = FiltersX {
+            kinds = setOf(0L)
+            authors = pubkeys
+        }
+        val reqJson = "[\"REQ\",${Json.encodeToString(subId)},${filters.toJson()}]"
 
         val events = ConcurrentLinkedQueue<Event>()
         val done = CountDownLatch(1)

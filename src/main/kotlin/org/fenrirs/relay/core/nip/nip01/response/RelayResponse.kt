@@ -3,6 +3,7 @@ package org.fenrirs.relay.core.nip.nip01.response
 import io.micronaut.core.annotation.Introspected
 import io.micronaut.websocket.WebSocketSession
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -84,16 +85,8 @@ sealed class RelayResponse<out T> {
     data class AUTH(val challenge: String) : RelayResponse<Unit>()
 
 
-    /**
-     * `toJson` ใช้ในการแปลงข้อมูล ที่ใช้ในการตอบกลับจากรูปแบบ Kotlin Object ไปเป็น JSON string
-     * @return JSON string ที่ใช้ในการตอบกลับ
-     *
-     * EVENT is fast-pathed: it's the highest-volume response (every backfill row + every live
-     * push, fanned out once per matching subscriber) and its payload is immutable once signed,
-     * so the event body is pulled from [EventJsonCache] and spliced into the envelope directly
-     * instead of re-walking the whole Event object through RelayResponseSerializer every time.
-     */
-    fun toJson(): String {
+
+    suspend fun toJson(): String {
         val self = this@RelayResponse
         return if (self is EVENT) {
             "[\"EVENT\",${Json.encodeToString(self.subscriptionId)},${EventJsonCache.jsonFor(self.event)}]"
@@ -103,11 +96,8 @@ sealed class RelayResponse<out T> {
     }
 
 
-    /**
-     * `toClient` ใช้ในการส่งการตอบกลับไปยังไคลเอนต์ผ่าน WebSocket
-     * @param session ใช้ในการสื่อสารกับไคลเอนต์
-     */
-    fun toClient(session: WebSocketSession?) {
+
+    suspend fun toClient(session: WebSocketSession?) {
         val currentSession = session ?: return
         runCatching {
             if (currentSession.isOpen) {
@@ -117,6 +107,11 @@ sealed class RelayResponse<out T> {
                 LOG.debug("[CONN] Session already closed session={}", currentSession.id)
             }
         }.onFailure { e ->
+            // toJson() suspends (EventJsonCache may hit the DB) - a session/subscription being
+            // torn down mid-call cancels this coroutine, which surfaces here as a
+            // CancellationException. That must be rethrown, not logged as a failure, so the
+            // coroutine actually finishes cancelling instead of the exception getting swallowed.
+            if (e is CancellationException) throw e
             LOG.error("[CONN] Failed to send message session={}", currentSession.id, e)
         }
     }

@@ -48,7 +48,7 @@ class Gateway @Inject constructor(
 ) {
 
     @OnOpen
-    fun onOpen(session: WebSocketSession) {
+    suspend fun onOpen(session: WebSocketSession) {
         LOG.info("[CONN] Opened session={}", session.id)
         dashboardBroadcaster.broadcastConnections(connections.opened())
         if (config.AUTH_ENABLED) {
