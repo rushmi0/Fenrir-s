@@ -57,18 +57,8 @@ jobs:
 
       - uses: extractions/setup-just@v3
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: Fenrir-client/package-lock.json
-
-      - name: Install client dependencies
-        run: npm ci
-        working-directory: Fenrir-client
-
       - name: Build shadow jar
-        run: just build-client build-jvm
+        run: just build-jvm
 
       - uses: actions/upload-artifact@v4
         with:
@@ -100,23 +90,6 @@ jobs:
           echo "ref=${{ github.ref }} sha=${{ github.sha }}"
           git rev-parse HEAD
           git log -1
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: Fenrir-client/package-lock.json
-
-      - name: Install client dependencies
-        run: npm ci
-        working-directory: Fenrir-client
-
-      - name: Build client assets
-        shell: bash
-        run: |
-          npm run build --prefix Fenrir-client
-          rm -rf src/main/resources/public/assets
-          cp -r Fenrir-client/dist/. src/main/resources/public/
 
       - uses: graalvm/setup-graalvm@v1
         with:
@@ -208,23 +181,6 @@ jobs:
           git rev-parse HEAD
           git log -1
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: Fenrir-client/package-lock.json
-
-      - name: Install client dependencies
-        run: npm ci
-        working-directory: Fenrir-client
-
-      - name: Build client assets
-        shell: bash
-        run: |
-          npm run build --prefix Fenrir-client
-          rm -rf src/main/resources/public/assets
-          cp -r Fenrir-client/dist/. src/main/resources/public/
-
       - uses: graalvm/setup-graalvm@v1
         with:
           distribution: graalvm-community
@@ -269,130 +225,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: Fenrir-s-native-musl-${{ matrix.name }}
-          path: dist
-          if-no-files-found: error
-
-
-  build-native-bionic:
-    name: Native Bionic
-    runs-on: ${{ matrix.os }}
-    needs: test
-    continue-on-error: true
-    env:
-      ANDROID_BIONIC_STATIC_LIBS_URL: ${{ secrets.ANDROID_BIONIC_STATIC_LIBS_URL }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # nttld/setup-ndk only ships host binaries for linux-x64, win32-x64,
-          # darwin-arm64, darwin-x64 (Google doesn't publish a linux-aarch64 NDK
-          # host toolchain), so this must run on an x86_64 runner. The NDK's
-          # cross-compiler still targets arm64 Android from here.
-          - os: ubuntu-latest
-            name: linux-arm64
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Show build context
-        shell: bash
-        run: |
-          echo "ref=${{ github.ref }} sha=${{ github.sha }}"
-          git rev-parse HEAD
-          git log -1
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: Fenrir-client/package-lock.json
-
-      - name: Install client dependencies
-        run: npm ci
-        working-directory: Fenrir-client
-
-      - name: Build client assets
-        shell: bash
-        run: |
-          npm run build --prefix Fenrir-client
-          rm -rf src/main/resources/public/assets
-          cp -r Fenrir-client/dist/. src/main/resources/public/
-
-      - uses: graalvm/setup-graalvm@v1
-        with:
-          distribution: graalvm-community
-          java-version: 25
-          components: native-image
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          cache: gradle
-
-      - name: Install Android NDK
-        uses: nttld/setup-ndk@v1
-        id: setup-ndk
-        with:
-          ndk-version: r27c
-          add-to-path: false
-
-      # Optional: set the ANDROID_BIONIC_STATIC_LIBS_URL repo secret to a .tar.gz of a bionic
-      # static-libs bundle once one exists (e.g. built from openjdk/mobile via
-      # `make static-libs-image` for an aarch64-bionic target - as of writing, GraalVM's own
-      # labs-openjdk releases (https://github.com/graalvm/labs-openjdk/releases) ship no bionic
-      # asset at all, only amd64/amd64_musl/aarch64/riscv64/darwin/windows).
-      #
-      # native-image looks for these JDK-internal static libs (libjava.a, libnio.a, libnet.a)
-      # inside the GraalVM install itself, at lib/static/<arch>/<libc> - NOT via -H:CLibraryPath
-      # (that flag only locates target *C* libraries like libc.so/libm.so, which is a separate
-      # requirement). So the bundle's .a files are copied straight into that exact directory;
-      # anything left over (e.g. a static zlib) is still handed to CLibraryPath.
-      - name: Fetch bionic static JDK libs (if available)
-        id: fetch-bionic-libs
-        if: env.ANDROID_BIONIC_STATIC_LIBS_URL != ''
-        shell: bash
-        run: |
-          mkdir -p /tmp/bionic-static-libs
-          curl -fsSL "$ANDROID_BIONIC_STATIC_LIBS_URL" -o /tmp/bionic-libs.tar.gz
-          tar -xzf /tmp/bionic-libs.tar.gz -C /tmp/bionic-static-libs
-
-          target="$JAVA_HOME/lib/static/linux-amd64/bionic"
-          mkdir -p "$target"
-          find /tmp/bionic-static-libs -name 'lib*.a' -exec cp -n {} "$target/" \;
-
-          if [ -f "$target/libjava.a" ]; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::warning::ANDROID_BIONIC_STATIC_LIBS_URL bundle is missing libjava.a - native-image requires it for --libc=bionic. Skipping the bionic build."
-            echo "available=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - uses: gradle/actions/setup-gradle@v4
-
-      - name: Build bionic native image
-        if: steps.fetch-bionic-libs.outputs.available == 'true'
-        shell: bash
-        run: |
-          ./gradlew nativeAndroidBuild \
-            -PandroidNdkHome="${{ steps.setup-ndk.outputs.ndk-path }}" \
-            -PextraLibDir=/tmp/bionic-static-libs \
-            -Dorg.gradle.java.home="$JAVA_HOME"
-
-      - name: Skip bionic build (static JDK libs unavailable)
-        if: steps.fetch-bionic-libs.outputs.available != 'true'
-        shell: bash
-        run: |
-          echo "::notice::Skipping native Bionic build - GraalVM publishes no static JDK libraries (libjava/libnio/libnet) for the bionic libc target yet, and ANDROID_BIONIC_STATIC_LIBS_URL is not set (or its bundle is incomplete). Build one from openjdk/mobile ('make static-libs-image' targeting aarch64-bionic) and point that secret at it to enable this job."
-
-      - name: Collect binary
-        if: steps.fetch-bionic-libs.outputs.available == 'true'
-        shell: bash
-        run: |
-          mkdir -p dist
-          binary=$(find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*-relay-*' ! -name '*.txt')
-          cp "$binary" build/native/nativeOptimizedCompile/build-output.json dist/
-          find build/native/nativeOptimizedCompile -maxdepth 1 -type f -name '*.so*' -exec cp -n {} dist/ \;
-
-      - uses: actions/upload-artifact@v4
-        if: steps.fetch-bionic-libs.outputs.available == 'true'
-        with:
-          name: Fenrir-s-native-bionic-${{ matrix.name }}
           path: dist
           if-no-files-found: error
 
